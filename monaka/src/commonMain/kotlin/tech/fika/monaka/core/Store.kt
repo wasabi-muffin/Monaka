@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
  *
  * Usage pattern:
  * ```kotlin
- * val machine = store<MyState, MyAction, MyEffect>(scope) {
+ * val store = store<MyState, MyAction, MyEffect>(scope) {
  *     initialState(MyState.Idle)
  *     state<MyState.Idle> {
  *         on<MyAction.Start> { transition { MyState.Loading } }

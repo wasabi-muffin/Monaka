@@ -28,6 +28,32 @@ implementation("tech.fika:monaka:<version>")
 
 ---
 
+## Sample app
+
+The sample is grouped under `sample/`:
+
+```
+sample/
+├── shared/       Compose Multiplatform UI + state machines (Android · iOS)
+├── androidApp/   Android entry (thin MainActivity)
+└── iosApp/       Xcode project (SwiftUI shell)
+```
+
+**Android:**
+```bash
+./gradlew :sample:androidApp:assembleDebug
+# install the APK from sample/androidApp/build/outputs/apk/debug/
+```
+
+**iOS:**
+1. Open `sample/iosApp/iosApp.xcodeproj` in Xcode.
+2. Edit `sample/iosApp/Configuration/Config.xcconfig` and set `TEAM_ID=` to your Apple developer team ID (only needed for physical-device runs).
+3. Pick a simulator and run. Xcode will invoke `./gradlew :sample:shared:embedAndSignAppleFrameworkForXcode` as part of the build and link `shared.framework` automatically.
+
+The same `App()` composable in `sample/shared/src/commonMain/kotlin/tech/fika/monaka/sample/App.kt` powers both platforms. Platform-specific lifecycle observation goes through an `expect`/`actual` `BindLifecycle()` composable.
+
+---
+
 ## Quick start
 
 ```kotlin

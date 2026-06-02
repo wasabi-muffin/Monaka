@@ -37,5 +37,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Monaka"
-include(":app")
 include(":monaka")
+include(":sample:shared")
+include(":sample:androidApp")

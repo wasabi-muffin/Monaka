@@ -6,8 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # Build
-./gradlew assembleDebug              # Build app debug APK
-./gradlew :monaka:build              # Build the library (all targets)
+./gradlew :sample:androidApp:assembleDebug              # Build the Android APK
+./gradlew :monaka:build                                 # Build the library (all targets)
+./gradlew :sample:shared:assemble                       # Build the shared CMP module
+./gradlew :sample:shared:embedAndSignAppleFrameworkForXcode  # Invoked by Xcode automatically
 ./gradlew clean
 
 # Lint
@@ -16,12 +18,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-Two modules:
+The sample app is grouped under `sample/`:
 
-| Module | Plugin | Role |
-|--------|--------|------|
-| `:monaka` | `kotlin.multiplatform` + `android.library` | KMP MVI library |
-| `:app` | `kotlin.android` + `android.application` | Demo / consumer app |
+```
+Monaka/
+├── monaka/                 KMP MVI library
+└── sample/
+    ├── shared/             Shared Compose Multiplatform UI + state machines
+    ├── androidApp/         Android entry (MainActivity)
+    └── iosApp/             Xcode project (SwiftUI shell)
+```
+
+| Module / dir | Plugin | Role |
+|---|---|---|
+| `:monaka` | `kotlin.multiplatform` + `android.library` | KMP MVI library (Android · iOS · JVM) |
+| `:sample:shared` | `kotlin.multiplatform` + `android.library` + Compose Multiplatform | Sample UI + state machines, shared between platforms (Android · iOS) |
+| `:sample:androidApp` | `android.application` + `kotlin.compose` | Android entry; thin `MainActivity` that calls `App()` from `:sample:shared` |
+| `sample/iosApp/` | Xcode project (not a Gradle module) | iOS entry; SwiftUI shell wrapping `MainViewController()` from `:sample:shared`. Runs `./gradlew :sample:shared:embedAndSignAppleFrameworkForXcode` as a build phase. |
 
 ### `:monaka` — KMP StateMachine library
 
@@ -51,7 +64,7 @@ tech.fika.monaka/
 **DSL surface area:**
 
 ```kotlin
-val machine = store<MyState, MyAction, MyEffect>(scope) {
+val store = store<MyState, MyAction, MyEffect>(scope) {
     initialState(MyState.Idle)
 
     state<MyState.Idle> {
@@ -114,4 +127,23 @@ Dependencies (UseCases, Repositories) are injected via normal closure capture fr
 
 **Dependency catalog:** `gradle/libs.versions.toml`. All new dependencies go there; reference via `libs.<alias>`.
 
-**Package root:** `tech.fika.monaka` (library namespace: `tech.fika.monaka.library` to avoid R class collision with `:app`)
+**Package root:** `tech.fika.monaka` (library namespace: `tech.fika.monaka.library`; `:sample:shared` namespace: `tech.fika.monaka.sample`)
+
+### `:sample:shared` — Compose Multiplatform sample module
+
+Targets `androidTarget`, `iosArm64`, `iosSimulatorArm64`. (Intel Mac simulators / `iosX64` were dropped — Compose Multiplatform 1.11+ no longer publishes those binaries; modern Apple-silicon Macs use `iosSimulatorArm64` for the simulator.) UI lives in `commonMain` using JetBrains Compose. Lifecycle observation uses `org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose` (JetBrains' multiplatform fork of AndroidX lifecycle), so `LocalLifecycleOwner` and `LifecycleEventObserver` work directly in commonMain — no `expect`/`actual` indirection needed. `ComposeUIViewController` populates `LocalLifecycleOwner` on iOS automatically.
+
+**Cross-platform helpers in `tech.fika.monaka.sample`:**
+- `App()` — root composable with manual `Screen` enum navigation. No external nav library.
+- `rememberStore { scope -> ... }` — replaces the Android-only `ViewModel + viewModel()` pattern. Creates a `Store` tied to the composition's coroutine scope; cancels on disposal.
+- `BindLifecycle()` — single commonMain composable. Bridges `androidx.lifecycle.Lifecycle.Event` → `tech.fika.monaka.core.LifecycleEvent`.
+- `toViewStore()`, `handleEffects { }`, `render<State>()` — small Compose adapters around `Store`. `toViewStore()` uses `collectAsStateWithLifecycle()` so the UI stops collecting when the screen is backgrounded.
+- `Format.kt`: `nowMs()` (via `kotlin.time.Clock.System.now()` from the stdlib, brought in alongside `kotlinx-datetime`), `formatRelativeTime()`, `format()`, `padDigits()` — multiplatform replacements for `System.currentTimeMillis`, `SimpleDateFormat`, `String.format`.
+
+### iOS Xcode project
+
+`sample/iosApp/iosApp.xcodeproj` is a minimal Xcode project with one app target. It runs `./gradlew :sample:shared:embedAndSignAppleFrameworkForXcode` as a build phase, which produces `shared.framework` in `sample/shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)`. Swift code imports `shared` and calls `MainViewControllerKt.MainViewController()`.
+
+The framework search path in the Xcode project is `$(SRCROOT)/../shared/build/xcode-frameworks/...` — relative to `sample/iosApp/`, that resolves to `sample/shared/build/...` (siblings under `sample/`).
+
+**Bundle ID and signing** are read from `sample/iosApp/Configuration/Config.xcconfig`. Fill in `TEAM_ID=` with your Apple developer team ID before running on a physical device.

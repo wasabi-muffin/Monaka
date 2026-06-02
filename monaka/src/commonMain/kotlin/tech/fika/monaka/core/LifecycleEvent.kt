@@ -9,7 +9,7 @@ package tech.fika.monaka.core
  * ### Android (ViewModel + Lifecycle)
  * ```kotlin
  * class MyViewModel : ViewModel() {
- *     val machine = MyStateMachine(viewModelScope)
+ *     val store = MyStateMachine(viewModelScope)
  *
  *     init {
  *         // ProcessLifecycleOwner covers the whole app process:

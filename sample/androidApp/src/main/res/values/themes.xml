@@ -1,0 +1,4 @@
+<resources>
+    <!-- Activity theme. The actual UI styling is provided by MaterialTheme inside Compose. -->
+    <style name="Theme.MyApplication" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

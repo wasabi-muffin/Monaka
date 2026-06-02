@@ -16,7 +16,7 @@ import tech.fika.monaka.runtime.DefaultStore
  *
  * ### Minimal example
  * ```kotlin
- * val machine = store<CounterState, CounterAction, CounterEffect>(viewModelScope) {
+ * val store = store<CounterState, CounterAction, CounterEffect>(viewModelScope) {
  *     initialState(CounterState(count = 0))
  *
  *     state<CounterState> {
@@ -32,7 +32,7 @@ import tech.fika.monaka.runtime.DefaultStore
  * Pass [initialState] and/or [plugins] to override the values configured in [builder]:
  *
  * ```kotlin
- * val machine = store<MyState, MyAction, MyEffect>(
+ * val store = store<MyState, MyAction, MyEffect>(
  *     scope = scope,
  *     initialState = savedState,       // replaces initialState(…) in the builder block
  *     plugins = listOf(loggingPlugin), // appended after plugins installed in the builder block
