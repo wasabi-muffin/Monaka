@@ -1,0 +1,93 @@
+package tech.fika.monaka.core
+
+import tech.fika.monaka.core.State as StateMarker
+import tech.fika.monaka.core.Action as ActionMarker
+import tech.fika.monaka.core.Effect as EffectMarker
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+
+/**
+ * The core StateMachine contract.
+ *
+ * @param State  State type. Must implement [StateMarker].
+ * @param Action Action type. Must implement [ActionMarker]. Represents intents/events.
+ * @param Effect Effect type. Must implement [EffectMarker]. One-shot side effects.
+ *
+ * Usage pattern:
+ * ```kotlin
+ * val machine = store<MyState, MyAction, MyEffect>(scope) {
+ *     initialState(MyState.Idle)
+ *     state<MyState.Idle> {
+ *         on<MyAction.Start> { transition { MyState.Loading } }
+ *     }
+ * }
+ *
+ * // Observe state
+ * machine.state.collect { render(it) }
+ *
+ * // Observe effects
+ * machine.effects.collect { handle(it) }
+ *
+ * // Send actions
+ * machine.dispatch(MyAction.Start)
+ * ```
+ */
+interface Store<out State : StateMarker, Action : ActionMarker, out Effect : EffectMarker> {
+
+    val id: String
+
+    /**
+     * The current state, exposed as a [StateFlow].
+     * Always has a value; the initial emission is the configured initialState.
+     */
+    val state: StateFlow<State>
+
+    /**
+     * Every action dispatched to this machine, exposed as a [SharedFlow] with no replay.
+     *
+     * Emits in [dispatch] order, before the action is processed. Use this to observe
+     * or forward actions to another machine via [tech.fika.monaka.binder.BinderBuilder.bindAction].
+     */
+    val actions: SharedFlow<Action>
+
+    /**
+     * One-shot side effects, exposed as a [SharedFlow] with no replay.
+     *
+     * Late subscribers will not receive effects that were emitted before they
+     * started collecting. Buffer overflow is handled with extraBufferCapacity
+     * so that fast producers don't block state processing.
+     */
+    val effects: SharedFlow<Effect>
+
+    /**
+     * Enqueue an [action] for processing.
+     *
+     * Actions are processed sequentially in the order they are dispatched.
+     * This function is non-suspending and safe to call from any context,
+     * including the main thread.
+     */
+    fun dispatch(action: Action)
+
+    /**
+     * Cancel the internal processing coroutine.
+     *
+     * After cancellation, no further actions will be processed and no new
+     * state/effect emissions will occur. On Android, prefer tying the
+     * state machine's [kotlinx.coroutines.CoroutineScope] to the ViewModel lifecycle instead
+     * of calling this manually.
+     */
+    fun cancel()
+
+    /**
+     * Forward an application [LifecycleEvent] into the machine.
+     *
+     * The event is enqueued in the same sequential channel as actions, so it is
+     * processed in arrival order relative to any pending actions. State-scoped hooks
+     * registered via `onResume { }`, `onPause { }`, etc. in the DSL will fire if the
+     * machine is currently in a matching state (exact match first, then ancestor scan).
+     *
+     * The default implementation is a no-op, so stores that do not use lifecycle hooks
+     * do not need to override this.
+     */
+    fun onLifecycleEvent(event: LifecycleEvent): Unit = Unit
+}

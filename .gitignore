@@ -1,0 +1,49 @@
+# ─── Gradle ──────────────────────────────────────────────────────────────────
+.gradle/
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+# ─── Kotlin / KMP ────────────────────────────────────────────────────────────
+.kotlin/
+.konan/
+kotlin-js-store/
+
+# ─── IDE: IntelliJ / Android Studio ──────────────────────────────────────────
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# ─── Android ─────────────────────────────────────────────────────────────────
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.hprof
+
+# ─── iOS / Xcode ─────────────────────────────────────────────────────────────
+xcuserdata/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+Pods/
+DerivedData/
+
+# ─── OS noise ────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── Editor noise ────────────────────────────────────────────────────────────
+*.swp
+*.swo
+*~
+.vscode/
+
+# ─── Logs / temp ─────────────────────────────────────────────────────────────
+*.log
