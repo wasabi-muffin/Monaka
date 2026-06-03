@@ -28,69 +28,70 @@ class AssertScope<S : StateMarker, A : ActionMarker, E : EffectMarker> internal 
     inner class ActionScope<T : A>(val action: T)
     inner class EffectScope<T : E>(val effect: T)
 
-    /**
-     * Await the next state and assert equality with [state].
-     */
+    // ── State ─────────────────────────────────────────────────────────────────
+
+    /** Await the next state and assert equality with [state]. */
     suspend fun expectState(state: S) {
         states.awaitItem() shouldBe state
     }
 
-    /**
-     * Await the next state and assert it matches [T] and the optional [predicate].
-     */
+    /** Await the next state and assert it matches [T] and the optional [predicate]. */
     suspend inline fun <reified T : S> expectState(noinline predicate: StateScope<T>.() -> Boolean = { true }) {
         val item = states.awaitItem()
         val state = item.shouldBeInstanceOf<T>()
-        val scope = StateScope(state = state)
-        withClue("State $state  did not match predicate") { scope.predicate() shouldBe true }
+        withClue("State $state did not match predicate") { StateScope(state).predicate() shouldBe true }
     }
 
-    /**
-     * Await the next handler-initiated action and assert equality with [action].
-     */
-    suspend fun expectAction(action: A) {
-        actions.awaitItem() shouldBe action
+    /** Consume the next state without asserting anything about it. */
+    suspend fun skipState() {
+        states.awaitItem()
     }
 
-    /**
-     * Await the next handler-initiated action and assert it matches [T] and the optional [predicate].
-     */
-    suspend inline fun <reified T : A> expectAction(noinline predicate: ActionScope<T>.() -> Boolean = { true }) {
-        val item = actions.awaitItem()
-        val action = item.shouldBeInstanceOf<T>()
-        val scope = ActionScope(action = action)
-        withClue("Action $action did not match predicate") { scope.predicate() shouldBe true }
-    }
+    // ── Effect ────────────────────────────────────────────────────────────────
 
-    /**
-     * Assert that no handler-initiated action has been emitted yet.
-     */
-    suspend fun expectNoAction() {
-        actions.expectNoEvents()
-    }
-
-
-    /**
-     * Await the next effect and assert equality with [effect].
-     */
+    /** Await the next effect and assert equality with [effect]. */
     suspend fun expectEffect(effect: E) {
         effects.awaitItem() shouldBe effect
     }
 
-    /**
-     * Await the next effect and assert it matches [T] and the optional [predicate].
-     */
+    /** Await the next effect and assert it matches [T] and the optional [predicate]. */
     suspend inline fun <reified T : E> expectEffect(noinline predicate: EffectScope<T>.() -> Boolean = { true }) {
         val item = effects.awaitItem()
         val effect = item.shouldBeInstanceOf<T>()
-        val scope = EffectScope(effect = effect)
-        withClue("Effect $effect did not match predicate") { scope.predicate() shouldBe true }
+        withClue("Effect $effect did not match predicate") { EffectScope(effect).predicate() shouldBe true }
     }
 
-    /**
-     * Assert that no effect has been emitted yet.
-     */
+    /** Consume the next effect without asserting anything about it. */
+    suspend fun skipEffect() {
+        effects.awaitItem()
+    }
+
+    /** Assert that no effect has been emitted yet. */
     suspend fun expectNoEffects() {
         effects.expectNoEvents()
+    }
+
+    // ── Action ────────────────────────────────────────────────────────────────
+
+    /** Await the next handler-initiated action and assert equality with [action]. */
+    suspend fun expectAction(action: A) {
+        actions.awaitItem() shouldBe action
+    }
+
+    /** Await the next handler-initiated action and assert it matches [T] and the optional [predicate]. */
+    suspend inline fun <reified T : A> expectAction(noinline predicate: ActionScope<T>.() -> Boolean = { true }) {
+        val item = actions.awaitItem()
+        val action = item.shouldBeInstanceOf<T>()
+        withClue("Action $action did not match predicate") { ActionScope(action).predicate() shouldBe true }
+    }
+
+    /** Consume the next handler-initiated action without asserting anything about it. */
+    suspend fun skipAction() {
+        actions.awaitItem()
+    }
+
+    /** Assert that no handler-initiated action has been emitted yet. */
+    suspend fun expectNoAction() {
+        actions.expectNoEvents()
     }
 }
