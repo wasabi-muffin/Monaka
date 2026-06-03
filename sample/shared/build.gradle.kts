@@ -16,6 +16,8 @@ kotlin {
         }
     }
 
+    jvm()
+
     // Compose Multiplatform 1.11+ no longer publishes iosX64 binaries (Intel Mac
     // simulators). Apple-silicon Macs (M1+) use iosSimulatorArm64 for the simulator
     // and iosArm64 for physical devices.
@@ -46,6 +48,10 @@ kotlin {
             implementation(compose.materialIconsExtended)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
+        }
+        commonTest.dependencies {
+            implementation(project(":monaka-test"))
+            implementation(kotlin("test"))
         }
         androidMain.dependencies {
             implementation(libs.kotlinx.coroutines.android)

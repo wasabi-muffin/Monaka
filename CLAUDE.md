@@ -147,3 +147,79 @@ Targets `androidTarget`, `iosArm64`, `iosSimulatorArm64`. (Intel Mac simulators 
 The framework search path in the Xcode project is `$(SRCROOT)/../shared/build/xcode-frameworks/...` — relative to `sample/iosApp/`, that resolves to `sample/shared/build/...` (siblings under `sample/`).
 
 **Bundle ID and signing** are read from `sample/iosApp/Configuration/Config.xcconfig`. Fill in `TEAM_ID=` with your Apple developer team ID before running on a physical device.
+
+### `:monaka-test` — Test DSL for StateMachines
+
+**Targets:** same as `:monaka` (Android · iOS · JVM). Depends on `app.cash.turbine` and `kotlinx-coroutines-test`.
+
+Add to your module's `commonTest` source set:
+
+```kotlin
+commonTest.dependencies {
+    implementation(project(":monaka-test"))
+    implementation(kotlin("test"))
+}
+```
+
+**Entry point — `testStore`:**
+
+Pass a `StateMachine` instance (built with `stateMachine { }`) and define one or more named scenarios. Each scenario constructs an isolated `Store` and tears it down automatically.
+
+```kotlin
+@Test
+fun loginFlow() = testStore(machine = LoginStateMachine(fakeRepo)) {
+    scenario("happy-path login") {
+        given(LoginState.Typing(username = "alice", password = "secret"))
+
+        trigger(LoginAction.Submit) {
+            expectState<LoginState.Submitting>()
+            expectState<LoginState.Authenticated> { it.username == "alice" }
+            expectEffect(LoginEffect.NavigateToHome)
+        }
+
+        trigger(LoginAction.Logout) {
+            expectState<LoginState.Idle>()
+            expectEffect(LoginEffect.NavigateToLogin)
+        }
+    }
+
+    scenario("another scenario gets a fresh store") { … }
+}
+```
+
+**DSL reference:**
+
+| Call | Where | Meaning |
+|---|---|---|
+| `given(state)` | scenario body, before first trigger | Override the machine's `initialState` |
+| `trigger(action) { … }` | scenario body | Dispatch an action; assert in the block |
+| `trigger(LifecycleEvent) { … }` | scenario body | Forward a lifecycle event; assert in the block |
+| `expectState<T> { predicate }` | trigger block | Assert next state is `T` matching optional predicate |
+| `expectEffect(e)` | trigger block | Assert next effect equals `e` |
+| `expectNoEffects()` | trigger block | Assert no effect is pending |
+| `expectAction(a)` | trigger block | Assert next handler-initiated `dispatch(action)` equals `a` |
+| `expectNoAction()` | trigger block | Assert no handler-initiated dispatch is pending |
+
+`expectIdle()` — that all three streams (states, effects, handler actions) are drained — runs **automatically** at the end of every scenario. Pass `exhaustive = false` to opt out:
+
+```kotlin
+scenario("non-exhaustive", exhaustive = false) { … }
+```
+
+**`Store` vs `StateMachine`:**
+
+`testStore` requires a `StateMachine<S, A, E>` (built with `stateMachine { }`). Classes that delegate from `store(scope, …)` directly (e.g. `CounterStateMachine`) carry a `CoroutineScope` and must be re-expressed as a `stateMachine { }` value for testing:
+
+```kotlin
+// In the test file — mirrors the production handlers without the scope
+private val counterMachine = stateMachine<CounterState, CounterAction, CounterEffect> {
+    initialState(CounterState(count = 0))
+    state<CounterState> {
+        on<CounterAction.Increment> { transition { state.copy(count = state.count + 1) } }
+        …
+    }
+}
+
+@Test
+fun increment() = testStore(machine = counterMachine) { … }
+```
