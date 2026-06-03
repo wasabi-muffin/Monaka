@@ -3,6 +3,7 @@ agp = "9.1.1"
 kotlin = "2.3.21"
 coroutines = "1.11.0"
 turbine = "1.2.1"
+kotest = "5.9.1"
 composeMultiplatform = "1.11.1"
 datetime = "0.8.0"
 lifecycleMultiplatform = "2.10.0"
@@ -19,6 +20,7 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 
 # Testing
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+kotest-assertions = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
 
 # Multiplatform
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "datetime" }

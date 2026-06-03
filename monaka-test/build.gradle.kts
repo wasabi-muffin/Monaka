@@ -30,6 +30,7 @@ kotlin {
             api(project(":monaka"))
             api(libs.kotlinx.coroutines.test)
             api(libs.turbine)
+            api(libs.kotest.assertions)
             implementation(libs.kotlinx.coroutines.core)
         }
         commonTest.dependencies {

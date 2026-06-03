@@ -1,6 +1,9 @@
 package tech.fika.monaka.test
 
 import app.cash.turbine.ReceiveTurbine
+import io.kotest.assertions.withClue
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
 import tech.fika.monaka.core.State as StateMarker
@@ -17,24 +20,39 @@ import tech.fika.monaka.core.State as StateMarker
  */
 class AssertScope<S : StateMarker, A : ActionMarker, E : EffectMarker> internal constructor(
     @PublishedApi internal val states: ReceiveTurbine<S>,
-    internal val effects: ReceiveTurbine<E>,
-    internal val actions: ReceiveTurbine<A>,
+    @PublishedApi internal val effects: ReceiveTurbine<E>,
+    @PublishedApi internal val actions: ReceiveTurbine<A>,
 ) {
+    /**
+     * Await the next state and assert equality with [state].
+     */
+    suspend fun expectState(state: S) {
+        states.awaitItem() shouldBe state
+    }
+
     /**
      * Await the next state and assert it matches [T] and the optional [predicate].
      */
     suspend inline fun <reified T : S> expectState(noinline predicate: (T) -> Boolean = { true }) {
         val item = states.awaitItem()
-        check(item is T) { "Expected state of type ${T::class.simpleName}, got $item" }
-        check(predicate(item)) { "State $item did not match predicate" }
+        val typed = item.shouldBeInstanceOf<T>()
+        withClue("State $typed did not match predicate") { predicate(typed) shouldBe true }
     }
 
     /**
      * Await the next effect and assert equality with [effect].
      */
     suspend fun expectEffect(effect: E) {
+        effects.awaitItem() shouldBe effect
+    }
+
+    /**
+     * Await the next effect and assert it matches [T] and the optional [predicate].
+     */
+    suspend inline fun <reified T : E> expectEffect(noinline predicate: (T) -> Boolean = { true }) {
         val item = effects.awaitItem()
-        check(item == effect) { "Expected effect $effect, got $item" }
+        val typed = item.shouldBeInstanceOf<T>()
+        withClue("Effect $typed did not match predicate") { predicate(typed) shouldBe true }
     }
 
     /**
@@ -48,8 +66,16 @@ class AssertScope<S : StateMarker, A : ActionMarker, E : EffectMarker> internal 
      * Await the next handler-initiated action and assert equality with [action].
      */
     suspend fun expectAction(action: A) {
+        actions.awaitItem() shouldBe action
+    }
+
+    /**
+     * Await the next handler-initiated action and assert it matches [T] and the optional [predicate].
+     */
+    suspend inline fun <reified T : A> expectAction(noinline predicate: (T) -> Boolean = { true }) {
         val item = actions.awaitItem()
-        check(item == action) { "Expected dispatched action $action, got $item" }
+        val typed = item.shouldBeInstanceOf<T>()
+        withClue("Action $typed did not match predicate") { predicate(typed) shouldBe true }
     }
 
     /**
