@@ -93,6 +93,17 @@ interface Store<out State : StateMarker, Action : ActionMarker, out Effect : Eff
     fun onLifecycleEvent(event: LifecycleEvent): Unit = Unit
 
     /**
+     * Fire a state-lifecycle [hook] for the current state directly, without requiring a transition.
+     *
+     * Enqueued in the same sequential channel as actions and lifecycle events, so it is
+     * processed in arrival order. The hook fires the same handler that would run during a
+     * real transition — `onEnter`, `onExit`, or `onUpdate` registered for the current state.
+     *
+     * Primarily intended for testing via `:monaka-test`'s `trigger(StateHook)` DSL.
+     */
+    fun triggerStateHook(hook: StateHook): Unit = Unit
+
+    /**
      * Register a [handler] to be invoked when this store's scope completes (including cancellation).
      *
      * The handler receives the cancellation cause, or `null` if the scope completed normally.

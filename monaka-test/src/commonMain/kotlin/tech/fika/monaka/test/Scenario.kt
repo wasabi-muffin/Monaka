@@ -3,6 +3,7 @@ package tech.fika.monaka.test
 import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.testIn
 import app.cash.turbine.turbineScope
+import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -11,10 +12,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import io.kotest.assertions.withClue
 import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
 import tech.fika.monaka.core.LifecycleEvent
 import tech.fika.monaka.core.State as StateMarker
+import tech.fika.monaka.core.StateHook
 import tech.fika.monaka.core.Store
 import tech.fika.monaka.dsl.StateMachine
 import tech.fika.monaka.dsl.store
@@ -75,7 +78,7 @@ class TestStoreScope<S : StateMarker, A : ActionMarker, E : EffectMarker> intern
             )
             var bodyFailed = false
             try {
-                builder.body()
+                withClue("Scenario: $name") { builder.body() }
             } catch (t: Throwable) {
                 bodyFailed = true
                 throw t
@@ -151,6 +154,40 @@ class ScenarioBuilder<S : StateMarker, A : ActionMarker, E : EffectMarker> inter
         val s = ensureStartedAndSubscribed()
         s.onLifecycleEvent(event)
         testScope.testScheduler.runCurrent()
+        AssertScope(stateTurbine!!, effectTurbine!!, actionTurbine!!).block()
+    }
+
+    /**
+     * Fire a state-lifecycle [hook] for the current state and run [block] to assert on
+     * subsequent emissions.
+     *
+     * - [StateHook.OnEnter] fires the `onEnter { }` handler registered for the current state.
+     * - [StateHook.OnExit] fires the `onExit { }` handler registered for the current state.
+     * - [StateHook.OnRepeat] fires the `onUpdate { }` handler registered for the current state.
+     */
+    suspend fun trigger(
+        hook: StateHook,
+        block: suspend AssertScope<S, A, E>.() -> Unit = {},
+    ) {
+        val s = ensureStartedAndSubscribed()
+        s.triggerStateHook(hook)
+        testScope.testScheduler.runCurrent()
+        AssertScope(stateTurbine!!, effectTurbine!!, actionTurbine!!).block()
+    }
+
+    /**
+     * Advance virtual time by [duration] and run [block] to assert on subsequent emissions.
+     *
+     * Use this to drive time-based behaviour such as `delay`-backed tickers or debounces
+     * that live inside `launch { }` handlers. Unlike [trigger], no action is dispatched —
+     * the store advances purely because time passed.
+     */
+    suspend fun advanceTime(
+        duration: Duration,
+        block: suspend AssertScope<S, A, E>.() -> Unit = {},
+    ) {
+        ensureStartedAndSubscribed()
+        testScope.testScheduler.advanceTimeBy(duration)
         AssertScope(stateTurbine!!, effectTurbine!!, actionTurbine!!).block()
     }
 

@@ -1,7 +1,9 @@
 package tech.fika.monaka.examples.timer
 
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 import tech.fika.monaka.core.LifecycleEvent
+import tech.fika.monaka.core.StateHook
 import tech.fika.monaka.test.testStore
 
 class TimerStateMachineTest {
@@ -148,6 +150,96 @@ class TimerStateMachineTest {
             )
 
             trigger(LifecycleEvent.OnResume) {
+                expectNoAction()
+            }
+        }
+    }
+
+    @Test
+    fun tickerDispatchesEverySecondUntilFinished() = testStore(machine = TimerStateMachine()) {
+        scenario("ticker decrements remaining seconds each second and finishes at zero") {
+            trigger(TimerAction.SetDuration(seconds = 3)) {
+                expectState<TimerState.Idle> { state.durationSeconds == 3 }
+            }
+            trigger(TimerAction.Start) {
+                expectState<TimerState.Running> { state.remainingSeconds == 3 }
+            }
+
+            advanceTime(1.seconds) {
+                expectAction<TimerAction.Tick>()
+                expectState<TimerState.Running> { state.remainingSeconds == 2 }
+            }
+
+            advanceTime(1.seconds) {
+                expectAction<TimerAction.Tick>()
+                expectState<TimerState.Running> { state.remainingSeconds == 1 }
+            }
+
+            advanceTime(1.seconds) {
+                expectAction<TimerAction.Tick>()
+                expectState<TimerState.Finished> { state.totalSeconds == 3 }
+                expectEffect(TimerEffect.Completed)
+            }
+        }
+    }
+
+    @Test
+    fun tickerStopsOnPauseAndResumesOnResume() = testStore(machine = TimerStateMachine()) {
+        scenario("ticker stops when paused and restarts when resumed") {
+            given(TimerState.Running(remainingSeconds = 10, totalSeconds = 60, autoPause = true))
+
+            trigger(StateHook.OnEnter)
+
+            advanceTime(1.seconds) {
+                expectAction<TimerAction.Tick>()
+                expectState<TimerState.Running> { state.remainingSeconds == 9 }
+            }
+
+            trigger(TimerAction.Pause) {
+                expectState<TimerState.Paused> { state.remainingSeconds == 9 }
+            }
+
+            // No Tick should fire while paused
+            advanceTime(3.seconds) {
+                expectNoAction()
+            }
+
+            trigger(TimerAction.Resume) {
+                expectState<TimerState.Running> { state.remainingSeconds == 9 }
+            }
+
+            advanceTime(1.seconds) {
+                expectAction<TimerAction.Tick>()
+                expectState<TimerState.Running> { state.remainingSeconds == 8 }
+            }
+        }
+    }
+
+    @Test
+    fun onEnterStartsTickerInRunningState() = testStore(machine = TimerStateMachine()) {
+        scenario("OnEnter fires the onEnter hook for Running, starting the tick coroutine") {
+            given(TimerState.Running(remainingSeconds = 5, totalSeconds = 5, autoPause = false))
+
+            trigger(StateHook.OnEnter) {}
+
+            advanceTime(1.seconds) {
+                expectAction<TimerAction.Tick>()
+                expectState<TimerState.Running> { state.remainingSeconds == 4 }
+            }
+        }
+    }
+
+    @Test
+    fun onExitCancelsTickerInRunningState() = testStore(machine = TimerStateMachine()) {
+        scenario("OnExit fires the onExit hook for Running, cancelling the tick coroutine") {
+            given(TimerState.Running(remainingSeconds = 5, totalSeconds = 5, autoPause = false))
+
+            // Start the ticker via OnEnter then immediately cancel it via OnExit
+            trigger(StateHook.OnEnter)
+            trigger(StateHook.OnExit)
+
+            // No ticks should fire after exit cancels the coroutine
+            advanceTime(3.seconds) {
                 expectNoAction()
             }
         }

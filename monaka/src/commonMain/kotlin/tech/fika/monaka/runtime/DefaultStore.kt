@@ -16,6 +16,7 @@ import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
 import tech.fika.monaka.core.LifecycleEvent
 import tech.fika.monaka.core.State as StateMarker
+import tech.fika.monaka.core.StateHook
 import tech.fika.monaka.core.Store
 import tech.fika.monaka.dsl.ActionScope
 import tech.fika.monaka.dsl.ErrorScope
@@ -98,6 +99,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
             when (trigger) {
                 is Trigger.Action -> processAction(action = trigger.action)
                 is Trigger.Lifecycle -> processLifecycleEvent(trigger.event)
+                is Trigger.Hook -> processStateHook(trigger.hook)
             }
         }
     }
@@ -114,6 +116,10 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
 
     override fun onLifecycleEvent(event: LifecycleEvent) {
         triggers.trySend(element = Trigger.Lifecycle(event = event))
+    }
+
+    override fun triggerStateHook(hook: StateHook) {
+        triggers.trySend(element = Trigger.Hook(hook = hook))
     }
 
     override fun cancel() {
@@ -141,6 +147,26 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
             scope = lifecycleScope(state = currentState),
             state = currentState,
         )
+    }
+
+    private suspend fun processStateHook(hook: StateHook) {
+        when (hook) {
+            StateHook.OnEnter -> resolveHandler(handlerMap = enterHandlers, state = currentState)?.handle(
+                handlerType = HandlerType.Hook.Enter,
+                scope = stateChangeScope(state = currentState),
+                state = currentState,
+            )
+            StateHook.OnExit -> resolveHandler(handlerMap = exitHandlers, state = currentState)?.handle(
+                handlerType = HandlerType.Hook.Exit,
+                scope = stateChangeScope(state = currentState),
+                state = currentState,
+            )
+            StateHook.OnRepeat -> resolveHandler(handlerMap = updateHandlers, state = currentState)?.handle(
+                handlerType = HandlerType.Hook.Update,
+                scope = updateHandlerScope(fromState = currentState, toState = currentState),
+                state = currentState,
+            )
+        }
     }
 
     private suspend fun processEffects(effects: List<Effect>) = effects.forEach { effect ->
