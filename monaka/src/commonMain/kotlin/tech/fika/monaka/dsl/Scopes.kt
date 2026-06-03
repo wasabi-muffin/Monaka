@@ -172,7 +172,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
 
     /**
      * Mark the action as rejected. Plugins are notified via
-     * [tech.fika.monaka.plugin.Plugin.onInvalid]; no state change or effect emission occurs.
+     * [tech.fika.monaka.plugin.Plugin.onRejected]; no state change or effect emission occurs.
      *
      * Terminal: all subsequent [transition], [sideEffect], [dispatch], [task], and [cancel]
      * calls in the same handler become no-ops.

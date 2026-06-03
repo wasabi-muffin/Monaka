@@ -27,7 +27,7 @@ import tech.fika.monaka.plugin.Plugin
  * 1. Look for a handler registered under the **exact runtime class** of the current state.
  * 2. Walk up the supertype hierarchy (BFS), checking each ancestor class in order
  *    of proximity. The closest registered ancestor wins.
- * 3. If nothing matches, notify plugins via [Plugin.onInvalid] and skip.
+ * 3. If nothing matches, notify plugins via [Plugin.onRejected] and skip.
  *
  * The same lookup order applies to state lifecycle hooks ([StateBuilder.onEnter],
  * [StateBuilder.onExit], [StateBuilder.onUpdate]) and application lifecycle hooks

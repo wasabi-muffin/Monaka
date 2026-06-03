@@ -32,7 +32,7 @@ class RelayScope<out Event> @PublishedApi internal constructor(
      * Note: in this form [action] is typed as the [ActionMarker] base rather than [S]'s
      * specific action type — Kotlin cannot infer the action type while [S] is given explicitly.
      * An action the target store has no handler for is treated as unhandled (see
-     * [tech.fika.monaka.plugin.Plugin.onInvalid]); it does not throw. Use the [KClass] overload
+     * [tech.fika.monaka.plugin.Plugin.onRejected]); it does not throw. Use the [KClass] overload
      * below when you want the compiler to verify the action belongs to the target store.
      */
     inline fun <reified S : Store<*, *, *>> dispatch(action: ActionMarker, id: String? = null) {

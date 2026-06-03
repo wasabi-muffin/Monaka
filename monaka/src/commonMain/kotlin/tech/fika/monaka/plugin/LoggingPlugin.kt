@@ -50,7 +50,7 @@ class LoggingPlugin<State : StateMarker, Action : ActionMarker, Effect : EffectM
         logger.log(tag = tag, message = "[$tag]   EFFECT  : $effect")
     }
 
-    override fun onInvalid(currentState: State, action: Action) {
+    override fun onRejected(currentState: State, action: Action) {
         logger.log(tag = tag, message = "[$tag] ⚠ UNHANDLED: $action  (state: ${currentState::class.simpleName})")
     }
 

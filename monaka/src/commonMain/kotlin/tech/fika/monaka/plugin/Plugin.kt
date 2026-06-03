@@ -42,12 +42,12 @@ interface Plugin<State : StateMarker, Action : ActionMarker, Effect : EffectMark
     fun onTransition(fromState: State, toState: State): Unit = Unit
 
     /**
-     * Called when no handler is registered for the [action] in the current [currentState],
+     * Called when no handler is registered for the [handlerType] in the current [currentState],
      * or when a handler produces a [tech.fika.monaka.handler.HandlerResult.Rejected] result.
      *
      * This is informational; no state change occurs.
      */
-    fun onInvalid(currentState: State, action: Action): Unit = Unit
+    fun onRejected(currentState: State, handlerType: HandlerType<Action>): Unit = Unit
 
     /**
      * Called when a handler throws an exception.

@@ -12,7 +12,7 @@ import tech.fika.monaka.core.State as StateMarker
  * - [Transition]  — move to a new state, optionally emitting [Transition.effects].
  * - [SideEffect]  — state unchanged, emit [SideEffect.effects].
  * - [Rejected]    — guard condition failed; state unchanged, plugins notified via
- *                   [tech.fika.monaka.plugin.Plugin.onInvalid].
+ *                   [tech.fika.monaka.plugin.Plugin.onRejected].
  * - [Done]        — terminal no-op; state unchanged, no effects, no plugin notification.
  *                   Returned by [tech.fika.monaka.dsl.HandlerScope.dispatch],
  *                   [tech.fika.monaka.dsl.HandlerScope.task], and
@@ -46,7 +46,7 @@ sealed interface HandlerResult<out State : StateMarker, out Effect : EffectMarke
     /**
      * A guard condition failed — state unchanged, no effects emitted.
      *
-     * Notifies plugins via [tech.fika.monaka.plugin.Plugin.onInvalid].
+     * Notifies plugins via [tech.fika.monaka.plugin.Plugin.onRejected].
      * Use when the action is not applicable in the current state.
      */
     data object Rejected : HandlerResult<Nothing, Nothing>

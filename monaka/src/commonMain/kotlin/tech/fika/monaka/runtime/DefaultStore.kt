@@ -49,7 +49,7 @@ import tech.fika.monaka.plugin.Plugin
  *
  * ### Keyed job lifecycle
  * All tasks (`task(...) { }`) are tracked in [jobRegistry]. Keyed jobs must be
- * explicitly cancelled via `cancel(key)` in `onExit` hooks or action handlers, unless
+ * explicitly canceled via `cancel(key)` in `onExit` hooks or action handlers, unless
  * they were started with `autoCancel = true`, in which case the runtime cancels them
  * automatically when the state type changes (just before firing `onExit`).
  *
@@ -135,11 +135,12 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     // ── Processing ────────────────────────────────────────────────────────────
 
     private suspend fun processAction(action: Action) {
+        val handlerType = HandlerType.Action(action = action)
         resolveActionHandler(state = currentState, action = action)?.handle(
-            handlerType = HandlerType.Action(action = action),
+            handlerType = handlerType,
             scope = actionScope(state = currentState, action = action),
             state = currentState,
-        ) ?: plugins.forEach { it.onInvalid(currentState = currentState, action = action) }
+        ) ?: plugins.forEach { it.onRejected(currentState = currentState, handlerType = handlerType) }
     }
 
     private suspend fun processLifecycleEvent(event: LifecycleEvent) {
@@ -157,11 +158,13 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
                 scope = stateChangeScope(state = currentState),
                 state = currentState,
             )
+
             StateHook.OnExit -> resolveHandler(handlerMap = exitHandlers, state = currentState)?.handle(
                 handlerType = HandlerType.Hook.Exit,
                 scope = stateChangeScope(state = currentState),
                 state = currentState,
             )
+
             StateHook.OnRepeat -> resolveHandler(handlerMap = updateHandlers, state = currentState)?.handle(
                 handlerType = HandlerType.Hook.Update,
                 scope = updateHandlerScope(fromState = currentState, toState = currentState),
@@ -194,7 +197,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         when (result) {
             is HandlerResult.Transition -> processTransition(fromState = fromState, handlerType = handlerType, transition = result)
             is HandlerResult.SideEffect -> processEffects(effects = result.effects)
-            HandlerResult.Rejected -> processRejected(fromState = fromState, action = action)
+            HandlerResult.Rejected -> processRejected(fromState = fromState, handlerType = handlerType)
             HandlerResult.Done -> Unit
         }
     }
@@ -214,10 +217,8 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         }
     }
 
-    private fun processRejected(fromState: State, action: Action? = null) {
-        if (action != null) {
-            plugins.forEach { it.onInvalid(currentState = fromState, action = action) }
-        }
+    private fun processRejected(fromState: State, handlerType: HandlerType<Action>) {
+        plugins.forEach { it.onRejected(currentState = fromState, handlerType = handlerType) }
     }
 
     /**
@@ -261,10 +262,9 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
      * Safe to call without synchronization — [ancestorCache] is only ever written from
      * the single sequential processing coroutine.
      */
-    private fun ancestorsFor(state: State): List<KClass<*>> =
-        ancestorCache.getOrPut(state::class) {
-            handlerKeySet.filter { it != state::class && it.isInstance(state) }
-        }
+    private fun ancestorsFor(state: State): List<KClass<*>> = ancestorCache.getOrPut(state::class) {
+        handlerKeySet.filter { it != state::class && it.isInstance(state) }
+    }
 
     /**
      * Resolve the handler for the given [state] + [action] pair.
@@ -273,7 +273,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
      * 1. Exact state match — `actionHandlers[state::class][action::class]`
      * 2. Registered ancestor classes in insertion order, via [ancestorsFor].
      *    Register more-specific parent blocks after leaf blocks to control priority.
-     * 3. `null` → [Plugin.onInvalid] is called and the action is dropped.
+     * 3. `null` → [Plugin.onRejected] is called and the action is dropped.
      */
     private fun resolveActionHandler(state: State, action: Action): ActionHandler<State, Action, Effect>? {
         actionHandlers[state::class]?.get(key = action::class)?.let { return it }
