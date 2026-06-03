@@ -139,22 +139,26 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
     val keys: Set<KClass<*>> get() = stores.keys.toSet()
 
     /**
-     * Retrieve all registered instances of [kClass].
+     * Retrieve a snapshot of all registered instances of [kClass].
      *
+     * The returned list is an independent copy taken at call time: it never reflects later
+     * registrations or removals, and mutating the registry while iterating it is safe.
      * Returns an empty list if none are registered.
      */
     @Suppress("UNCHECKED_CAST")
     fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> getAll(
         kClass: KClass<out Store<State, Action, Effect>>,
     ): List<Store<State, Action, Effect>> =
-        (stores[kClass] as? List<Store<State, Action, Effect>>) ?: emptyList()
+        (stores[kClass] as? List<Store<State, Action, Effect>>)?.toList() ?: emptyList()
 
     /**
      * Retrieve the first registered instance of [kClass], or `null` if none are registered.
      */
+    @Suppress("UNCHECKED_CAST")
     fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> get(
         kClass: KClass<out Store<State, Action, Effect>>,
-    ): Store<State, Action, Effect>? = getAll(kClass = kClass).firstOrNull()
+    ): Store<State, Action, Effect>? =
+        stores[kClass]?.firstOrNull() as? Store<State, Action, Effect>
 
     /**
      * Retrieve the registered instance with the given [id], or `null` if not found.
@@ -179,3 +183,28 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
 fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> Store<State, Action, Effect>.register(
     registry: StoreRegistry,
 ): Store<State, Action, Effect> = also(registry::register)
+
+/**
+ * Register this store in [registry] and automatically cancel it and [StoreRegistry.unregister]
+ * it when the store's own scope completes.
+ *
+ * The unregister hook is idempotent, so a later manual [StoreRegistry.unregister] is a harmless
+ * no-op. If the store's scope is already completed when this is called, the store is registered
+ * and then immediately unregistered.
+ *
+ * ```kotlin
+ * val cart = CartStore(cartMachine, scope = viewModelScope)
+ *     .registerScoped(registry)
+ * ```
+ */
+fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> Store<State, Action, Effect>.registerScoped(
+    registry: StoreRegistry,
+): Store<State, Action, Effect> {
+    val store = this
+    registry.register(store = store)
+    invokeOnCompletion {
+        store.cancel()
+        registry.unregister(store = store)
+    }
+    return store
+}

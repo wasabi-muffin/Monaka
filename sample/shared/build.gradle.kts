@@ -38,6 +38,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.datetime)
             implementation(libs.lifecycle.runtime.compose)
+            implementation(libs.lifecycle.viewmodel)
 
             implementation(compose.runtime)
             implementation(compose.foundation)

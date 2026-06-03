@@ -2,6 +2,7 @@ package tech.fika.monaka.runtime
 
 import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
@@ -119,6 +121,9 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         processingJob.cancel()
         triggers.close()
     }
+
+    override fun invokeOnCompletion(handler: (cause: Throwable?) -> Unit): DisposableHandle =
+        machineScope.coroutineContext.job.invokeOnCompletion(handler)
 
     // ── Processing ────────────────────────────────────────────────────────────
 

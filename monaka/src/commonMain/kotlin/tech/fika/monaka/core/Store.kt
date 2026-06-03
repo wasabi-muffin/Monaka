@@ -3,6 +3,7 @@ package tech.fika.monaka.core
 import tech.fika.monaka.core.State as StateMarker
 import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
+import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -90,4 +91,12 @@ interface Store<out State : StateMarker, Action : ActionMarker, out Effect : Eff
      * do not need to override this.
      */
     fun onLifecycleEvent(event: LifecycleEvent): Unit = Unit
+
+    /**
+     * Register a [handler] to be invoked when this store's scope completes (including cancellation).
+     *
+     * The handler receives the cancellation cause, or `null` if the scope completed normally.
+     * Use this to observe store lifetime without needing to hold a reference to the underlying scope.
+     */
+    fun invokeOnCompletion(handler: (cause: Throwable?) -> Unit): DisposableHandle
 }
