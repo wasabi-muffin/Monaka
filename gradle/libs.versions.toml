@@ -2,6 +2,7 @@
 agp = "9.1.1"
 kotlin = "2.3.21"
 coroutines = "1.11.0"
+turbine = "1.2.1"
 composeMultiplatform = "1.11.1"
 datetime = "0.8.0"
 lifecycleMultiplatform = "2.10.0"
@@ -14,6 +15,10 @@ activityCompose = "1.13.0"
 # Coroutines
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+
+# Testing
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 
 # Multiplatform
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "datetime" }
