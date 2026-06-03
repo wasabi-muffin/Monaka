@@ -62,7 +62,7 @@ private fun HomeScreen(onSelect: (Screen) -> Unit) {
             ExampleCard(Screen.Login, "Login",
                 "Authentication flow with form validation and async credential check.", onSelect)
             ExampleCard(Screen.Checkout, "Checkout",
-                "Three machines (Auth, Cart, Checkout) coordinated via StoreRegistry and Binders.", onSelect)
+                "Three machines (Auth, Cart, Checkout) coordinated via StoreRegistry and Relays.", onSelect)
             ExampleCard(Screen.LiveFeed, "Live Feed",
                 "Search with debounce, live polling, and exponential back-off retry.", onSelect)
             ExampleCard(Screen.Timer, "Countdown Timer",

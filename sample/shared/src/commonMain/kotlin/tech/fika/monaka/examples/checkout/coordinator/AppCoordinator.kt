@@ -1,7 +1,6 @@
 package tech.fika.monaka.examples.checkout.coordinator
 
 import kotlinx.coroutines.CoroutineScope
-import tech.fika.monaka.binder.Binder
 import tech.fika.monaka.examples.checkout.data.AuthRepository
 import tech.fika.monaka.examples.checkout.auth.AuthStateMachine
 import tech.fika.monaka.examples.checkout.auth.AuthStore
@@ -22,37 +21,36 @@ import tech.fika.monaka.runtime.register
 //   CheckoutStateMachine   — payment flow
 //
 // The machines are unaware of each other. AppCoordinator wires them using
-// [Binder]s so that:
+// [Relay]s, grouped by source store, so that:
 //
-//   AuthStateMachine (state: SignedIn)    ──▶ CartStateMachine  (LoadForUser)
-//   AuthStateMachine (state: SignedOut)   ──▶ CartStateMachine  (Clear)
-//   AuthStateMachine (state: SignedOut)   ──▶ CheckoutStateMachine (Cancel)
-//   CartStateMachine (effect: CartChanged)──▶ CheckoutStateMachine (SyncCart)
-//   CheckoutStateMachine (state: Done)    ──▶ CartStateMachine  (Clear)
+//   AuthStore     (state: SignedIn)    ──▶ CartStore      (LoadForUser)
+//   AuthStore     (state: SignedOut)   ──▶ CartStore      (Clear)
+//   AuthStore     (state: SignedOut)   ──▶ CheckoutStore  (Cancel)
+//   CartStore     (effect: CartChanged)──▶ CheckoutStore  (SyncCart)
+//   CheckoutStore (state: Done)        ──▶ CartStore      (Clear)
 //
-// Each bridge is a single, readable object declaration. No machine holds a
-// reference to another — all coupling lives here.
+// Each relay is a single, readable object declaration keyed by its source store.
+// No machine holds a reference to another — all coupling lives here.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Creates and connects the three machines using a [StoreRegistry] and [Binder]s.
+ * Creates and connects the three machines using a [StoreRegistry] and [Relay]s.
  *
- * Bridge topology:
+ * Relay topology:
  *
  * ```
- *                        state(SignedIn)  ──────▶  CartStateMachine.LoadForUser
- *  AuthStateMachine ──────┤
- *                        state(SignedOut) ──────▶  CartStateMachine.Clear
- *                    │
- *                        state(SignedOut) ──────▶  CheckoutStateMachine.Cancel
+ *                  state(SignedIn)  ──────▶  CartStore.LoadForUser
+ *  AuthStore ──────┤
+ *                  state(SignedOut) ──────▶  CartStore.Clear
+ *                  state(SignedOut) ──────▶  CheckoutStore.Cancel
  *
- *  CartStateMachine  ─── effect(CartChanged)  ──────▶  CheckoutStateMachine.SyncCart
+ *  CartStore  ──── effect(CartChanged) ────▶  CheckoutStore.SyncCart
  *
- *  CheckoutStateMachine ─ state(Done)         ──────▶  CartStateMachine.Clear
+ *  CheckoutStore ─ state(Done)        ──────▶  CartStore.Clear
  * ```
  *
  * ### Lifecycle
- * All bridge coroutines run in [scope]. Pass `viewModelScope` so they are
+ * All relay coroutines run in [scope]. Pass `viewModelScope` so they are
  * cancelled automatically when the ViewModel is cleared.
  *
  * ### Usage in a ViewModel
@@ -80,16 +78,15 @@ class AppCoordinator(
     val registry = StoreRegistry(bridgeScope = scope)
 
     init {
-        // ── 1. Declare the bridge topology via Binders ────────────────────────
+        // ── 1. Declare the relay topology, grouped by source store ────────────
 
         registry.install(
-            AuthToCartBinder,
-            AuthToCheckoutBinder,
-            CartToCheckoutBinder,
-            CheckoutToCartBinder,
+            AuthRelay,
+            CartRelay,
+            CheckoutRelay,
         )
 
-        // ── 2. Register machines — binders are applied automatically ──────────
+        // ── 2. Register machines — relays start observing automatically ───────
 
         AuthStore(
             stateMachine = AuthStateMachine(authRepository),

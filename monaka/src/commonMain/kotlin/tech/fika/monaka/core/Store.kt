@@ -46,7 +46,7 @@ interface Store<out State : StateMarker, Action : ActionMarker, out Effect : Eff
      * Every action dispatched to this machine, exposed as a [SharedFlow] with no replay.
      *
      * Emits in [dispatch] order, before the action is processed. Use this to observe
-     * or forward actions to another machine via [tech.fika.monaka.binder.BinderBuilder.bindAction].
+     * or relay actions to another machine via [tech.fika.monaka.relay.RelayBuilder.action].
      */
     val actions: SharedFlow<Action>
 

@@ -3,14 +3,14 @@ package tech.fika.monaka.runtime
 import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import tech.fika.monaka.binder.Binder
 import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
 import tech.fika.monaka.core.State as StateMarker
 import tech.fika.monaka.core.Store
+import tech.fika.monaka.relay.Relay
 
 /**
- * A keyed collection of [Store] instances that automatically applies [tech.fika.monaka.binder.Binder]s
+ * A keyed collection of [Store] instances that automatically applies [tech.fika.monaka.relay.Relay]s
  * as stores are registered.
  *
  * Multiple instances of the same [Store] subclass can be registered simultaneously,
@@ -20,84 +20,71 @@ import tech.fika.monaka.core.Store
  * The registry serves two purposes:
  * 1. **Keying** — stores are stored under their [KClass] so they can be retrieved
  *    without holding individual references.
- * 2. **Bridging** — [tech.fika.monaka.binder.Binder]s installed via [install] are applied automatically
- *    whenever a matching store is registered, wiring source and target instances
- *    together using [bridgeScope] for all bridge coroutines.
+ * 2. **Relaying** — [tech.fika.monaka.relay.Relay]s installed via [install] start observing a
+ *    source store as soon as a matching instance is registered. Relay targets are resolved
+ *    lazily through the registry at emission time, so a relay reaches whatever target stores
+ *    are registered when an event fires. All relay coroutines run in [bridgeScope].
  *
  * ### Typical usage
  * ```kotlin
  * val registry = StoreRegistry(viewModelScope)
  *
  * registry.install(
- *     binder(
- *         from = AuthStateMachine::class,
- *         to = CartStateMachine::class,
- *     ) {
- *         bindState { authState ->
- *             when (authState) {
- *                 is AuthState.SignedIn  -> CartAction.LoadForUser(authState.user.id)
- *                 is AuthState.SignedOut -> CartAction.Clear
- *                 else                  -> null
- *             }
- *         }
+ *     relay(from = AuthStore::class) {
+ *         state<AuthState.SignedIn>  { dispatch<CartStore>(CartAction.LoadForUser(event.user.id)) }
+ *         state<AuthState.SignedOut> { dispatch<CartStore>(CartAction.Clear) }
  *     }
  * )
  *
- * AuthStateMachine(scope, authRepo).register(registry)
- * CartStateMachine(scope, cartRepo).register(registry)
+ * AuthStore(authMachine, scope).register(registry)
+ * CartStore(cartMachine, scope).register(registry)
  * ```
  *
- * Binders and stores may be installed in any order. When both sides of a binder
- * are already registered at install time, the binding is applied immediately.
+ * Relays and stores may be installed in any order. When the source store of a relay is
+ * already registered at install time, the relay starts observing it immediately.
  *
  * ### Disposing stores
  * ```kotlin
- * val auth = AuthStateMachine(scope, repo).register(registry)
+ * val auth = AuthStore(authMachine, scope).register(registry)
  * // … later, when the store is no longer needed:
  * registry.unregister(auth)
  * ```
  *
- * @param bridgeScope The scope used for all bridge coroutines. Pass the same
+ * @param bridgeScope The scope used for all relay coroutines. Pass the same
  *                    scope that owns the stores so all work is cancelled together.
  */
 class StoreRegistry(private val bridgeScope: CoroutineScope) {
 
     private val stores = LinkedHashMap<KClass<*>, MutableList<Store<*, *, *>>>()
-    private val binders = mutableListOf<Binder<*, *, *, *>>()
-    // (sourceId, targetId) → jobs launched by binder.apply for that pair
-    private val binderJobs = HashMap<Pair<String, String>, MutableList<Job>>()
+    private val relays = mutableListOf<Relay<*, *, *>>()
+    // sourceId → collector jobs launched by relay.apply for that source store
+    private val relayJobs = HashMap<String, MutableList<Job>>()
 
-    // ── Binders ───────────────────────────────────────────────────────────────
+    // ── Relays ──────────────────────────────────────────────────────────────────
 
     /**
-     * Install one or more [Binder]s into this registry.
+     * Install one or more [Relay]s into this registry.
      *
-     * Each binder is applied immediately to any already-registered source/target
-     * pairs, and again whenever a matching store is registered in the future.
+     * Each relay starts observing any already-registered instance of its source class,
+     * and again whenever a matching source store is registered in the future.
      *
      * ```kotlin
      * registry.install(
-     *     binder(from = AuthStateMachine::class, to = CartStateMachine::class) {
-     *         bindState { state -> if (state is AuthState.SignedOut) CartAction.Clear else null }
+     *     relay(from = AuthStore::class) {
+     *         state<AuthState.SignedOut> { dispatch<CartStore>(CartAction.Clear) }
      *     },
-     *     binder(from = CartStateMachine::class, to = CheckoutStateMachine::class) {
-     *         bindEffect { effect ->
-     *             if (effect is CartEffect.CartChanged) CheckoutAction.SyncCart(effect.items) else null
-     *         }
+     *     relay(from = CartStore::class) {
+     *         effect<CartEffect.CartChanged> { dispatch<CheckoutStore>(CheckoutAction.SyncCart(event.items, event.total)) }
      *     },
      * )
      * ```
      */
-    fun install(vararg binders: Binder<*, *, *, *>) {
-        for (binder in binders) {
-            this.binders.add(element = binder)
-            val sources = stores[binder.source] ?: continue
-            val targets = stores[binder.target] ?: continue
-            sources.forEach { source ->
-                targets.forEach { target ->
-                    val jobs = binder.apply(source = source, target = target, scope = bridgeScope)
-                    binderJobs.getOrPut(source.id to target.id) { mutableListOf() }.addAll(jobs)
-                }
+    fun install(vararg relays: Relay<*, *, *>) {
+        for (relay in relays) {
+            this.relays.add(element = relay)
+            stores[relay.source]?.forEach { source ->
+                val jobs = relay.apply(source = source, registry = this, scope = bridgeScope)
+                relayJobs.getOrPut(source.id) { mutableListOf() }.addAll(jobs)
             }
         }
     }
@@ -105,13 +92,14 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
     // ── Registration ──────────────────────────────────────────────────────────
 
     /**
-     * Add [store] to the registry, apply all matching binders, and return the store unchanged.
+     * Add [store] to the registry, start any relay whose source is [store]'s class, and
+     * return the store unchanged.
      *
      * Multiple instances of the same class may be registered. Registering the same
      * instance (same [Store.id]) twice throws [IllegalArgumentException].
      *
-     * Binders are applied before the store is added to the internal map, so a binder
-     * from class `A` to class `A` connects the new instance to existing instances only.
+     * Only relays whose source matches [store] launch collectors here; relays that merely
+     * target [store]'s class need no wiring, since they resolve targets lazily at emission time.
      */
     fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> register(
         store: Store<State, Action, Effect>,
@@ -120,18 +108,10 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
         require(value = storeList.none { it.id == store.id }) {
             "A store with id \"${store.id}\" is already registered."
         }
-        binders.forEach { binder ->
-            if (store::class == binder.source) {
-                stores[binder.target]?.forEach { target ->
-                    val jobs = binder.apply(source = store, target = target, scope = bridgeScope)
-                    binderJobs.getOrPut(store.id to target.id) { mutableListOf() }.addAll(jobs)
-                }
-            }
-            if (store::class == binder.target) {
-                stores[binder.source]?.forEach { source ->
-                    val jobs = binder.apply(source = source, target = store, scope = bridgeScope)
-                    binderJobs.getOrPut(source.id to store.id) { mutableListOf() }.addAll(jobs)
-                }
+        relays.forEach { relay ->
+            if (store::class == relay.source) {
+                val jobs = relay.apply(source = store, registry = this, scope = bridgeScope)
+                relayJobs.getOrPut(store.id) { mutableListOf() }.addAll(jobs)
             }
         }
         storeList += store
@@ -139,7 +119,7 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
     }
 
     /**
-     * Remove [store] from the registry.
+     * Remove [store] from the registry and cancel any relay collectors observing it.
      *
      * Identified by [Store.id], so the exact instance must be passed.
      * Does nothing if the store is not currently registered.
@@ -148,11 +128,7 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
         val list = stores[store::class] ?: return
         list.removeAll { it.id == store.id }
         if (list.isEmpty()) stores.remove(key = store::class)
-        binderJobs.keys.filter { (sourceId, targetId) ->
-            sourceId == store.id || targetId == store.id
-        }.forEach { key ->
-            binderJobs.remove(key)?.forEach { it.cancel() }
-        }
+        relayJobs.remove(store.id)?.forEach { it.cancel() }
     }
 
     /** Returns `true` if at least one instance of [kClass] is registered. */
@@ -197,7 +173,7 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
  * you hold a store reference and want to chain registration:
  *
  * ```kotlin
- * val cart = CartStateMachine(scope, cartRepository).register(registry)
+ * val cart = CartStore(cartMachine, scope).register(registry)
  * ```
  */
 fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> Store<State, Action, Effect>.register(
