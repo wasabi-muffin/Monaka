@@ -39,7 +39,7 @@ interface Plugin<State : StateMarker, Action : ActionMarker, Effect : EffectMark
      * Not called for [tech.fika.monaka.handler.HandlerResult.SideEffect], [tech.fika.monaka.handler.HandlerResult.Rejected],
      * or [tech.fika.monaka.handler.HandlerResult.Done].
      */
-    fun onTransition(fromState: State, toState: State, action: Action): Unit = Unit
+    fun onTransition(fromState: State, toState: State): Unit = Unit
 
     /**
      * Called when no handler is registered for the [action] in the current [currentState],

@@ -46,7 +46,7 @@ import tech.fika.monaka.plugin.Plugin
  *
  * ### Keyed job lifecycle
  * All keyed jobs (`launch(key) { }`) are tracked in [jobRegistry]. Jobs must be
- * explicitly cancelled via `cancel(key)` in `onExit` hooks or action handlers.
+ * explicitly canceled via `cancel(key)` in `onExit` hooks or action handlers.
  * Use `onExit { cancel("key") }` to clean up jobs when leaving a state.
  *
  * ### State lifecycle hooks
@@ -146,13 +146,12 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     /**
      * Apply [result] originating from [fromState].
      *
-     * When [handlerType] is [HandlerType.Action] (i.e. the result was produced by a dispatched action):
-     * - Notifies plugins via [Plugin.onTransition].
-     * - Fires [processStateUpdate] when the state value changes within the same type.
+     * [Plugin.onTransition] is called for every [HandlerResult.Transition], regardless of
+     * whether it was produced by a dispatched action or a state/lifecycle hook.
      *
-     * When [handlerType] is anything else (i.e. the result was returned by a state or lifecycle hook):
-     * - Skips plugin notification and the update hook; only fires [processStateChange] if the
-     *   state type changes.
+     * [processStateUpdate] is only fired for action-driven same-type value changes;
+     * hook-driven transitions within the same type do not chain into [processStateUpdate]
+     * to prevent cascading hook invocations.
      */
     private suspend fun processResult(
         handlerType: HandlerType<Action>,
@@ -161,7 +160,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     ) {
         val action = (handlerType as? HandlerType.Action)?.action
         when (result) {
-            is HandlerResult.Transition -> processTransition(fromState = fromState, action = action, transition = result)
+            is HandlerResult.Transition -> processTransition(fromState = fromState, handlerType = handlerType, transition = result)
             is HandlerResult.SideEffect -> processEffects(effects = result.effects)
             HandlerResult.Rejected -> processRejected(fromState = fromState, action = action)
             HandlerResult.Done -> Unit
@@ -170,18 +169,16 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
 
     private suspend fun processTransition(
         fromState: State,
-        action: Action?,
+        handlerType: HandlerType<Action>,
         transition: HandlerResult.Transition<State, Effect>,
     ) {
         val toState = transition.state
         _state.value = toState
-        if (action != null) {
-            plugins.forEach { it.onTransition(fromState = fromState, toState = toState, action = action) }
-        }
+        plugins.forEach { it.onTransition(fromState = fromState, toState = toState) }
         processEffects(effects = transition.effects)
         when {
             toState::class != fromState::class -> processStateChange(fromState = fromState, toState = toState)
-            action != null && toState != fromState -> processStateUpdate(fromState = fromState, toState = toState)
+            handlerType is HandlerType.Action && toState != fromState -> processStateUpdate(fromState = fromState, toState = toState)
         }
     }
 
@@ -292,13 +289,11 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
             runCatching {
                 recovery.stateErrorHandler()
                 recovery.consumeResult()
+            }.onSuccess { result ->
+                processResult(fromState = state, result = result, handlerType = handlerType)
+            }.onFailure {
+                plugins.forEach { it.onError(error = throwable, currentState = state, handlerType = handlerType) }
             }
-                .onSuccess { result ->
-                    processResult(fromState = state, result = result, handlerType = handlerType)
-                }
-                .onFailure {
-                    plugins.forEach { it.onError(error = throwable, currentState = state, handlerType = handlerType) }
-                }
         } else {
             plugins.forEach { it.onError(error = throwable, currentState = state, handlerType = handlerType) }
         }

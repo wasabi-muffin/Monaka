@@ -27,7 +27,7 @@ import tech.fika.monaka.core.State as StateMarker
  * [Auth] → ACTION   : LoginAction.Submit
  * [Auth]   IN STATE : LoginState.Typing(username=alice, password=***)
  * [Auth] ← STATE   : LoginState.Typing → LoginState.Loading
- * [Auth]   EFFECTS  : [LoginEffect.StartNetworkCall]
+ * [Auth]   EFFECT  : LoginEffect.NavigateToHome
  * ```
  */
 class LoggingPlugin<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
@@ -37,11 +37,12 @@ class LoggingPlugin<State : StateMarker, Action : ActionMarker, Effect : EffectM
 
     override fun onAction(currentState: State, action: Action) {
         logger.log(tag = tag, message = "[$tag] → ACTION   : $action")
+        logger.log(tag = tag, message = "[$tag]   IN STATE : $currentState")
     }
 
-    override fun onTransition(fromState: State, toState: State, action: Action) {
+    override fun onTransition(fromState: State, toState: State) {
         if (fromState != toState) {
-            logger.log(tag = tag, message = "[$tag] ← STATE   : $toState")
+            logger.log(tag = tag, message = "[$tag] ← STATE   : $fromState → $toState")
         }
     }
 
