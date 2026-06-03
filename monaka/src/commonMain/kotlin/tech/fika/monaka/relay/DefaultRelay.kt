@@ -3,6 +3,7 @@ package tech.fika.monaka.relay
 import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
@@ -23,7 +24,7 @@ internal class DefaultRelay<SourceState : StateMarker, SourceAction : ActionMark
         val jobs = mutableListOf<Job>()
         stateHandler?.let { handler ->
             jobs += scope.launch {
-                typedSource.state.collect { state -> handler(state, registry) }
+                typedSource.state.drop(1).collect { state -> handler(state, registry) }
             }
         }
         effectHandler?.let { handler ->

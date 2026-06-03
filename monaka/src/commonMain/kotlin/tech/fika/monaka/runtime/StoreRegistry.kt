@@ -50,8 +50,22 @@ import tech.fika.monaka.relay.Relay
  * registry.unregister(auth)
  * ```
  *
- * @param bridgeScope The scope used for all relay coroutines. Pass the same
- *                    scope that owns the stores so all work is cancelled together.
+ * ### Threading
+ * [StoreRegistry] is **not thread-safe**. All calls to [register], [unregister], [install],
+ * and [get]/[getAll] must be made from the same thread — typically the main thread on Android
+ * and iOS. Pass a [bridgeScope] confined to that same thread (e.g. `viewModelScope`, which
+ * runs on `Dispatchers.Main`) so relay collector coroutines also access the registry on the
+ * main thread. Violating this contract can cause lost updates or `ConcurrentModificationException`.
+ *
+ * ### Known limitations
+ * Relay collector coroutines are keyed by their *source* store. When a target store is
+ * unregistered, any relay that was dispatching to it keeps collecting from the source and
+ * simply dispatches into an empty result — a no-op per emission. Jobs are only cancelled
+ * when the source store itself is unregistered.
+ *
+ * @param bridgeScope The scope used for all relay coroutines. Must be confined to the same
+ *                    thread used to call [register] and [unregister] (typically `Dispatchers.Main`).
+ *                    Pass the same scope that owns the stores so all relay work is cancelled together.
  */
 class StoreRegistry(private val bridgeScope: CoroutineScope) {
 
