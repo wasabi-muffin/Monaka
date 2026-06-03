@@ -12,25 +12,24 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
-import tech.fika.monaka.error.ErrorMapper
-import tech.fika.monaka.handler.HandlerResult
-import tech.fika.monaka.handler.HandlerType
 import tech.fika.monaka.core.LifecycleEvent
 import tech.fika.monaka.core.State as StateMarker
 import tech.fika.monaka.core.Store
-import tech.fika.monaka.handler.ActionHandler
 import tech.fika.monaka.dsl.ActionScope
 import tech.fika.monaka.dsl.ErrorScope
-import tech.fika.monaka.handler.Handler
 import tech.fika.monaka.dsl.HandlerScope
-import tech.fika.monaka.dsl.consumeResult
-import tech.fika.monaka.handler.LifecycleHandler
 import tech.fika.monaka.dsl.LifecycleScope
-import tech.fika.monaka.handler.StateChangeHandler
 import tech.fika.monaka.dsl.StateChangeScope
+import tech.fika.monaka.dsl.StateUpdateScope
+import tech.fika.monaka.dsl.consumeResult
+import tech.fika.monaka.handler.ActionHandler
+import tech.fika.monaka.handler.Handler
+import tech.fika.monaka.handler.HandlerResult
+import tech.fika.monaka.handler.HandlerType
+import tech.fika.monaka.handler.LifecycleHandler
+import tech.fika.monaka.handler.StateChangeHandler
 import tech.fika.monaka.handler.StateErrorHandler
 import tech.fika.monaka.handler.StateUpdateHandler
-import tech.fika.monaka.dsl.StateUpdateScope
 import tech.fika.monaka.plugin.Plugin
 
 /**
@@ -73,7 +72,6 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     private val updateHandlers: Map<KClass<*>, StateUpdateHandler<State, Action, Effect>>,
     private val lifecycleHandlers: Map<KClass<*>, Map<LifecycleEvent, LifecycleHandler<State, Action, Effect>>>,
     private val errorHandlers: Map<KClass<*>, StateErrorHandler<State, Action, Effect>>,
-    private val errorMapper: ErrorMapper,
     private val plugins: List<Plugin<State, Action, Effect>>,
     private val machineScope: CoroutineScope,
 ) : Store<State, Action, Effect> {
@@ -81,9 +79,18 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     private val _state = MutableStateFlow(initialState)
     private val _actions = MutableSharedFlow<Action>(extraBufferCapacity = 64)
     private val _effects = MutableSharedFlow<Effect>(extraBufferCapacity = 64)
+    private val currentState: State get() = _state.value
     private val triggers = Channel<Trigger<Action>>(Channel.UNLIMITED)
     private val jobRegistry = JobRegistry()
-    private val currentState: State get() = _state.value
+    private val ancestorCache = HashMap<KClass<*>, List<KClass<*>>>()
+    private val handlerKeySet: Set<KClass<*>> = buildSet {
+        addAll(actionHandlers.keys)
+        addAll(enterHandlers.keys)
+        addAll(exitHandlers.keys)
+        addAll(updateHandlers.keys)
+        addAll(lifecycleHandlers.keys)
+        addAll(errorHandlers.keys)
+    }
     private val processingJob = machineScope.launch {
         for (trigger in triggers) {
             when (trigger) {
@@ -169,7 +176,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         val toState = transition.state
         _state.value = toState
         if (action != null) {
-           plugins.forEach { it.onTransition(fromState = fromState, toState = toState, action = action) }
+            plugins.forEach { it.onTransition(fromState = fromState, toState = toState, action = action) }
         }
         processEffects(effects = transition.effects)
         when {
@@ -213,34 +220,48 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     // ── Handler helpers ────────────────────────────────────────────────────
 
     /**
+     * Returns all registered state classes that are supertypes of [state]'s class,
+     * in the order they were registered across all handler maps.
+     *
+     * The result is computed once per unique state class using [KClass.isInstance] and
+     * then cached in [ancestorCache], so every subsequent call for the same state class
+     * is an O(1) map lookup. [handlerKeySet] is built at construction time
+     * from the keys of all handler maps, bounding the scan to registered classes only.
+     *
+     * Safe to call without synchronization — [ancestorCache] is only ever written from
+     * the single sequential processing coroutine.
+     */
+    private fun ancestorsFor(state: State): List<KClass<*>> =
+        ancestorCache.getOrPut(state::class) {
+            handlerKeySet.filter { it != state::class && it.isInstance(state) }
+        }
+
+    /**
      * Resolve the handler for the given [state] + [action] pair.
      *
      * Priority:
-     * 1. Exact state match — `stateHandlers[state::class][action::class]`
-     * 2. Supertype scan — iterates registered state classes in insertion order
-     *    and returns the first whose `isInstance(state)` check passes.
+     * 1. Exact state match — `actionHandlers[state::class][action::class]`
+     * 2. Registered ancestor classes in insertion order, via [ancestorsFor].
      *    Register more-specific parent blocks after leaf blocks to control priority.
      * 3. `null` → [Plugin.onInvalid] is called and the action is dropped.
      */
     private fun resolveActionHandler(state: State, action: Action): ActionHandler<State, Action, Effect>? {
         actionHandlers[state::class]?.get(key = action::class)?.let { return it }
-        for ((stateClass, actionHandlers) in actionHandlers) {
-            if (stateClass != state::class && stateClass.isInstance(value = state)) {
-                actionHandlers[action::class]?.let { return it }
-            }
+        for (ancestorClass in ancestorsFor(state)) {
+            actionHandlers[ancestorClass]?.get(action::class)?.let { return it }
         }
         return null
     }
 
     /**
-     * Generic exact-match + supertype scan used by all handler maps except [actionHandlers].
+     * Generic exact-match + ancestor lookup used by all handler maps except [actionHandlers].
      * Returns the first value whose registered [KClass] key matches [state] exactly,
-     * or is a supertype of it via [KClass.isInstance].
+     * or is a registered ancestor of it via [ancestorsFor].
      */
     private fun <Handler> resolveHandler(handlerMap: Map<KClass<*>, Handler>, state: State): Handler? {
         handlerMap[state::class]?.let { return it }
-        for ((stateClass, handler) in handlerMap) {
-            if (stateClass != state::class && stateClass.isInstance(value = state)) return handler
+        for (ancestorClass in ancestorsFor(state)) {
+            handlerMap[ancestorClass]?.let { return it }
         }
         return null
     }
@@ -249,11 +270,11 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
      * Run [handler] on [scope], then forward the returned [HandlerResult] into [processResult].
      *
      * On failure:
-     * 1. The raw throwable is mapped to a [tech.fika.monaka.error.AppError] via [errorMapper].
-     * 2. If an `onError` hook is registered for [state], it is invoked with an [ErrorScope].
+     * 1. If an `onError` hook is registered for [state], it is invoked with an [ErrorScope]
+     *    carrying the raw [Throwable].
      *    - On success the hook's result is forwarded into [processResult].
      *    - If the hook itself throws, plugins are notified and no further recovery is attempted.
-     * 3. If no hook is registered, plugins are notified directly.
+     * 2. If no hook is registered, plugins are notified directly.
      */
     private suspend fun <Scope : HandlerScope<State, Action, Effect, State>> Handler<Scope>.handle(
         handlerType: HandlerType<Action>,
@@ -265,10 +286,9 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     }.onSuccess { result ->
         processResult(fromState = state, result = result, handlerType = handlerType)
     }.onFailure { throwable ->
-        val error = errorMapper(throwable)
         val stateErrorHandler = resolveHandler(handlerMap = errorHandlers, state = state)
         if (stateErrorHandler != null) {
-            val recovery = errorScope(state = state, error = error, handlerType = handlerType)
+            val recovery = errorScope(state = state, error = throwable, handlerType = handlerType)
             runCatching {
                 recovery.stateErrorHandler()
                 recovery.consumeResult()
@@ -316,13 +336,12 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         jobRegistry = jobRegistry,
     )
 
-    private fun errorScope(state: State, error: tech.fika.monaka.error.AppError, handlerType: HandlerType<Action>) =
-        ErrorScope<State, Action, Effect, State>(
-            state = state,
-            error = error,
-            handlerType = handlerType,
-            machineScope = machineScope,
-            dispatch = ::dispatch,
-            jobRegistry = jobRegistry,
-        )
+    private fun errorScope(state: State, error: Throwable, handlerType: HandlerType<Action>) = ErrorScope<State, Action, Effect, State>(
+        state = state,
+        error = error,
+        handlerType = handlerType,
+        machineScope = machineScope,
+        dispatch = ::dispatch,
+        jobRegistry = jobRegistry,
+    )
 }

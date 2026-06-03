@@ -226,10 +226,8 @@ class StateBuilder<State : StateMarker, SubState : State, Action : ActionMarker,
      * Register a recovery hook that fires when any handler or hook throws an exception
      * while the machine is in [SubState].
      *
-     * The raw throwable is first mapped to a [tech.fika.monaka.error.AppError] by the
-     * machine's `errorMapper` (defaults to [tech.fika.monaka.error.DefaultErrorMapper]),
-     * and then passed to this block as [ErrorScope.error]. The handler origin is
-     * available as [ErrorScope.handlerType].
+     * The raw [Throwable] is passed directly to this block as [ErrorScope.error]. The
+     * handler origin is available as [ErrorScope.handlerType].
      *
      * The hook records its outcome with the same verbs as any other handler — use
      * [HandlerScope.transition] to move to an error state, [HandlerScope.sideEffect] to

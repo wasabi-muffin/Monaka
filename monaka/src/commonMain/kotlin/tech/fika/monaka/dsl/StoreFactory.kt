@@ -66,7 +66,6 @@ fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
         updateHandlers = config.updateHandlers,
         lifecycleHandlers = config.lifecycleHandlers,
         errorHandlers = config.errorHandlers,
-        errorMapper = config.errorMapper,
         plugins = config.plugins,
         machineScope = scope,
     )
@@ -97,7 +96,6 @@ fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
     updateHandlers = stateMachine.updateHandlers,
     lifecycleHandlers = stateMachine.lifecycleHandlers,
     errorHandlers = stateMachine.errorHandlers,
-    errorMapper = stateMachine.errorMapper,
     plugins = stateMachine.plugins + plugins,
     machineScope = scope,
 )

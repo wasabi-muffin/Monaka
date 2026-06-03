@@ -98,6 +98,5 @@ class StateMachineStore<State : StateMarker, Action : ActionMarker, Effect : Eff
     updateHandlers = stateMachine.updateHandlers,
     lifecycleHandlers = stateMachine.lifecycleHandlers,
     errorHandlers = stateMachine.errorHandlers,
-    errorMapper = stateMachine.errorMapper,
     plugins = stateMachine.plugins + plugins,
 )

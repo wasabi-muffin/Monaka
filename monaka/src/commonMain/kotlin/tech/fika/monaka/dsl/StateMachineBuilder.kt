@@ -9,8 +9,7 @@ import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
 import tech.fika.monaka.core.LifecycleEvent
 import tech.fika.monaka.core.State as StateMarker
-import tech.fika.monaka.error.DefaultErrorMapper
-import tech.fika.monaka.error.ErrorMapper
+
 import tech.fika.monaka.handler.ActionHandler
 import tech.fika.monaka.handler.LifecycleHandler
 import tech.fika.monaka.handler.StateChangeHandler
@@ -81,8 +80,6 @@ class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Effect : E
     @PublishedApi
     internal val errorHandlers: LinkedHashMap<KClass<*>, StateErrorHandler<State, Action, Effect>> = LinkedHashMap()
 
-    internal var errorMapper: ErrorMapper = DefaultErrorMapper
-
     internal val plugins: MutableList<Plugin<State, Action, Effect>> = mutableListOf()
 
     // ── Required configuration ────────────────────────────────────────────────
@@ -136,21 +133,6 @@ class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Effect : E
 
     // ── Plugin installation ───────────────────────────────────────────────────
 
-    // ── Error mapper ──────────────────────────────────────────────────────────
-
-    /**
-     * Override the machine-level [ErrorMapper] used to convert raw [Throwable]s into
-     * [tech.fika.monaka.error.AppError] before passing them to `onError` hooks and
-     * [tech.fika.monaka.plugin.Plugin.onError].
-     *
-     * If not called, [DefaultErrorMapper] is used: [tech.fika.monaka.error.AppError]
-     * subtypes pass through unchanged; everything else is wrapped in
-     * [tech.fika.monaka.error.UnknownError].
-     */
-    fun errorMapper(mapper: ErrorMapper) {
-        errorMapper = mapper
-    }
-
     // ── Plugin installation ───────────────────────────────────────────────────
 
     /** Install a single [plugin]. Plugins are invoked in installation order. */
@@ -171,21 +153,29 @@ class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Effect : E
      * @param initialState When non-null, replaces any state set via [StateMachineBuilder.initialState].
      * @param extraPlugins Appended **after** any plugins already installed in this builder.
      */
-    @OptIn(ExperimentalUuidApi::class)
     fun build(
         initialState: State? = null,
         extraPlugins: List<Plugin<State, Action, Effect>> = emptyList(),
-    ): StateMachine<State, Action, Effect> = object : StateMachine<State, Action, Effect> {
-        private val builder = this@StateMachineBuilder
-        override val id = builder.id
-        override val initialState = initialState ?: builder.initialState ?: error(message = "StateMachine requires an initialState.")
-        override val actionHandlers = builder.actionHandlers
-        override val enterHandlers = builder.enterHandlers
-        override val exitHandlers = builder.exitHandlers
-        override val updateHandlers = builder.updateHandlers
-        override val lifecycleHandlers = builder.lifecycleHandlers
-        override val errorHandlers = builder.errorHandlers
-        override val errorMapper = builder.errorMapper
-        override val plugins = builder.plugins + extraPlugins
+    ): StateMachine<State, Action, Effect> {
+        val snapshotId = id
+        val snapshotInitialState = initialState ?: this.initialState ?: error(message = "StateMachine requires an initialState.")
+        val snapshotActionHandlers = actionHandlers.mapValuesTo(LinkedHashMap()) { LinkedHashMap(it.value) }
+        val snapshotEnterHandlers = LinkedHashMap(enterHandlers)
+        val snapshotExitHandlers = LinkedHashMap(exitHandlers)
+        val snapshotUpdateHandlers = LinkedHashMap(updateHandlers)
+        val snapshotLifecycleHandlers = lifecycleHandlers.mapValuesTo(LinkedHashMap()) { LinkedHashMap(it.value) }
+        val snapshotErrorHandlers = LinkedHashMap(errorHandlers)
+        val snapshotPlugins = plugins + extraPlugins
+        return object : StateMachine<State, Action, Effect> {
+            override val id = snapshotId
+            override val initialState = snapshotInitialState
+            override val actionHandlers = snapshotActionHandlers
+            override val enterHandlers = snapshotEnterHandlers
+            override val exitHandlers = snapshotExitHandlers
+            override val updateHandlers = snapshotUpdateHandlers
+            override val lifecycleHandlers = snapshotLifecycleHandlers
+            override val errorHandlers = snapshotErrorHandlers
+            override val plugins = snapshotPlugins
+        }
     }
 }

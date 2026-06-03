@@ -5,7 +5,7 @@ import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
 import tech.fika.monaka.core.LifecycleEvent
 import tech.fika.monaka.core.State as StateMarker
-import tech.fika.monaka.error.ErrorMapper
+
 import tech.fika.monaka.handler.ActionHandler
 import tech.fika.monaka.handler.LifecycleHandler
 import tech.fika.monaka.handler.StateChangeHandler
@@ -27,8 +27,6 @@ import tech.fika.monaka.plugin.Plugin
  * @param updateHandlers Hooks fired when the state value changes within the same type.
  * @param lifecycleHandlers Hooks fired for forwarded [LifecycleEvent]s per state class.
  * @param errorHandlers  Recovery hooks fired when a handler or hook throws, keyed by state class.
- * @param errorMapper    Maps raw [Throwable]s to [tech.fika.monaka.error.AppError] before
- *                       passing them to [errorHandlers] and [tech.fika.monaka.plugin.Plugin.onError].
  * @param plugins        Observers installed in the machine, invoked in registration order.
  */
 interface StateMachine<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> {
@@ -40,6 +38,5 @@ interface StateMachine<State : StateMarker, Action : ActionMarker, Effect : Effe
     val updateHandlers: Map<KClass<*>, StateUpdateHandler<State, Action, Effect>>
     val lifecycleHandlers: Map<KClass<*>, Map<LifecycleEvent, LifecycleHandler<State, Action, Effect>>>
     val errorHandlers: Map<KClass<*>, StateErrorHandler<State, Action, Effect>>
-    val errorMapper: ErrorMapper
     val plugins: List<Plugin<State, Action, Effect>>
 }

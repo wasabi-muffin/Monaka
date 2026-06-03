@@ -4,10 +4,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
-import tech.fika.monaka.error.AppError
+import tech.fika.monaka.core.State as StateMarker
 import tech.fika.monaka.handler.HandlerResult
 import tech.fika.monaka.handler.HandlerType
-import tech.fika.monaka.core.State as StateMarker
 import tech.fika.monaka.runtime.JobRegistry
 
 /**
@@ -20,12 +19,13 @@ import tech.fika.monaka.runtime.JobRegistry
  * 3. Else if any side effects were emitted → [HandlerResult.SideEffect].
  * 4. Otherwise → [HandlerResult.Done].
  */
-internal fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> HandlerScope<State, Action, Effect, *>.consumeResult(): HandlerResult<State, Effect> = when {
-    rejected -> HandlerResult.Rejected
-    pendingState != null -> HandlerResult.Transition(state = pendingState!!, effects = pendingEffects.toList())
-    pendingEffects.isNotEmpty() -> HandlerResult.SideEffect(effects = pendingEffects.toList())
-    else -> HandlerResult.Done
-}
+internal fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> HandlerScope<State, Action, Effect, *>.consumeResult(): HandlerResult<State, Effect> =
+    when {
+        rejected -> HandlerResult.Rejected
+        pendingState != null -> HandlerResult.Transition(state = pendingState!!, effects = pendingEffects.toList())
+        pendingEffects.isNotEmpty() -> HandlerResult.SideEffect(effects = pendingEffects.toList())
+        else -> HandlerResult.Done
+    }
 
 /**
  * Implicit receiver available inside every `on<>` handler lambda.
@@ -111,9 +111,12 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
     private val jobRegistry: JobRegistry,
 ) {
 
-    @PublishedApi internal var pendingState: State? = null
-    @PublishedApi internal val pendingEffects: MutableList<Effect> = mutableListOf()
-    @PublishedApi internal var rejected: Boolean = false
+    @PublishedApi
+    internal var pendingState: State? = null
+    @PublishedApi
+    internal val pendingEffects: MutableList<Effect> = mutableListOf()
+    @PublishedApi
+    internal var rejected: Boolean = false
 
     // ── Result builders ───────────────────────────────────────────────────────
 
@@ -247,7 +250,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
 class ErrorScope<State : StateMarker, Action : ActionMarker, Effect : EffectMarker, SubState : State> internal constructor(
     override val machineScope: CoroutineScope,
     override val state: SubState,
-    val error: AppError,
+    val error: Throwable,
     val handlerType: HandlerType<Action>,
     private val dispatch: (Action) -> Unit,
     private val jobRegistry: JobRegistry,
