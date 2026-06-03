@@ -2,11 +2,12 @@ package tech.fika.monaka.runtime
 
 import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import tech.fika.monaka.binder.Binder
 import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
 import tech.fika.monaka.core.State as StateMarker
 import tech.fika.monaka.core.Store
-import tech.fika.monaka.binder.Binder
 
 /**
  * A keyed collection of [Store] instances that automatically applies [tech.fika.monaka.binder.Binder]s
@@ -63,6 +64,8 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
 
     private val stores = LinkedHashMap<KClass<*>, MutableList<Store<*, *, *>>>()
     private val binders = mutableListOf<Binder<*, *, *, *>>()
+    // (sourceId, targetId) → jobs launched by binder.apply for that pair
+    private val binderJobs = HashMap<Pair<String, String>, MutableList<Job>>()
 
     // ── Binders ───────────────────────────────────────────────────────────────
 
@@ -91,7 +94,10 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
             val sources = stores[binder.source] ?: continue
             val targets = stores[binder.target] ?: continue
             sources.forEach { source ->
-                targets.forEach { target -> binder.apply(source = source, target = target, scope = bridgeScope) }
+                targets.forEach { target ->
+                    val jobs = binder.apply(source = source, target = target, scope = bridgeScope)
+                    binderJobs.getOrPut(source.id to target.id) { mutableListOf() }.addAll(jobs)
+                }
             }
         }
     }
@@ -116,10 +122,16 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
         }
         binders.forEach { binder ->
             if (store::class == binder.source) {
-                stores[binder.target]?.forEach { target -> binder.apply(source = store, target = target, scope = bridgeScope) }
+                stores[binder.target]?.forEach { target ->
+                    val jobs = binder.apply(source = store, target = target, scope = bridgeScope)
+                    binderJobs.getOrPut(store.id to target.id) { mutableListOf() }.addAll(jobs)
+                }
             }
             if (store::class == binder.target) {
-                stores[binder.source]?.forEach { source -> binder.apply(source = source, target = store, scope = bridgeScope) }
+                stores[binder.source]?.forEach { source ->
+                    val jobs = binder.apply(source = source, target = store, scope = bridgeScope)
+                    binderJobs.getOrPut(source.id to store.id) { mutableListOf() }.addAll(jobs)
+                }
             }
         }
         storeList += store
@@ -136,6 +148,11 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
         val list = stores[store::class] ?: return
         list.removeAll { it.id == store.id }
         if (list.isEmpty()) stores.remove(key = store::class)
+        binderJobs.keys.filter { (sourceId, targetId) ->
+            sourceId == store.id || targetId == store.id
+        }.forEach { key ->
+            binderJobs.remove(key)?.forEach { it.cancel() }
+        }
     }
 
     /** Returns `true` if at least one instance of [kClass] is registered. */

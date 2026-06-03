@@ -2,6 +2,7 @@ package tech.fika.monaka.binder
 
 import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
 import tech.fika.monaka.core.State as StateMarker
@@ -35,5 +36,11 @@ import tech.fika.monaka.core.Store
 interface Binder<SourceState : StateMarker, SourceAction : ActionMarker, SourceEffect : EffectMarker, TargetAction : ActionMarker> {
     val source: KClass<out Store<SourceState, SourceAction, SourceEffect>>
     val target: KClass<out Store<*, TargetAction, *>>
-    fun apply(source: Store<*, *, *>, target: Store<*, *, *>, scope: CoroutineScope)
+    /**
+     * Wire [source] to [target] by launching collector coroutines in [scope].
+     *
+     * Returns the launched [Job]s so the caller can cancel them when the source
+     * or target store is unregistered.
+     */
+    fun apply(source: Store<*, *, *>, target: Store<*, *, *>, scope: CoroutineScope): List<Job>
 }
