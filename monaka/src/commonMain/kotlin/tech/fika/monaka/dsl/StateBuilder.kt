@@ -22,7 +22,7 @@ import tech.fika.monaka.handler.StateUpdateHandler
  * ### Action handlers
  * Registered via [on]. Handlers receive:
  * - An implicit [HandlerScope] receiver (`this`) — gives access to [HandlerScope.dispatch]
- *   and [HandlerScope.launch].
+ *   and [HandlerScope.task].
  * - `state: SubState` — the current state typed to the concrete subtype; no cast needed.
  * - `action: ActionType` — the dispatched action typed to the registered subtype.
  *
@@ -33,7 +33,7 @@ import tech.fika.monaka.handler.StateUpdateHandler
  *
  * Hooks have [HandlerScope] as their implicit receiver. Use [HandlerScope.transition] to
  * drive a state change, [HandlerScope.sideEffect] to emit effects, [HandlerScope.dispatch]
- * to enqueue a follow-up action, or [HandlerScope.launch] to fire off async work. Doing
+ * to enqueue a follow-up action, or [HandlerScope.task] to fire off async work. Doing
  * nothing is a silent no-op.
  *
  * ### Application lifecycle hooks
@@ -68,7 +68,7 @@ class StateBuilder<State : StateMarker, SubState : State, Action : ActionMarker,
      * Register a suspend handler for action type [ActionType] when the machine is in state [SubState].
      *
      * The lambda's implicit receiver is [ActionScope], which exposes [HandlerScope.dispatch]
-     * and [HandlerScope.launch]. Handlers that don't need
+     * and [HandlerScope.task]. Handlers that don't need
      * these — i.e., pure state transitions — simply ignore the receiver.
      *
      * If [ActionType] is registered more than once, the last registration wins.
@@ -140,7 +140,7 @@ class StateBuilder<State : StateMarker, SubState : State, Action : ActionMarker,
      * ```kotlin
      * state<MyState.Active> {
      *     onUpdate { old, new ->
-     *         if (old.query != new.query) launch { analytics.track(new.query) }
+     *         if (old.query != new.query) task { analytics.track(new.query) }
      *     }
      * }
      * ```

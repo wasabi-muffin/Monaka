@@ -88,7 +88,7 @@ val store = store<MyState, MyAction, MyEffect>(scope) {
 - `transition(eff1, eff2) { newState }` — sugar for `transition { } + sideEffect(...)`.
 - `sideEffect(eff1, eff2)` — append effects; emitted after the state change in call order.
 - `reject()` — terminal: marks the action as rejected, suppresses any subsequent verb calls in the same handler.
-- `dispatch(action)` / `launch { }` / `launch("key") { }` / `cancel("key")` — async helpers; all suppressed after `reject()`.
+- `dispatch(action)` / `task { }` / `task("key") { }` / `cancel("key")` — async helpers; all suppressed after `reject()`. Pass `autoCancel = true` to either `task` overload to have the runtime cancel the job on the next state-type change (just before `onExit` fires).
 
 **Calling UseCases/Repositories in handlers:**
 
@@ -107,7 +107,7 @@ on<Submit> {
 // Pattern 2 — fire-and-dispatch (non-blocking)
 // The handler returns immediately; the repo runs in a sibling coroutine
 on<Submit> {
-    launch("login") {
+    task("login") {
         when (val r = loginRepository.login(state.username, state.password)) {
             is Success -> dispatch(LoginAction.LoginSucceeded(r.user))
             is Failure -> dispatch(LoginAction.LoginFailed(r.message))
@@ -118,7 +118,7 @@ on<Submit> {
 
 // Fire-and-forget (no result action needed)
 on<Reset> {
-    launch { analyticsRepo.trackReset() }
+    task { analyticsRepo.trackReset() }
     transition { CounterState(0) }
 }
 ```

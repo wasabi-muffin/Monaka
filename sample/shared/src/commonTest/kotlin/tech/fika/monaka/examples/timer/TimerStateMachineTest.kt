@@ -230,15 +230,18 @@ class TimerStateMachineTest {
     }
 
     @Test
-    fun onExitCancelsTickerInRunningState() = testStore(machine = TimerStateMachine()) {
-        scenario("OnExit fires the onExit hook for Running, cancelling the tick coroutine") {
+    fun leavingRunningCancelsTicker() = testStore(machine = TimerStateMachine()) {
+        scenario("autoCancel cancels the tick coroutine when Running transitions to Paused") {
             given(TimerState.Running(remainingSeconds = 5, totalSeconds = 5, autoPause = false))
 
-            // Start the ticker via OnEnter then immediately cancel it via OnExit
+            // Start the ticker via OnEnter, then leave Running via a Pause action.
+            // The keyed task("tick", autoCancel = true) must be cancelled by the runtime
+            // on the state-type change so no further Tick actions reach the queue.
             trigger(StateHook.OnEnter)
-            trigger(StateHook.OnExit)
+            trigger(TimerAction.Pause) {
+                expectState<TimerState.Paused>()
+            }
 
-            // No ticks should fire after exit cancels the coroutine
             advanceTime(3.seconds) {
                 expectNoAction()
             }

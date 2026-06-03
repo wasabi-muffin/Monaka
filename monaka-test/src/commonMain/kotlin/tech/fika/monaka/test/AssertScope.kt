@@ -16,7 +16,7 @@ import tech.fika.monaka.core.State as StateMarker
  * - **states** — every distinct state emitted after the trigger.
  * - **effects** — every side effect emitted after the trigger.
  * - **actions** — every action dispatched by a handler (via `ActionScope.dispatch`
- *   or from inside `launch { }`). Test-initiated triggers are filtered out.
+ *   or from inside `task { }`). Test-initiated triggers are filtered out.
  */
 @MonakaTestDsl
 class AssertScope<S : StateMarker, A : ActionMarker, E : EffectMarker> internal constructor(

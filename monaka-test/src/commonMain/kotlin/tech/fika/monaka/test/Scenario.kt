@@ -179,7 +179,7 @@ class ScenarioBuilder<S : StateMarker, A : ActionMarker, E : EffectMarker> inter
      * Advance virtual time by [duration] and run [block] to assert on subsequent emissions.
      *
      * Use this to drive time-based behaviour such as `delay`-backed tickers or debounces
-     * that live inside `launch { }` handlers. Unlike [trigger], no action is dispatched —
+     * that live inside `task { }` handlers. Unlike [trigger], no action is dispatched —
      * the store advances purely because time passed.
      */
     suspend fun advanceTime(

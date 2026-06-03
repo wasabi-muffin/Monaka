@@ -48,9 +48,10 @@ import tech.fika.monaka.plugin.Plugin
  *   of `processingJob`) and [dispatch] so handlers can do fire-and-dispatch async work.
  *
  * ### Keyed job lifecycle
- * All keyed jobs (`launch(key) { }`) are tracked in [jobRegistry]. Jobs must be
- * explicitly canceled via `cancel(key)` in `onExit` hooks or action handlers.
- * Use `onExit { cancel("key") }` to clean up jobs when leaving a state.
+ * All tasks (`task(...) { }`) are tracked in [jobRegistry]. Keyed jobs must be
+ * explicitly cancelled via `cancel(key)` in `onExit` hooks or action handlers, unless
+ * they were started with `autoCancel = true`, in which case the runtime cancels them
+ * automatically when the state type changes (just before firing `onExit`).
  *
  * ### State lifecycle hooks
  * After each successful transition, the runtime fires:
@@ -225,6 +226,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
      * Must be called only when [toState]'s type differs from [fromState]'s type.
      */
     private suspend fun processStateChange(fromState: State, toState: State) {
+        jobRegistry.cancelAutoCancellable()
         resolveHandler(handlerMap = exitHandlers, state = fromState)?.handle(
             handlerType = HandlerType.Hook.Exit,
             scope = stateChangeScope(state = fromState),

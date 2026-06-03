@@ -1,7 +1,6 @@
 package tech.fika.monaka.dsl
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
 import tech.fika.monaka.core.State as StateMarker
@@ -49,13 +48,16 @@ internal fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker>
  * ```
  *
  * ### Pattern 2 — Keyed jobs (cancellable by name)
- * Pass a string key to `launch` to have the machine automatically cancel the previous
+ * Pass a string key to `task` to have the machine automatically cancel the previous
  * job with the same key before starting a new one. Use this for debounce, polling loops,
  * and any "replace previous" semantics — no `Job` variable needed outside the machine.
  *
+ * Pass `autoCancel = true` to have the machine cancel the task when the state type changes,
+ * so background work tied to a state does not outlive that state.
+ *
  * ```kotlin
  * on<QueryChanged> {
- *     launch("search") {              // cancels the previous "search" job, if any
+ *     task("search") {                // cancels the previous "search" job, if any
  *         delay(300)
  *         dispatch(SearchCompleted(feedRepository.search(action.query)))
  *     }
@@ -69,7 +71,7 @@ internal fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker>
  * ```
  *
  * @param machineScope A [CoroutineScope] tied to the state machine's lifetime.
- *                     Coroutines launched here are cancelled when the machine is cancelled.
+ *                     Coroutines launched here are canceled when the machine is canceled.
  * @param dispatch     The underlying dispatch function of the enclosing machine.
  * @param jobRegistry  The machine's [JobRegistry] for keyed job management.
  */
@@ -99,7 +101,7 @@ internal fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker>
  * ```
  *
  * ### Terminal [reject]
- * Once [reject] is called, all subsequent [transition], [sideEffect], [dispatch], [launch],
+ * Once [reject] is called, all subsequent [transition], [sideEffect], [dispatch], [task],
  * and [cancel] calls become no-ops in the same handler invocation. The runtime emits a
  * rejected result regardless of what was recorded before.
  */
@@ -172,7 +174,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
      * Mark the action as rejected. Plugins are notified via
      * [tech.fika.monaka.plugin.Plugin.onInvalid]; no state change or effect emission occurs.
      *
-     * Terminal: all subsequent [transition], [sideEffect], [dispatch], [launch], and [cancel]
+     * Terminal: all subsequent [transition], [sideEffect], [dispatch], [task], and [cancel]
      * calls in the same handler become no-ops.
      *
      * ```kotlin
@@ -202,23 +204,37 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
 
     /**
      * Launch a fire-and-forget coroutine in [coroutineScope] (defaults to [machineScope]).
-     * No-op if [reject] has already been called.
+     *
+     * When [autoCancel] is true, the job is canceled on the next state-type change
+     * (before the corresponding `onExit` hook fires). No-op if [reject] has already been called.
      */
-    fun launch(coroutineScope: CoroutineScope = machineScope, block: suspend () -> Unit) {
+    fun task(
+        autoCancel: Boolean = false,
+        coroutineScope: CoroutineScope = machineScope,
+        block: suspend CoroutineScope.() -> Unit,
+    ) {
         if (rejected) return
-        coroutineScope.launch { block() }
+        jobRegistry.launch(scope = coroutineScope, autoCancel = autoCancel, block = block)
     }
 
     /**
      * Cancel any job previously registered under [key], launch a new keyed coroutine in
      * [coroutineScope] (defaults to [machineScope]), and register it under [key].
      *
-     * Use for debounce and "latest wins" patterns. No-op if [reject] has already been called.
+     * Use for debounce and "latest wins" patterns. When [autoCancel] is true, the job is
+     * additionally canceled (and its key unregistered) on the next state-type change.
+     * No-op if [reject] has already been called.
      */
-    fun launch(key: String, coroutineScope: CoroutineScope = machineScope, block: suspend CoroutineScope.() -> Unit) {
+    fun task(
+        key: String,
+        autoCancel: Boolean = false,
+        coroutineScope: CoroutineScope = machineScope,
+        block: suspend CoroutineScope.() -> Unit,
+    ) {
         if (rejected) return
-        jobRegistry.launch(scope = coroutineScope, key = key, block = block)
+        jobRegistry.launch(scope = coroutineScope, key = key, autoCancel = autoCancel, block = block)
     }
+
 
     /**
      * Cancel the job registered under [key], if any, and remove it from the registry.

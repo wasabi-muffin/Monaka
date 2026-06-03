@@ -9,23 +9,24 @@ import tech.fika.monaka.plugin.LoggingPlugin
  * Live-feed machine demonstrating keyed job patterns with automatic state-scoped
  * cancellation.
  *
- * ### Keyed job lifecycle
+ * ### Task lifecycle
  *
- * All keyed jobs (`launch(key) { }`) must be explicitly cancelled via `cancel(key)`.
- * Use `onExit { cancel("key") }` to clean up on state exit, or call `cancel(key)`
- * directly in the action handler that triggers the transition (e.g. cancelling "poll"
- * before moving to `Failed`).
+ * All keyed tasks (`task(key) { }`) must be explicitly cancelled via `cancel(key)`,
+ * unless they were started with `autoCancel = true` (cancelled by the runtime on the
+ * next state-type change). Use `onExit { cancel("key") }` to clean up on state exit,
+ * or call `cancel(key)` directly in the action handler that triggers the transition
+ * (e.g. cancelling "poll" before moving to `Failed`).
  *
  * ---
  *
  * ### Pattern 1 — Debounce (keyed, cancels previous on each keystroke)
  *
- * `launch("search")` cancels the previous search job automatically (key-based),
+ * `task("search")` cancels the previous search job automatically (key-based),
  * so every keystroke replaces the in-flight search.
  *
  * ```
  * QueryChanged
- *   │ launch("search") {          ← cancels previous "search" job immediately
+ *   │ task("search") {            ← cancels previous "search" job immediately
  *   │     delay(300)
  *   │     dispatch(SearchCompleted(...) or SearchFailed(...))
  *   │ }
@@ -36,13 +37,13 @@ import tech.fika.monaka.plugin.LoggingPlugin
  *
  * ### Pattern 2 — Long-running loop (keyed start/stop within a state)
  *
- * [FeedAction.GoLive] uses `launch("poll")` to start a polling loop.
+ * [FeedAction.GoLive] uses `task("poll")` to start a polling loop.
  * [FeedAction.PauseLive] calls `cancel("poll")` to stop it — both happen inside
  * `Active`, so explicit cancel is needed here. If the machine leaves `Active`
  * entirely (e.g. `SearchFailed` → `Failed`), the poll is cancelled automatically.
  *
  * ```
- * GoLive  →  launch("poll") { while (true) { delay(5s); dispatch(NewItems(...)) } }
+ * GoLive  →  task("poll") { while (true) { delay(5s); dispatch(NewItems(...)) } }
  * PauseLive  →  cancel("poll")          ← explicit; still in Active
  * SearchFailed → cancel("poll")         ← explicit; before transitioning to Failed
  * ```
@@ -51,14 +52,14 @@ import tech.fika.monaka.plugin.LoggingPlugin
  *
  * ### Pattern 3 — Fire-and-forget (unkeyed, machine lifetime)
  *
- * Analytics events use the unkeyed `launch { }`. These are not state-scoped and
+ * Analytics events use the unkeyed `task { }`. These are not state-scoped and
  * are not tracked in the registry — they run to completion regardless of state changes.
  *
  * ---
  *
  * ### Pattern 4 — Exponential back-off retry (keyed, replaces previous attempt)
  *
- * `launch("search")` in `Failed` replaces any previous attempt. A generation counter
+ * `task("search")` in `Failed` replaces any previous attempt. A generation counter
  * threads through the dispatched action so a stale result is discarded if the query
  * has since changed.
  */
@@ -76,7 +77,7 @@ class FeedStateMachine(
             if (action.query.isBlank()) return@on
 
             // Pattern 1 — start first debounce timer
-            launch("search") {
+            task("search") {
                 delay(DEBOUNCE_MS)
                 val result = runCatching { feedRepository.search(action.query) }
                 if (result.isSuccess) {
@@ -102,12 +103,12 @@ class FeedStateMachine(
                 return@on transition { FeedState.Idle }
             }
 
-            // launch("search") auto-cancels the previous debounce job (key-based)
-            launch("search") {
+            // task("search") auto-cancels the previous debounce job (key-based)
+            task("search") {
                 delay(DEBOUNCE_MS)
                 runCatching { feedRepository.search(action.query) }.onSuccess { result ->
                     dispatch(FeedAction.SearchCompleted(action.query, result))
-                    launch { runCatching { analyticsRepository.trackSearch(action.query, result.size) } }
+                    task { runCatching { analyticsRepository.trackSearch(action.query, result.size) } }
                 }.onFailure { error ->
                     dispatch(FeedAction.SearchFailed(action.query, error.message ?: "Unknown error"))
                 }
@@ -120,7 +121,7 @@ class FeedStateMachine(
         }
 
         on<FeedAction.Refresh> {
-            launch("search") {
+            task("search") {
                 val result = runCatching { feedRepository.search(state.query) }
                 if (result.isSuccess) {
                     dispatch(FeedAction.SearchCompleted(state.query, result.getOrThrow()))
@@ -149,7 +150,7 @@ class FeedStateMachine(
             if (state.isLive) return@on
             val sinceTimestamp = state.items.maxOfOrNull { it.timestamp } ?: 0L
 
-            launch("poll") {
+            task("poll") {
                 var since = sinceTimestamp
                 while (true) {
                     delay(POLL_INTERVAL_MS)
@@ -183,7 +184,7 @@ class FeedStateMachine(
 
         // Pattern 3 — fire-and-forget analytics; state unchanged
         on<FeedAction.ItemViewed> {
-            launch { runCatching { analyticsRepository.trackItemViewed(action.itemId) } }
+            task { runCatching { analyticsRepository.trackItemViewed(action.itemId) } }
         }
     }
 
@@ -197,7 +198,7 @@ class FeedStateMachine(
             val backoffMs = minOf(BASE_BACKOFF_MS shl state.retryCount, MAX_BACKOFF_MS)
             val nextGeneration = state.retryCount + 1
 
-            launch("search") {
+            task("search") {
                 delay(backoffMs)
                 val result = runCatching { feedRepository.search(state.query) }
                 if (result.isSuccess) {
@@ -224,7 +225,7 @@ class FeedStateMachine(
                 cancel("search")
                 return@on transition { FeedState.Idle }
             }
-            launch("search") {
+            task("search") {
                 delay(DEBOUNCE_MS)
                 val result = runCatching { feedRepository.search(action.query) }
                 if (result.isSuccess) {

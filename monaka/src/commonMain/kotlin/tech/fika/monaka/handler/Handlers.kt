@@ -20,7 +20,7 @@ typealias Handler<Scope> = suspend Scope.() -> Unit
  *
  * [tech.fika.monaka.dsl.HandlerScope] is the implicit receiver so that all handlers — whether
  * they use it or not — have access to [tech.fika.monaka.dsl.HandlerScope.dispatch] and
- * [tech.fika.monaka.dsl.HandlerScope.launch].
+ * [tech.fika.monaka.dsl.HandlerScope.task].
  *
  * Inputs are erased to [Any]; casts inside the wrapper lambdas are safe by construction
  * (keyed on the exact runtime class of state and action).

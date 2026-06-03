@@ -49,20 +49,18 @@ class TimerStateMachine : StateMachine<TimerState, TimerAction, TimerEffect> by 
     // ── Running ───────────────────────────────────────────────────────────────
 
     state<TimerState.Running> {
-        // Start a coroutine that dispatches Tick every second.
-        // The keyed launch("tick") auto-cancels any previous "tick" job when re-entering
-        // this state (e.g. after a resume), so there is never more than one ticker active.
+        // Start a coroutine that dispatches Tick every second. The keyed task("tick")
+        // replaces any previous "tick" job when re-entering this state (e.g. after a
+        // resume), and autoCancel = true cancels it automatically on the way out of
+        // Running, so there is never more than one ticker active.
         onEnter {
-            launch("tick") {
+            task(key = "tick", autoCancel = true) {
                 while (true) {
                     delay(1_000)
                     dispatch(TimerAction.Tick)
                 }
             }
         }
-
-        // Cancel the ticker when leaving Running (pause, stop, or finish).
-        onExit { cancel("tick") }
 
         on<TimerAction.Tick> {
             if (state.remainingSeconds <= 1) {

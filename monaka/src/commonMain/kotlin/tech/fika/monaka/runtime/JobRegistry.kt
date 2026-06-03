@@ -1,39 +1,72 @@
 package tech.fika.monaka.runtime
 
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 /**
- * A map of named [Job]s owned by a single [DefaultStore] instance.
+ * Tracks background [Job]s owned by a single [DefaultStore] instance.
  *
- * Handlers use the keyed overload of `launch` on [HandlerScope] to start
- * cancellable background work
- * without holding a [Job] reference outside the machine.
+ * Handlers use the `task` family on `HandlerScope` to start background work. Keyed tasks
+ * replace any prior job with the same key; tasks flagged `autoCancel = true` are also
+ * canceled by [cancelAutoCancellable] when the state type changes.
  *
  * ### Thread-safety
- * All mutations ([launch], [cancel], [cancelAll]) are called exclusively from
- * the machine's sequential processing coroutine. No synchronisation is needed.
+ * All mutations are called exclusively from the machine's sequential processing coroutine.
+ * No synchronization is needed.
  */
+@OptIn(ExperimentalUuidApi::class)
 internal class JobRegistry {
 
-    private val jobs = mutableMapOf<String, Job>()
+    private data class Entry(val job: Job, val autoCancel: Boolean)
+
+    private val keyed = mutableMapOf<String, Entry>()
 
     /**
-     * Cancel any [Job] previously registered under [key], launch [block] in [scope],
-     * register the new [Job] under [key], and return it.
+     * Cancel any [Job] previously registered under [key] (defaults to a fresh UUID for
+     * untracked, fire-and-forget work), launch [block] in [scope], register the new [Job]
+     * under [key], and return it.
+     *
+     * When [autoCancel] is true, the job is additionally cancelled and its key unregistered
+     * by [cancelAutoCancellable] on the next state-type change. Anonymous (UUID-keyed) jobs
+     * remove themselves from the registry on completion so the map does not grow unbounded.
      */
-    fun launch(scope: CoroutineScope, key: String, block: suspend CoroutineScope.() -> Unit): Job {
-        jobs[key]?.cancel()
-        return scope.launch(block = block).also { jobs[key] = it }
+    fun launch(
+        scope: CoroutineScope,
+        key: String = Uuid.random().toString(),
+        autoCancel: Boolean = false,
+        block: suspend CoroutineScope.() -> Unit,
+    ): Job {
+        keyed[key]?.job?.cancel()
+        val job = scope.launch(block = block)
+        keyed[key] = Entry(job = job, autoCancel = autoCancel)
+        job.invokeOnCompletion { if (keyed[key]?.job === job) keyed.remove(key) }
+        return job
     }
 
     /**
      * Cancel the [Job] registered under [key], if any, and remove it from the registry.
      */
     fun cancel(key: String) {
-        jobs[key]?.cancel()
-        jobs.remove(key)
+        keyed[key]?.job?.cancel()
+        keyed.remove(key)
+    }
+
+    /**
+     * Cancel every tracked job flagged as auto-cancellable and remove them from the registry.
+     * Called by the runtime before firing `onExit` when the state type changes.
+     */
+    fun cancelAutoCancellable() {
+        val iterator = keyed.entries.iterator()
+        while (iterator.hasNext()) {
+            val entry = iterator.next()
+            if (entry.value.autoCancel) {
+                entry.value.job.cancel()
+                iterator.remove()
+            }
+        }
     }
 
     /**
@@ -41,7 +74,7 @@ internal class JobRegistry {
      * Called when the machine itself is cancelled.
      */
     fun cancelAll() {
-        jobs.values.forEach(Job::cancel)
-        jobs.clear()
+        keyed.values.forEach { it.job.cancel() }
+        keyed.clear()
     }
 }

@@ -15,7 +15,7 @@ import tech.fika.monaka.core.State as StateMarker
  *                   [tech.fika.monaka.plugin.Plugin.onInvalid].
  * - [Done]        — terminal no-op; state unchanged, no effects, no plugin notification.
  *                   Returned by [tech.fika.monaka.dsl.HandlerScope.dispatch],
- *                   [tech.fika.monaka.dsl.HandlerScope.launch], and
+ *                   [tech.fika.monaka.dsl.HandlerScope.task], and
  *                   [tech.fika.monaka.dsl.HandlerScope.cancel] so that
  *                   `return@on dispatch(action)` compiles cleanly.
  *
