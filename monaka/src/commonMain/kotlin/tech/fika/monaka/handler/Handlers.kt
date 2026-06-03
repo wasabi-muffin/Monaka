@@ -58,8 +58,8 @@ internal typealias LifecycleHandler<State, Action, Effect> =
  * Type-erased error recovery hook — fired when any handler or hook throws an exception
  * while the machine is in the registered state.
  *
- * Named `StateErrorHandler` (not `ErrorHandler`) to avoid shadowing
- * [tech.fika.monaka.error.ErrorMapper] in import lists.
+ * Named `StateErrorHandler` (not `ErrorHandler`) to avoid collisions with common
+ * user-defined error handler type names in import lists.
  */
 internal typealias StateErrorHandler<State, Action, Effect> =
         suspend ErrorScope<State, Action, Effect, State>.() -> Unit

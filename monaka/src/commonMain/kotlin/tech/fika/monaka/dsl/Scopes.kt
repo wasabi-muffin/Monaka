@@ -241,7 +241,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
  *
  * @param machineScope A [CoroutineScope] tied to the state machine's lifetime.
  * @param state        The current state at the time the error was thrown.
- * @param error        The exception mapped to a [AppError] via the machine's [tech.fika.monaka.error.ErrorMapper].
+ * @param error        The raw [Throwable] thrown by the handler or hook.
  * @param handlerType  Which handler origin threw the exception.
  * @param dispatch     The underlying dispatch function of the enclosing machine.
  * @param jobRegistry  The machine's [JobRegistry] for keyed job management.
