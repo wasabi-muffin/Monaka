@@ -53,12 +53,12 @@ class ScenarioTest {
     fun startAndIncrement() = testStore(machine = incrementingMachine) {
         scenario("start then increment") {
             trigger(CounterAction.Start) {
-                expectState<CounterState.Counting> { it.count == 0 }
+                expectState<CounterState.Counting> { state.count == 0 }
                 expectEffect(CounterEffect.Started)
             }
 
             trigger(CounterAction.Increment) {
-                expectState<CounterState.Counting> { it.count == 1 }
+                expectState<CounterState.Counting> { state.count == 1 }
                 expectNoEffects()
             }
 
@@ -73,8 +73,8 @@ class ScenarioTest {
             trigger(CounterAction.DoubleUp) {
                 expectAction(CounterAction.Increment)
                 expectAction(CounterAction.Increment)
-                expectState<CounterState.Counting> { it.count == 1 }
-                expectState<CounterState.Counting> { it.count == 2 }
+                expectState<CounterState.Counting> { state.count == 1 }
+                expectState<CounterState.Counting> { state.count == 2 }
             }
 
         }
@@ -97,14 +97,14 @@ class ScenarioTest {
     fun multipleScenariosShareMachineButGetFreshStores() = testStore(machine = incrementingMachine) {
         scenario("first scenario starts from Idle") {
             trigger(CounterAction.Start) {
-                expectState<CounterState.Counting> { it.count == 0 }
+                expectState<CounterState.Counting> { state.count == 0 }
                 expectEffect(CounterEffect.Started)
             }
         }
 
         scenario("second scenario also starts from Idle — proves isolation") {
             trigger(CounterAction.Start) {
-                expectState<CounterState.Counting> { it.count == 0 }
+                expectState<CounterState.Counting> { state.count == 0 }
                 expectEffect(CounterEffect.Started)
             }
         }

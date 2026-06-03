@@ -11,7 +11,7 @@ class TimerStateMachineTest {
         scenario("Start from Idle begins the countdown") {
             trigger(TimerAction.Start) {
                 expectState<TimerState.Running> {
-                    it.remainingSeconds == 60 && it.totalSeconds == 60
+                    state.remainingSeconds == 60 && state.totalSeconds == 60
                 }
             }
         }
@@ -21,11 +21,11 @@ class TimerStateMachineTest {
     fun setDurationBeforeStart() = testStore(machine = TimerStateMachine()) {
         scenario("SetDuration changes the configured time") {
             trigger(TimerAction.SetDuration(seconds = 30)) {
-                expectState<TimerState.Idle> { it.durationSeconds == 30 }
+                expectState<TimerState.Idle> { state.durationSeconds == 30 }
             }
             trigger(TimerAction.Start) {
                 expectState<TimerState.Running> {
-                    it.remainingSeconds == 30 && it.totalSeconds == 30
+                    state.remainingSeconds == 30 && state.totalSeconds == 30
                 }
             }
         }
@@ -38,11 +38,11 @@ class TimerStateMachineTest {
 
             trigger(TimerAction.Pause) {
                 expectState<TimerState.Paused> {
-                    it.remainingSeconds == 45 && !it.pausedByLifecycle
+                    state.remainingSeconds == 45 && !state.pausedByLifecycle
                 }
             }
             trigger(TimerAction.Resume) {
-                expectState<TimerState.Running> { it.remainingSeconds == 45 }
+                expectState<TimerState.Running> { state.remainingSeconds == 45 }
             }
         }
     }
@@ -53,7 +53,7 @@ class TimerStateMachineTest {
             given(TimerState.Running(remainingSeconds = 20, totalSeconds = 60, autoPause = false))
 
             trigger(TimerAction.Reset) {
-                expectState<TimerState.Idle> { it.durationSeconds == 60 }
+                expectState<TimerState.Idle> { state.durationSeconds == 60 }
             }
         }
     }
@@ -64,7 +64,7 @@ class TimerStateMachineTest {
             given(TimerState.Finished(totalSeconds = 60, autoPause = false))
 
             trigger(TimerAction.Reset) {
-                expectState<TimerState.Idle> { it.durationSeconds == 60 }
+                expectState<TimerState.Idle> { state.durationSeconds == 60 }
             }
         }
     }
@@ -75,7 +75,7 @@ class TimerStateMachineTest {
             given(TimerState.Running(remainingSeconds = 10, totalSeconds = 60, autoPause = false))
 
             trigger(TimerAction.Tick) {
-                expectState<TimerState.Running> { it.remainingSeconds == 9 }
+                expectState<TimerState.Running> { state.remainingSeconds == 9 }
             }
         }
     }
@@ -86,7 +86,7 @@ class TimerStateMachineTest {
             given(TimerState.Running(remainingSeconds = 1, totalSeconds = 60, autoPause = false))
 
             trigger(TimerAction.Tick) {
-                expectState<TimerState.Finished> { it.totalSeconds == 60 }
+                expectState<TimerState.Finished> { state.totalSeconds == 60 }
                 expectEffect(TimerEffect.Completed)
             }
         }
@@ -99,7 +99,7 @@ class TimerStateMachineTest {
 
             trigger(LifecycleEvent.OnPause) {
                 expectAction(TimerAction.PauseForLifecycle)
-                expectState<TimerState.Paused> { it.pausedByLifecycle }
+                expectState<TimerState.Paused> { state.pausedByLifecycle }
             }
         }
     }
@@ -130,7 +130,7 @@ class TimerStateMachineTest {
 
             trigger(LifecycleEvent.OnResume) {
                 expectAction(TimerAction.Resume)
-                expectState<TimerState.Running> { it.remainingSeconds == 30 }
+                expectState<TimerState.Running> { state.remainingSeconds == 30 }
             }
         }
     }
@@ -157,16 +157,16 @@ class TimerStateMachineTest {
     fun autoPauseFlagPersistedAcrossTransitions() = testStore(machine = TimerStateMachine()) {
         scenario("autoPause flag persists through start, pause, resume") {
             trigger(TimerAction.SetAutoPause(enabled = true)) {
-                expectState<TimerState.Idle> { it.autoPause }
+                expectState<TimerState.Idle> { state.autoPause }
             }
             trigger(TimerAction.Start) {
-                expectState<TimerState.Running> { it.autoPause }
+                expectState<TimerState.Running> { state.autoPause }
             }
             trigger(TimerAction.Pause) {
-                expectState<TimerState.Paused> { it.autoPause }
+                expectState<TimerState.Paused> { state.autoPause }
             }
             trigger(TimerAction.Resume) {
-                expectState<TimerState.Running> { it.autoPause }
+                expectState<TimerState.Running> { state.autoPause }
             }
         }
     }

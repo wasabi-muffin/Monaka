@@ -19,7 +19,7 @@ class LoginStateMachineTest {
         scenario("UpdateCredentials from Idle moves to Typing") {
             trigger(LoginAction.UpdateCredentials("alice", "secret")) {
                 expectState<LoginState.Typing> {
-                    it.username == "alice" && it.password == "secret"
+                    state.username == "alice" && state.password == "secret"
                 }
             }
         }
@@ -47,7 +47,7 @@ class LoginStateMachineTest {
 
             trigger(LoginAction.Submit) {
                 expectState<LoginState.Submitting>()
-                expectState<LoginState.Authenticated> { it.username == "alice" }
+                expectState<LoginState.Authenticated> { state.username == "alice" }
                 expectEffect(LoginEffect.NavigateToHome)
             }
         }
@@ -64,7 +64,7 @@ class LoginStateMachineTest {
 
             trigger(LoginAction.Submit) {
                 expectState<LoginState.Submitting>()
-                expectState<LoginState.Error> { it.message == "invalid credentials" }
+                expectState<LoginState.Error> { state.message == "invalid credentials" }
             }
         }
     }
@@ -78,7 +78,7 @@ class LoginStateMachineTest {
 
             trigger(LoginAction.Retry) {
                 expectState<LoginState.Submitting>()
-                expectState<LoginState.Authenticated> { it.username == "alice" }
+                expectState<LoginState.Authenticated> { state.username == "alice" }
                 expectEffect(LoginEffect.NavigateToHome)
             }
         }

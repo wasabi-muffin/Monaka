@@ -40,13 +40,13 @@ class CounterStateMachineTest {
     fun incrementAndDecrement() = testStore(machine = counterMachine) {
         scenario("increment raises count by step") {
             trigger(CounterAction.Increment) {
-                expectState<CounterState> { it.count == 1 }
+                expectState<CounterState> { state.count == 1 }
             }
             trigger(CounterAction.Increment) {
-                expectState<CounterState> { it.count == 2 }
+                expectState<CounterState> { state.count == 2 }
             }
             trigger(CounterAction.Decrement) {
-                expectState<CounterState> { it.count == 1 }
+                expectState<CounterState> { state.count == 1 }
             }
         }
     }
@@ -55,10 +55,10 @@ class CounterStateMachineTest {
     fun setStepChangesIncrement() = testStore(machine = counterMachine) {
         scenario("custom step is applied to increment") {
             trigger(CounterAction.SetStep(step = 5)) {
-                expectState<CounterState> { it.step == 5 }
+                expectState<CounterState> { state.step == 5 }
             }
             trigger(CounterAction.Increment) {
-                expectState<CounterState> { it.count == 5 }
+                expectState<CounterState> { state.count == 5 }
             }
         }
     }
@@ -78,7 +78,7 @@ class CounterStateMachineTest {
             given(CounterState(count = 42, step = 3))
 
             trigger(CounterAction.Reset) {
-                expectState<CounterState> { it.count == 0 && it.step == 3 }
+                expectState<CounterState> { state.count == 0 && state.step == 3 }
                 expectEffect(CounterEffect.ShowMessage("Counter reset!"))
                 expectEffect(CounterEffect.SaveCount(0))
             }

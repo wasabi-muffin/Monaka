@@ -23,6 +23,10 @@ class AssertScope<S : StateMarker, A : ActionMarker, E : EffectMarker> internal 
     @PublishedApi internal val effects: ReceiveTurbine<E>,
     @PublishedApi internal val actions: ReceiveTurbine<A>,
 ) {
+    inner class StateScope<T : S>(val state: T)
+    inner class ActionScope<T : A>(val action: T)
+    inner class EffectScope<T : E>(val effect: T)
+
     /**
      * Await the next state and assert equality with [state].
      */
@@ -33,33 +37,11 @@ class AssertScope<S : StateMarker, A : ActionMarker, E : EffectMarker> internal 
     /**
      * Await the next state and assert it matches [T] and the optional [predicate].
      */
-    suspend inline fun <reified T : S> expectState(noinline predicate: (T) -> Boolean = { true }) {
+    suspend inline fun <reified T : S> expectState(noinline predicate: StateScope<T>.() -> Boolean = { true }) {
         val item = states.awaitItem()
-        val typed = item.shouldBeInstanceOf<T>()
-        withClue("State $typed did not match predicate") { predicate(typed) shouldBe true }
-    }
-
-    /**
-     * Await the next effect and assert equality with [effect].
-     */
-    suspend fun expectEffect(effect: E) {
-        effects.awaitItem() shouldBe effect
-    }
-
-    /**
-     * Await the next effect and assert it matches [T] and the optional [predicate].
-     */
-    suspend inline fun <reified T : E> expectEffect(noinline predicate: (T) -> Boolean = { true }) {
-        val item = effects.awaitItem()
-        val typed = item.shouldBeInstanceOf<T>()
-        withClue("Effect $typed did not match predicate") { predicate(typed) shouldBe true }
-    }
-
-    /**
-     * Assert that no effect has been emitted yet.
-     */
-    suspend fun expectNoEffects() {
-        effects.expectNoEvents()
+        val state = item.shouldBeInstanceOf<T>()
+        val scope = StateScope(state = state)
+        withClue("State $state  did not match predicate") { scope.predicate() shouldBe true }
     }
 
     /**
@@ -72,10 +54,11 @@ class AssertScope<S : StateMarker, A : ActionMarker, E : EffectMarker> internal 
     /**
      * Await the next handler-initiated action and assert it matches [T] and the optional [predicate].
      */
-    suspend inline fun <reified T : A> expectAction(noinline predicate: (T) -> Boolean = { true }) {
+    suspend inline fun <reified T : A> expectAction(noinline predicate: ActionScope<T>.() -> Boolean = { true }) {
         val item = actions.awaitItem()
-        val typed = item.shouldBeInstanceOf<T>()
-        withClue("Action $typed did not match predicate") { predicate(typed) shouldBe true }
+        val action = item.shouldBeInstanceOf<T>()
+        val scope = ActionScope(action = action)
+        withClue("Action $action did not match predicate") { scope.predicate() shouldBe true }
     }
 
     /**
@@ -83,5 +66,30 @@ class AssertScope<S : StateMarker, A : ActionMarker, E : EffectMarker> internal 
      */
     suspend fun expectNoAction() {
         actions.expectNoEvents()
+    }
+
+
+    /**
+     * Await the next effect and assert equality with [effect].
+     */
+    suspend fun expectEffect(effect: E) {
+        effects.awaitItem() shouldBe effect
+    }
+
+    /**
+     * Await the next effect and assert it matches [T] and the optional [predicate].
+     */
+    suspend inline fun <reified T : E> expectEffect(noinline predicate: EffectScope<T>.() -> Boolean = { true }) {
+        val item = effects.awaitItem()
+        val effect = item.shouldBeInstanceOf<T>()
+        val scope = EffectScope(effect = effect)
+        withClue("Effect $effect did not match predicate") { scope.predicate() shouldBe true }
+    }
+
+    /**
+     * Assert that no effect has been emitted yet.
+     */
+    suspend fun expectNoEffects() {
+        effects.expectNoEvents()
     }
 }
