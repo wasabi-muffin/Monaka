@@ -50,6 +50,7 @@ fun <S : StateMarker, A : ActionMarker, E : EffectMarker> testStore(
     scope.body()
 }
 
+@MonakaTestDsl
 class TestStoreScope<S : StateMarker, A : ActionMarker, E : EffectMarker> internal constructor(
     private val machine: StateMachine<S, A, E>,
     private val testScope: TestScope,
@@ -90,6 +91,7 @@ class TestStoreScope<S : StateMarker, A : ActionMarker, E : EffectMarker> intern
     }
 }
 
+@MonakaTestDsl
 class ScenarioBuilder<S : StateMarker, A : ActionMarker, E : EffectMarker> internal constructor(
     @Suppress("unused") private val name: String,
     private val machine: StateMachine<S, A, E>,

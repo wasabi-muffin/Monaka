@@ -18,6 +18,7 @@ import tech.fika.monaka.core.State as StateMarker
  * - **actions** — every action dispatched by a handler (via `ActionScope.dispatch`
  *   or from inside `launch { }`). Test-initiated triggers are filtered out.
  */
+@MonakaTestDsl
 class AssertScope<S : StateMarker, A : ActionMarker, E : EffectMarker> internal constructor(
     @PublishedApi internal val states: ReceiveTurbine<S>,
     @PublishedApi internal val effects: ReceiveTurbine<E>,
