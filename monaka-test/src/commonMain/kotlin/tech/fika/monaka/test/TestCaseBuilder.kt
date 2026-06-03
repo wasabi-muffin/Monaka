@@ -2,17 +2,13 @@ package tech.fika.monaka.test
 
 import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.testIn
-import app.cash.turbine.turbineScope
 import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
-import io.kotest.assertions.withClue
 import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
 import tech.fika.monaka.core.LifecycleEvent
@@ -22,91 +18,19 @@ import tech.fika.monaka.core.Store
 import tech.fika.monaka.dsl.StateMachine
 import tech.fika.monaka.dsl.store
 
-/**
- * Run one or more scenarios against [machine].
- *
- * Each [TestStoreScope.scenario] block runs sequentially under a single `runTest`
- * but constructs its own [Store] from [machine], so scenarios are behaviorally isolated.
- *
- * ### Example
- * ```kotlin
- * @Test
- * fun loginFlow() = testStore(machine = loginMachine) {
- *     scenario("submit drives Idle → Submitting → Authenticated") {
- *         given(LoginState.Idle(username = "x", password = "y"))
- *
- *         trigger(LoginAction.Submit) {
- *             expectState<LoginState.Submitting>()
- *             expectEffect(LoginEffect.HideKeyboard)
- *         }
- *
- *         expectIdle()
- *     }
- * }
- * ```
- */
-fun <S : StateMarker, A : ActionMarker, E : EffectMarker> testStore(
-    machine: StateMachine<S, A, E>,
-    body: suspend TestStoreScope<S, A, E>.() -> Unit,
-): TestResult = runTest {
-    val scope = TestStoreScope(machine = machine, testScope = this)
-    scope.body()
-}
-
 @MonakaTestDsl
-class TestStoreScope<S : StateMarker, A : ActionMarker, E : EffectMarker> internal constructor(
-    private val machine: StateMachine<S, A, E>,
-    private val testScope: TestScope,
-) {
-    /**
-     * Run [body] against a freshly constructed [Store] for this scenario.
-     *
-     * Each scenario is isolated: it builds its own store from the shared [StateMachine]
-     * configuration, sets up its own Turbines, and tears them down on completion.
-     */
-    suspend fun scenario(
-        name: String,
-        exhaustive: Boolean = true,
-        body: suspend ScenarioBuilder<S, A, E>.() -> Unit,
-    ) {
-        turbineScope {
-            val builder = ScenarioBuilder(
-                name = name,
-                machine = machine,
-                testScope = testScope,
-                turbineScope = this,
-            )
-            var bodyFailed = false
-            try {
-                withClue("Scenario: $name") { builder.body() }
-            } catch (t: Throwable) {
-                bodyFailed = true
-                throw t
-            } finally {
-                // Only assert idle when the body succeeded — otherwise a follow-up
-                // failure here would mask the real assertion error.
-                if (exhaustive && !bodyFailed && builder.isStarted) {
-                    builder.expectIdle()
-                }
-                builder.dispose()
-            }
-        }
-    }
-}
-
-@MonakaTestDsl
-class ScenarioBuilder<S : StateMarker, A : ActionMarker, E : EffectMarker> internal constructor(
+class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> internal constructor(
     @Suppress("unused") private val name: String,
-    private val machine: StateMachine<S, A, E>,
+    private val machine: StateMachine<State, Action, Effect>,
     private val testScope: TestScope,
     private val turbineScope: CoroutineScope,
 ) {
-    private var initialState: S? = null
+    private var initialState: State? = null
 
-    private var store: Store<S, A, E>? = null
-    private var stateTurbine: ReceiveTurbine<S>? = null
-    private var effectTurbine: ReceiveTurbine<E>? = null
-    private var actionTurbine: ReceiveTurbine<A>? = null
+    private var store: Store<State, Action, Effect>? = null
+    private var stateTurbine: ReceiveTurbine<State>? = null
+    private var effectTurbine: ReceiveTurbine<Effect>? = null
+    private var actionTurbine: ReceiveTurbine<Action>? = null
 
     /**
      * Tracks actions dispatched by the test so the action stream can filter them
@@ -114,18 +38,38 @@ class ScenarioBuilder<S : StateMarker, A : ActionMarker, E : EffectMarker> inter
      *
      * Mutated only from the test thread (single-threaded under `runTest`).
      */
-    private val externalActions: ArrayDeque<A> = ArrayDeque()
+    private val externalActions: ArrayDeque<Action> = ArrayDeque()
 
     private var subscribersReady: Boolean = false
 
     internal val isStarted: Boolean get() = store != null
+
+    internal var isFinished: Boolean = false
+        private set
+
+    /**
+     * Mark this test case as complete and skip the automatic [expectIdle] check.
+     *
+     * Use when the test case intentionally leaves work pending — in-flight `task { }`
+     * coroutines, queued effects, or unobserved state changes — that you do not care to
+     * drain or assert on. After `finish()` returns, the test case body continues normally;
+     * place the call as the last statement (or follow it with `return@testCase`) if you
+     * want execution to stop there.
+     *
+     * Prefer `exhaustive = false` on the test case declaration itself when you know upfront
+     * that the test case will leave residue; reach for `finish()` when the decision is
+     * runtime-conditional.
+     */
+    fun finish() {
+        isFinished = true
+    }
 
     /**
      * Override the initial state declared in the [StateMachine].
      *
      * Must be called before the first [trigger] or [expectIdle].
      */
-    fun given(state: S) {
+    fun given(state: State) {
         check(store == null) { "given(...) must be called before the store starts" }
         initialState = state
     }
@@ -134,8 +78,8 @@ class ScenarioBuilder<S : StateMarker, A : ActionMarker, E : EffectMarker> inter
      * Dispatch [action] to the store and run [block] to assert on subsequent emissions.
      */
     suspend fun trigger(
-        action: A,
-        block: suspend AssertScope<S, A, E>.() -> Unit = {},
+        action: Action,
+        block: suspend AssertScope<State, Action, Effect>.() -> Unit = {},
     ) {
         val s = ensureStartedAndSubscribed()
         externalActions.addLast(action)
@@ -149,7 +93,7 @@ class ScenarioBuilder<S : StateMarker, A : ActionMarker, E : EffectMarker> inter
      */
     suspend fun trigger(
         event: LifecycleEvent,
-        block: suspend AssertScope<S, A, E>.() -> Unit = {},
+        block: suspend AssertScope<State, Action, Effect>.() -> Unit = {},
     ) {
         val s = ensureStartedAndSubscribed()
         s.onLifecycleEvent(event)
@@ -167,7 +111,7 @@ class ScenarioBuilder<S : StateMarker, A : ActionMarker, E : EffectMarker> inter
      */
     suspend fun trigger(
         hook: StateHook,
-        block: suspend AssertScope<S, A, E>.() -> Unit = {},
+        block: suspend AssertScope<State, Action, Effect>.() -> Unit = {},
     ) {
         val s = ensureStartedAndSubscribed()
         s.triggerStateHook(hook)
@@ -184,7 +128,7 @@ class ScenarioBuilder<S : StateMarker, A : ActionMarker, E : EffectMarker> inter
      */
     suspend fun advanceTime(
         duration: Duration,
-        block: suspend AssertScope<S, A, E>.() -> Unit = {},
+        block: suspend AssertScope<State, Action, Effect>.() -> Unit = {},
     ) {
         ensureStartedAndSubscribed()
         testScope.testScheduler.advanceTimeBy(duration)
@@ -205,7 +149,7 @@ class ScenarioBuilder<S : StateMarker, A : ActionMarker, E : EffectMarker> inter
         }
     }
 
-    private suspend fun ensureStartedAndSubscribed(): Store<S, A, E> {
+    private suspend fun ensureStartedAndSubscribed(): Store<State, Action, Effect> {
         val s = ensureStarted()
         if (!subscribersReady) {
             // Give the filter collector + turbine collectors a chance to subscribe
@@ -216,7 +160,7 @@ class ScenarioBuilder<S : StateMarker, A : ActionMarker, E : EffectMarker> inter
         return s
     }
 
-    private fun ensureStarted(): Store<S, A, E> {
+    private fun ensureStarted(): Store<State, Action, Effect> {
         store?.let { return it }
         val s = store(
             stateMachine = machine,
@@ -225,7 +169,7 @@ class ScenarioBuilder<S : StateMarker, A : ActionMarker, E : EffectMarker> inter
         )
         store = s
 
-        val reentrant = MutableSharedFlow<A>(extraBufferCapacity = Channel.UNLIMITED)
+        val reentrant = MutableSharedFlow<Action>(extraBufferCapacity = Channel.UNLIMITED)
         startActionFilter(scope = testScope.backgroundScope, source = s, sink = reentrant)
 
         stateTurbine = s.state.drop(count = 1).testIn(scope = turbineScope)
@@ -236,8 +180,8 @@ class ScenarioBuilder<S : StateMarker, A : ActionMarker, E : EffectMarker> inter
 
     private fun startActionFilter(
         scope: CoroutineScope,
-        source: Store<S, A, E>,
-        sink: MutableSharedFlow<A>,
+        source: Store<State, Action, Effect>,
+        sink: MutableSharedFlow<Action>,
     ) {
         scope.launch {
             source.actions.collect { action ->

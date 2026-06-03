@@ -16,7 +16,7 @@ class LoginStateMachineTest {
     fun updateCredentialsFromIdleTransitionsToTyping() = testStore(
         machine = LoginStateMachine(FakeLoginRepository()),
     ) {
-        scenario("UpdateCredentials from Idle moves to Typing") {
+        testCase("UpdateCredentials from Idle moves to Typing") {
             trigger(LoginAction.UpdateCredentials("alice", "secret")) {
                 expectState<LoginState.Typing> {
                     state.username == "alice" && state.password == "secret"
@@ -29,7 +29,7 @@ class LoginStateMachineTest {
     fun submitWithEmptyFieldsEmitsValidationError() = testStore(
         machine = LoginStateMachine(FakeLoginRepository()),
     ) {
-        scenario("Submit with blank credentials emits ShowValidationError") {
+        testCase("Submit with blank credentials emits ShowValidationError") {
             given(LoginState.Typing(username = "", password = ""))
 
             trigger(LoginAction.Submit) {
@@ -42,7 +42,7 @@ class LoginStateMachineTest {
     fun successfulLoginTransitionsToAuthenticated() = testStore(
         machine = LoginStateMachine(FakeLoginRepository(Result.success("alice"))),
     ) {
-        scenario("happy-path login: Typing → Submitting → Authenticated") {
+        testCase("happy-path login: Typing → Submitting → Authenticated") {
             given(LoginState.Typing(username = "alice", password = "secret"))
 
             trigger(LoginAction.Submit) {
@@ -59,7 +59,7 @@ class LoginStateMachineTest {
             FakeLoginRepository(Result.failure(RuntimeException("invalid credentials"))),
         ),
     ) {
-        scenario("failed login: Submitting → Error") {
+        testCase("failed login: Submitting → Error") {
             given(LoginState.Typing(username = "alice", password = "wrong"))
 
             trigger(LoginAction.Submit) {
@@ -73,7 +73,7 @@ class LoginStateMachineTest {
     fun retryFromErrorResubmits() = testStore(
         machine = LoginStateMachine(FakeLoginRepository(Result.success("alice"))),
     ) {
-        scenario("Retry from Error goes through Submitting to Authenticated") {
+        testCase("Retry from Error goes through Submitting to Authenticated") {
             given(LoginState.Error(username = "alice", password = "secret", message = "timeout"))
 
             trigger(LoginAction.Retry) {
@@ -88,7 +88,7 @@ class LoginStateMachineTest {
     fun logoutFromAnyStateReturnsToIdle() = testStore(
         machine = LoginStateMachine(FakeLoginRepository()),
     ) {
-        scenario("Logout from Authenticated navigates to login and resets state") {
+        testCase("Logout from Authenticated navigates to login and resets state") {
             given(LoginState.Authenticated(username = "alice"))
 
             trigger(LoginAction.Logout) {
@@ -97,7 +97,7 @@ class LoginStateMachineTest {
             }
         }
 
-        scenario("Logout from Typing also resets") {
+        testCase("Logout from Typing also resets") {
             given(LoginState.Typing(username = "alice", password = "secret"))
 
             trigger(LoginAction.Logout) {

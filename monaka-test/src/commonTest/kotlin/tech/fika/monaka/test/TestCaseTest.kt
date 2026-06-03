@@ -47,11 +47,11 @@ private val incrementingMachine = stateMachine<CounterState, CounterAction, Coun
     }
 }
 
-class ScenarioTest {
+class TestCaseTest {
 
     @Test
     fun startAndIncrement() = testStore(machine = incrementingMachine) {
-        scenario("start then increment") {
+        testCase("start then increment") {
             trigger(CounterAction.Start) {
                 expectState<CounterState.Counting> { state.count == 0 }
                 expectEffect(CounterEffect.Started)
@@ -67,7 +67,7 @@ class ScenarioTest {
 
     @Test
     fun handlerInitiatedDispatchSurfacesViaExpectAction() = testStore(machine = incrementingMachine) {
-        scenario("double-up fans out two Increment actions") {
+        testCase("double-up fans out two Increment actions") {
             given(CounterState.Counting(count = 0))
 
             trigger(CounterAction.DoubleUp) {
@@ -82,7 +82,7 @@ class ScenarioTest {
 
     @Test
     fun lifecyclePauseTriggersStateChange() = testStore(machine = incrementingMachine) {
-        scenario("pause persists and parks") {
+        testCase("pause persists and parks") {
             given(CounterState.Counting(count = 5))
 
             trigger(LifecycleEvent.OnPause) {
@@ -94,19 +94,36 @@ class ScenarioTest {
     }
 
     @Test
-    fun multipleScenariosShareMachineButGetFreshStores() = testStore(machine = incrementingMachine) {
-        scenario("first scenario starts from Idle") {
+    fun multipleTestCasesShareMachineButGetFreshStores() = testStore(machine = incrementingMachine) {
+        testCase("first test case starts from Idle") {
             trigger(CounterAction.Start) {
                 expectState<CounterState.Counting> { state.count == 0 }
                 expectEffect(CounterEffect.Started)
             }
         }
 
-        scenario("second scenario also starts from Idle — proves isolation") {
+        testCase("second test case also starts from Idle — proves isolation") {
             trigger(CounterAction.Start) {
                 expectState<CounterState.Counting> { state.count == 0 }
                 expectEffect(CounterEffect.Started)
             }
+        }
+    }
+
+    @Test
+    fun finishSuppressesExpectIdle() = testStore(machine = incrementingMachine) {
+        // DoubleUp dispatches two Increments. Asserting on only the first leaves a
+        // pending state emission and a pending handler-action — exhaustive expectIdle()
+        // would normally fail. finish() opts out.
+        testCase("partial assertions are tolerated after finish()") {
+            given(CounterState.Counting(count = 0))
+
+            trigger(CounterAction.DoubleUp) {
+                expectAction(CounterAction.Increment)
+                expectState<CounterState.Counting> { state.count == 1 }
+            }
+
+            finish()
         }
     }
 }

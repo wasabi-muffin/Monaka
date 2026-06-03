@@ -19,24 +19,24 @@ import tech.fika.monaka.core.State as StateMarker
  *   or from inside `task { }`). Test-initiated triggers are filtered out.
  */
 @MonakaTestDsl
-class AssertScope<S : StateMarker, A : ActionMarker, E : EffectMarker> internal constructor(
-    @PublishedApi internal val states: ReceiveTurbine<S>,
-    @PublishedApi internal val effects: ReceiveTurbine<E>,
-    @PublishedApi internal val actions: ReceiveTurbine<A>,
+class AssertScope<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> internal constructor(
+    @PublishedApi internal val states: ReceiveTurbine<State>,
+    @PublishedApi internal val effects: ReceiveTurbine<Effect>,
+    @PublishedApi internal val actions: ReceiveTurbine<Action>,
 ) {
-    inner class StateScope<T : S>(val state: T)
-    inner class ActionScope<T : A>(val action: T)
-    inner class EffectScope<T : E>(val effect: T)
+    inner class StateScope<T : State>(val state: T)
+    inner class ActionScope<T : Action>(val action: T)
+    inner class EffectScope<T : Effect>(val effect: T)
 
     // ── State ─────────────────────────────────────────────────────────────────
 
     /** Await the next state and assert equality with [state]. */
-    suspend fun expectState(state: S) {
+    suspend fun expectState(state: State) {
         states.awaitItem() shouldBe state
     }
 
     /** Await the next state and assert it matches [T] and the optional [predicate]. */
-    suspend inline fun <reified T : S> expectState(noinline predicate: StateScope<T>.() -> Boolean = { true }) {
+    suspend inline fun <reified T : State> expectState(noinline predicate: StateScope<T>.() -> Boolean = { true }) {
         val item = states.awaitItem()
         val state = item.shouldBeInstanceOf<T>()
         withClue("State $state did not match predicate") { StateScope(state).predicate() shouldBe true }
@@ -50,12 +50,12 @@ class AssertScope<S : StateMarker, A : ActionMarker, E : EffectMarker> internal 
     // ── Effect ────────────────────────────────────────────────────────────────
 
     /** Await the next effect and assert equality with [effect]. */
-    suspend fun expectEffect(effect: E) {
+    suspend fun expectEffect(effect: Effect) {
         effects.awaitItem() shouldBe effect
     }
 
     /** Await the next effect and assert it matches [T] and the optional [predicate]. */
-    suspend inline fun <reified T : E> expectEffect(noinline predicate: EffectScope<T>.() -> Boolean = { true }) {
+    suspend inline fun <reified T : Effect> expectEffect(noinline predicate: EffectScope<T>.() -> Boolean = { true }) {
         val item = effects.awaitItem()
         val effect = item.shouldBeInstanceOf<T>()
         withClue("Effect $effect did not match predicate") { EffectScope(effect).predicate() shouldBe true }
@@ -74,12 +74,12 @@ class AssertScope<S : StateMarker, A : ActionMarker, E : EffectMarker> internal 
     // ── Action ────────────────────────────────────────────────────────────────
 
     /** Await the next handler-initiated action and assert equality with [action]. */
-    suspend fun expectAction(action: A) {
+    suspend fun expectAction(action: Action) {
         actions.awaitItem() shouldBe action
     }
 
     /** Await the next handler-initiated action and assert it matches [T] and the optional [predicate]. */
-    suspend inline fun <reified T : A> expectAction(noinline predicate: ActionScope<T>.() -> Boolean = { true }) {
+    suspend inline fun <reified T : Action> expectAction(noinline predicate: ActionScope<T>.() -> Boolean = { true }) {
         val item = actions.awaitItem()
         val action = item.shouldBeInstanceOf<T>()
         withClue("Action $action did not match predicate") { ActionScope(action).predicate() shouldBe true }

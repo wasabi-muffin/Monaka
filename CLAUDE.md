@@ -163,12 +163,12 @@ commonTest.dependencies {
 
 **Entry point — `testStore`:**
 
-Pass a `StateMachine` instance (built with `stateMachine { }`) and define one or more named scenarios. Each scenario constructs an isolated `Store` and tears it down automatically.
+Pass a `StateMachine` instance (built with `stateMachine { }`) and define one or more named test cases. Each test case constructs an isolated `Store` and tears it down automatically.
 
 ```kotlin
 @Test
 fun loginFlow() = testStore(machine = LoginStateMachine(fakeRepo)) {
-    scenario("happy-path login") {
+    testCase("happy-path login") {
         given(LoginState.Typing(username = "alice", password = "secret"))
 
         trigger(LoginAction.Submit) {
@@ -183,7 +183,7 @@ fun loginFlow() = testStore(machine = LoginStateMachine(fakeRepo)) {
         }
     }
 
-    scenario("another scenario gets a fresh store") { … }
+    testCase("another test case gets a fresh store") { … }
 }
 ```
 
@@ -191,19 +191,20 @@ fun loginFlow() = testStore(machine = LoginStateMachine(fakeRepo)) {
 
 | Call | Where | Meaning |
 |---|---|---|
-| `given(state)` | scenario body, before first trigger | Override the machine's `initialState` |
-| `trigger(action) { … }` | scenario body | Dispatch an action; assert in the block |
-| `trigger(LifecycleEvent) { … }` | scenario body | Forward a lifecycle event; assert in the block |
+| `given(state)` | test case body, before first trigger | Override the machine's `initialState` |
+| `trigger(action) { … }` | test case body | Dispatch an action; assert in the block |
+| `trigger(LifecycleEvent) { … }` | test case body | Forward a lifecycle event; assert in the block |
 | `expectState<T> { predicate }` | trigger block | Assert next state is `T` matching optional predicate |
 | `expectEffect(e)` | trigger block | Assert next effect equals `e` |
 | `expectNoEffects()` | trigger block | Assert no effect is pending |
 | `expectAction(a)` | trigger block | Assert next handler-initiated `dispatch(action)` equals `a` |
 | `expectNoAction()` | trigger block | Assert no handler-initiated dispatch is pending |
+| `finish()` | test case body | Skip the automatic `expectIdle()` for the remainder of this test case |
 
-`expectIdle()` — that all three streams (states, effects, handler actions) are drained — runs **automatically** at the end of every scenario. Pass `exhaustive = false` to opt out:
+`expectIdle()` — that all three streams (states, effects, handler actions) are drained — runs **automatically** at the end of every test case. Pass `exhaustive = false` to opt out at declaration time, or call `finish()` mid-body to opt out at runtime:
 
 ```kotlin
-scenario("non-exhaustive", exhaustive = false) { … }
+testCase("non-exhaustive", exhaustive = false) { … }
 ```
 
 **`Store` vs `StateMachine`:**

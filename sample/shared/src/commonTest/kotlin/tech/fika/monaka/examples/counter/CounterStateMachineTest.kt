@@ -38,7 +38,7 @@ class CounterStateMachineTest {
 
     @Test
     fun incrementAndDecrement() = testStore(machine = counterMachine) {
-        scenario("increment raises count by step") {
+        testCase("increment raises count by step") {
             trigger(CounterAction.Increment) {
                 expectState<CounterState> { state.count == 1 }
             }
@@ -53,7 +53,7 @@ class CounterStateMachineTest {
 
     @Test
     fun setStepChangesIncrement() = testStore(machine = counterMachine) {
-        scenario("custom step is applied to increment") {
+        testCase("custom step is applied to increment") {
             trigger(CounterAction.SetStep(step = 5)) {
                 expectState<CounterState> { state.step == 5 }
             }
@@ -65,7 +65,7 @@ class CounterStateMachineTest {
 
     @Test
     fun invalidStepEmitsErrorAndKeepsState() = testStore(machine = counterMachine) {
-        scenario("step < 1 emits error, state unchanged") {
+        testCase("step < 1 emits error, state unchanged") {
             trigger(CounterAction.SetStep(step = 0)) {
                 expectEffect(CounterEffect.ShowMessage("Step must be at least 1."))
             }
@@ -74,7 +74,7 @@ class CounterStateMachineTest {
 
     @Test
     fun resetEmitsMessageAndSaveEffect() = testStore(machine = counterMachine) {
-        scenario("reset from non-zero restores count and emits two effects") {
+        testCase("reset from non-zero restores count and emits two effects") {
             given(CounterState(count = 42, step = 3))
 
             trigger(CounterAction.Reset) {
@@ -87,7 +87,7 @@ class CounterStateMachineTest {
 
     @Test
     fun saveCompletedSuccessEmitsMessage() = testStore(machine = counterMachine) {
-        scenario("SaveCompleted success emits saved message") {
+        testCase("SaveCompleted success emits saved message") {
             trigger(CounterAction.SaveCompleted(success = true)) {
                 expectEffect(CounterEffect.ShowMessage("Saved ✓"))
             }
@@ -96,7 +96,7 @@ class CounterStateMachineTest {
 
     @Test
     fun saveCompletedFailureSilent() = testStore(machine = counterMachine) {
-        scenario("SaveCompleted failure emits nothing") {
+        testCase("SaveCompleted failure emits nothing") {
             trigger(CounterAction.SaveCompleted(success = false)) {
                 expectNoEffects()
             }
