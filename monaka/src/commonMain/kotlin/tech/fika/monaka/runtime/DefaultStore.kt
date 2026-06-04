@@ -182,7 +182,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
                 state = currentState,
             )
 
-            StateHook.OnRepeat -> resolveHandler(handlerMap = updateHandlers, state = currentState)?.handle(
+            StateHook.OnUpdate -> resolveHandler(handlerMap = updateHandlers, state = currentState)?.handle(
                 handlerType = HandlerType.Hook.Update,
                 scope = updateHandlerScope(fromState = currentState, toState = currentState),
                 state = currentState,

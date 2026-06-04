@@ -107,7 +107,7 @@ class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : Effec
      *
      * - [StateHook.OnEnter] fires the `onEnter { }` handler registered for the current state.
      * - [StateHook.OnExit] fires the `onExit { }` handler registered for the current state.
-     * - [StateHook.OnRepeat] fires the `onUpdate { }` handler registered for the current state.
+     * - [StateHook.OnUpdate] fires the `onUpdate { }` handler registered for the current state.
      */
     suspend fun trigger(
         hook: StateHook,
