@@ -125,6 +125,11 @@ class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : Effec
      * Use this to drive time-based behaviour such as `delay`-backed tickers or debounces
      * that live inside `task { }` handlers. Unlike [trigger], no action is dispatched —
      * the store advances purely because time passed.
+     *
+     * After advancing the clock, [runCurrent][kotlinx.coroutines.test.TestCoroutineScheduler.runCurrent]
+     * is called so that any coroutines scheduled at exactly the new virtual time — including
+     * tasks that were launched by other tasks reaching their deadline at the same instant —
+     * run before the assertion [block] executes.
      */
     suspend fun advanceTime(
         duration: Duration,
@@ -132,6 +137,7 @@ class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : Effec
     ) {
         ensureStartedAndSubscribed()
         testScope.testScheduler.advanceTimeBy(duration)
+        testScope.testScheduler.runCurrent()
         AssertScope(stateTurbine!!, effectTurbine!!, actionTurbine!!).block()
     }
 
@@ -162,20 +168,21 @@ class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : Effec
 
     private fun ensureStarted(): Store<State, Action, Effect> {
         store?.let { return it }
-        val s = store(
+        val testStore = store(
             stateMachine = machine,
             scope = testScope.backgroundScope,
             initialState = initialState,
         )
-        store = s
+        store = testStore
 
         val reentrant = MutableSharedFlow<Action>(extraBufferCapacity = Channel.UNLIMITED)
-        startActionFilter(scope = testScope.backgroundScope, source = s, sink = reentrant)
+        startActionFilter(scope = testScope.backgroundScope, source = testStore, sink = reentrant)
 
-        stateTurbine = s.state.drop(count = 1).testIn(scope = turbineScope)
-        effectTurbine = s.effects.testIn(scope = turbineScope)
+        stateTurbine = testStore.state.drop(count = 1).testIn(scope = turbineScope)
+        effectTurbine = testStore.effects.testIn(scope = turbineScope)
         actionTurbine = reentrant.testIn(scope = turbineScope)
-        return s
+        testStore.start()
+        return testStore
     }
 
     private fun startActionFilter(
