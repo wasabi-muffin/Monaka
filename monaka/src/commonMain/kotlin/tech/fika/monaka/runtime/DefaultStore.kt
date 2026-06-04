@@ -85,9 +85,8 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     private val _effects = MutableSharedFlow<Effect>(extraBufferCapacity = 64)
     private val currentState: State get() = _state.value
     private val triggers = Channel<Trigger<Action>>(Channel.UNLIMITED)
-    private val jobRegistry = JobRegistry()
     private val ancestorCache = HashMap<KClass<*>, List<KClass<*>>>()
-    private val handlerKeySet: Set<KClass<*>> = buildSet {
+    private val registeredStates: Set<KClass<*>> = buildSet {
         addAll(actionHandlers.keys)
         addAll(enterHandlers.keys)
         addAll(exitHandlers.keys)
@@ -95,6 +94,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         addAll(lifecycleHandlers.keys)
         addAll(errorHandlers.keys)
     }
+    private val jobRegistry = JobRegistry()
     private val processingJob = machineScope.launch {
         for (trigger in triggers) {
             when (trigger) {
@@ -256,14 +256,14 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
      *
      * The result is computed once per unique state class using [KClass.isInstance] and
      * then cached in [ancestorCache], so every subsequent call for the same state class
-     * is an O(1) map lookup. [handlerKeySet] is built at construction time
+     * is an O(1) map lookup. [registeredStates] is built at construction time
      * from the keys of all handler maps, bounding the scan to registered classes only.
      *
      * Safe to call without synchronization — [ancestorCache] is only ever written from
      * the single sequential processing coroutine.
      */
     private fun ancestorsFor(state: State): List<KClass<*>> = ancestorCache.getOrPut(state::class) {
-        handlerKeySet.filter { it != state::class && it.isInstance(state) }
+        registeredStates.filter { it != state::class && it.isInstance(state) }
     }
 
     /**

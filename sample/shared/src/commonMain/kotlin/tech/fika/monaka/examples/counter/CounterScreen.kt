@@ -24,7 +24,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,18 +43,6 @@ import tech.fika.monaka.ext.toViewStore
 fun CounterScreen(onBack: () -> Unit) {
     val store = rememberStore { scope -> CounterStateMachine(scope) }
     val snackbarHostState = remember { SnackbarHostState() }
-
-    LaunchedEffect(store) {
-        store.effects.collect { effect ->
-            when (effect) {
-                is CounterEffect.ShowMessage -> snackbarHostState.showSnackbar(effect.text)
-                is CounterEffect.SaveCount -> {
-                    delay(300)
-                    store.dispatch(CounterAction.SaveCompleted(true))
-                }
-            }
-        }
-    }
 
     val (state, dispatch) = store
         .handleEffects { effect ->
