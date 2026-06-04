@@ -78,14 +78,15 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     private val errorHandlers: Map<KClass<out State>, StateErrorHandler<State, Action, Effect>>,
     private val plugins: List<Plugin<State, Action, Effect>>,
     private val machineScope: CoroutineScope,
+    private val extraBufferCapacity: Int = DEFAULT_BUFFER_CAPACITY,
 ) : Store<State, Action, Effect> {
     private enum class Phase { Idle, Running, Cancelled }
 
     private var phase = Phase.Idle
 
     private val _state = MutableStateFlow(initialState)
-    private val _actions = MutableSharedFlow<Action>(extraBufferCapacity = 64)
-    private val _effects = MutableSharedFlow<Effect>(extraBufferCapacity = 64)
+    private val _actions = MutableSharedFlow<Action>(extraBufferCapacity = extraBufferCapacity)
+    private val _effects = MutableSharedFlow<Effect>(extraBufferCapacity = extraBufferCapacity)
 
     private val currentState: State get() = _state.value
     private val triggers = Channel<Trigger<Action>>(Channel.UNLIMITED)
@@ -388,4 +389,8 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         dispatch = ::dispatch,
         jobRegistry = jobRegistry,
     )
+
+    companion object {
+        private const val DEFAULT_BUFFER_CAPACITY: Int = 64
+    }
 }

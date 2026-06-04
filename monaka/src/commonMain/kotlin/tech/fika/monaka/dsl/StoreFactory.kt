@@ -8,6 +8,9 @@ import tech.fika.monaka.core.Store
 import tech.fika.monaka.plugin.Plugin
 import tech.fika.monaka.runtime.DefaultStore
 
+/** Default [kotlinx.coroutines.flow.SharedFlow] `extraBufferCapacity` for effects and actions. */
+private const val DEFAULT_BUFFER_CAPACITY: Int = 64
+
 /**
  * Create and start a [Store] using the declarative DSL.
  *
@@ -42,18 +45,23 @@ import tech.fika.monaka.runtime.DefaultStore
  * }
  * ```
  *
- * @param scope        The [CoroutineScope] that drives action processing. On Android,
- *                     pass `viewModelScope` so the machine is automatically cancelled
- *                     when the ViewModel is cleared.
- * @param initialState When non-null, replaces the state set by [StateMachineBuilder.initialState].
- * @param plugins      Appended **after** any plugins installed inside [builder].
- * @param builder      DSL configuration block. Must call [StateMachineBuilder.initialState]
- *                     unless [initialState] is provided.
+ * @param scope                 The [CoroutineScope] that drives action processing. On Android,
+ *                              pass `viewModelScope` so the machine is automatically cancelled
+ *                              when the ViewModel is cleared.
+ * @param initialState          When non-null, replaces the state set by [StateMachineBuilder.initialState].
+ * @param plugins               Appended **after** any plugins installed inside [builder].
+ * @param extraBufferCapacity `extraBufferCapacity` for the effects (and actions) [kotlinx.coroutines.flow.SharedFlow].
+ *                              Increase this if your machine emits effects in rapid bursts so that
+ *                              [kotlinx.coroutines.flow.MutableSharedFlow.emit] does not suspend and
+ *                              stall the processing loop. Defaults to [DEFAULT_BUFFER_CAPACITY].
+ * @param builder               DSL configuration block. Must call [StateMachineBuilder.initialState]
+ *                              unless [initialState] is provided.
  */
 fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
     scope: CoroutineScope,
     initialState: State? = null,
     plugins: List<Plugin<State, Action, Effect>> = emptyList(),
+    extraBufferCapacity: Int = DEFAULT_BUFFER_CAPACITY,
     builder: StateMachineBuilder<State, Action, Effect>.() -> Unit,
 ): Store<State, Action, Effect> {
     val config = StateMachineBuilder<State, Action, Effect>().apply(builder).build(initialState = initialState, extraPlugins = plugins)
@@ -68,6 +76,7 @@ fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
         errorHandlers = config.errorHandlers,
         plugins = config.plugins,
         machineScope = scope,
+        extraBufferCapacity = extraBufferCapacity,
     )
 }
 
@@ -77,16 +86,19 @@ fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
  * Use this overload when the machine is defined as a [StateMachine] instance (e.g.
  * via [stateMachine]) and you want to start it with a separate scope.
  *
- * @param stateMachine The configuration snapshot to run.
- * @param scope        The [CoroutineScope] that drives action processing.
- * @param initialState When non-null, overrides [StateMachine.initialState].
- * @param plugins      Appended **after** any plugins in [stateMachine].
+ * @param stateMachine          The configuration snapshot to run.
+ * @param scope                 The [CoroutineScope] that drives action processing.
+ * @param initialState          When non-null, overrides [StateMachine.initialState].
+ * @param plugins               Appended **after** any plugins in [stateMachine].
+ * @param extraBufferCapacity `extraBufferCapacity` for the effects (and actions) [kotlinx.coroutines.flow.SharedFlow].
+ *                              Defaults to [DEFAULT_BUFFER_CAPACITY].
  */
 fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
     stateMachine: StateMachine<State, Action, Effect>,
     scope: CoroutineScope,
     initialState: State? = null,
     plugins: List<Plugin<State, Action, Effect>> = emptyList(),
+    extraBufferCapacity: Int = DEFAULT_BUFFER_CAPACITY,
 ): Store<State, Action, Effect> = DefaultStore(
     id = stateMachine.id,
     initialState = initialState ?: stateMachine.initialState,
@@ -98,4 +110,5 @@ fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
     errorHandlers = stateMachine.errorHandlers,
     plugins = stateMachine.plugins + plugins,
     machineScope = scope,
+    extraBufferCapacity = extraBufferCapacity,
 )

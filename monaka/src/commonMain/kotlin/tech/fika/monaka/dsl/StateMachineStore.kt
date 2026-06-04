@@ -82,12 +82,15 @@ import tech.fika.monaka.runtime.DefaultStore
  *
  * - [initialState]: when non-null, replaces the state set by [tech.fika.monaka.dsl.StateMachineBuilder.initialState].
  * - [plugins]: appended **after** any plugins installed inside the `init` block.
+ * - [extraBufferCapacity]: `extraBufferCapacity` for the effects (and actions) [kotlinx.coroutines.flow.SharedFlow].
+ *   Increase this if your machine emits effects in rapid bursts. Defaults to [DEFAULT_BUFFER_CAPACITY].
  */
 class StateMachineStore<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
     val stateMachine: StateMachine<State, Action, Effect>,
     private val scope: CoroutineScope,
     private val initialState: State? = null,
     private val plugins: List<Plugin<State, Action, Effect>> = emptyList(),
+    private val extraBufferCapacity: Int = DEFAULT_BUFFER_CAPACITY,
 ) : Store<State, Action, Effect> by DefaultStore(
     machineScope = scope,
     id = stateMachine.id,
@@ -99,4 +102,9 @@ class StateMachineStore<State : StateMarker, Action : ActionMarker, Effect : Eff
     lifecycleHandlers = stateMachine.lifecycleHandlers,
     errorHandlers = stateMachine.errorHandlers,
     plugins = stateMachine.plugins + plugins,
-)
+    extraBufferCapacity = extraBufferCapacity,
+) {
+    companion object {
+        private const val DEFAULT_BUFFER_CAPACITY: Int = 64
+    }
+}
