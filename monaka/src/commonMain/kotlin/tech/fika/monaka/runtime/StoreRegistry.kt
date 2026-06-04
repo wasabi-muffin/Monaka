@@ -60,16 +60,16 @@ import tech.fika.monaka.relay.Relay
  * ### Known limitations
  * Relay collector coroutines are keyed by their *source* store. When a target store is
  * unregistered, any relay that was dispatching to it keeps collecting from the source and
- * simply dispatches into an empty result — a no-op per emission. Jobs are only cancelled
+ * simply dispatches into an empty result — a no-op per emission. Jobs are only canceled
  * when the source store itself is unregistered.
  *
  * @param bridgeScope The scope used for all relay coroutines. Must be confined to the same
  *                    thread used to call [register] and [unregister] (typically `Dispatchers.Main`).
- *                    Pass the same scope that owns the stores so all relay work is cancelled together.
+ *                    Pass the same scope that owns the stores so all relay work is canceled together.
  */
 class StoreRegistry(private val bridgeScope: CoroutineScope) {
 
-    private val stores = LinkedHashMap<KClass<*>, MutableList<Store<*, *, *>>>()
+    private val stores = LinkedHashMap<KClass<out Store<*, *, *>>, MutableList<Store<*, *, *>>>()
     private val relays = mutableListOf<Relay<*, *, *>>()
     // sourceId → collector jobs launched by relay.apply for that source store
     private val relayJobs = HashMap<String, MutableList<Job>>()
@@ -150,7 +150,7 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
         stores[kClass]?.isNotEmpty() == true
 
     /** The set of classes that have at least one registered instance, in insertion order. */
-    val keys: Set<KClass<*>> get() = stores.keys.toSet()
+    val keys: Set<KClass<out Store<*, *, *>>> get() = stores.keys.toSet()
 
     /**
      * Retrieve a snapshot of all registered instances of [kClass].

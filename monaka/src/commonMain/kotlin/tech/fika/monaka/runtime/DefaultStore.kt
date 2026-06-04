@@ -70,12 +70,12 @@ import tech.fika.monaka.plugin.Plugin
 internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
     override val id: String,
     initialState: State,
-    private val actionHandlers: Map<KClass<*>, Map<KClass<*>, ActionHandler<State, Action, Effect>>>,
-    private val enterHandlers: Map<KClass<*>, StateChangeHandler<State, Action, Effect>>,
-    private val exitHandlers: Map<KClass<*>, StateChangeHandler<State, Action, Effect>>,
-    private val updateHandlers: Map<KClass<*>, StateUpdateHandler<State, Action, Effect>>,
-    private val lifecycleHandlers: Map<KClass<*>, Map<LifecycleEvent, LifecycleHandler<State, Action, Effect>>>,
-    private val errorHandlers: Map<KClass<*>, StateErrorHandler<State, Action, Effect>>,
+    private val actionHandlers: Map<KClass<out State>, Map<KClass<out Action>, ActionHandler<State, Action, Effect>>>,
+    private val enterHandlers: Map<KClass<out State>, StateChangeHandler<State, Action, Effect>>,
+    private val exitHandlers: Map<KClass<out State>, StateChangeHandler<State, Action, Effect>>,
+    private val updateHandlers: Map<KClass<out State>, StateUpdateHandler<State, Action, Effect>>,
+    private val lifecycleHandlers: Map<KClass<out State>, Map<LifecycleEvent, LifecycleHandler<State, Action, Effect>>>,
+    private val errorHandlers: Map<KClass<out State>, StateErrorHandler<State, Action, Effect>>,
     private val plugins: List<Plugin<State, Action, Effect>>,
     private val machineScope: CoroutineScope,
 ) : Store<State, Action, Effect> {
@@ -85,8 +85,8 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     private val _effects = MutableSharedFlow<Effect>(extraBufferCapacity = 64)
     private val currentState: State get() = _state.value
     private val triggers = Channel<Trigger<Action>>(Channel.UNLIMITED)
-    private val ancestorCache = HashMap<KClass<*>, List<KClass<*>>>()
-    private val registeredStates: Set<KClass<*>> = buildSet {
+    private val ancestorCache = HashMap<KClass<out State>, List<KClass<out State>>>()
+    private val registeredStates: Set<KClass<out State>> = buildSet {
         addAll(actionHandlers.keys)
         addAll(enterHandlers.keys)
         addAll(exitHandlers.keys)
@@ -193,7 +193,6 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         fromState: State,
         result: HandlerResult<State, Effect>,
     ) {
-        val action = (handlerType as? HandlerType.Action)?.action
         when (result) {
             is HandlerResult.Transition -> processTransition(fromState = fromState, handlerType = handlerType, transition = result)
             is HandlerResult.SideEffect -> processEffects(effects = result.effects)
@@ -262,7 +261,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
      * Safe to call without synchronization — [ancestorCache] is only ever written from
      * the single sequential processing coroutine.
      */
-    private fun ancestorsFor(state: State): List<KClass<*>> = ancestorCache.getOrPut(state::class) {
+    private fun ancestorsFor(state: State): List<KClass<out State>> = ancestorCache.getOrPut(state::class) {
         registeredStates.filter { it != state::class && it.isInstance(state) }
     }
 
@@ -288,7 +287,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
      * Returns the first value whose registered [KClass] key matches [state] exactly,
      * or is a registered ancestor of it via [ancestorsFor].
      */
-    private fun <Handler> resolveHandler(handlerMap: Map<KClass<*>, Handler>, state: State): Handler? {
+    private fun <Handler> resolveHandler(handlerMap: Map<KClass<out State>, Handler>, state: State): Handler? {
         handlerMap[state::class]?.let { return it }
         for (ancestorClass in ancestorsFor(state)) {
             handlerMap[ancestorClass]?.let { return it }

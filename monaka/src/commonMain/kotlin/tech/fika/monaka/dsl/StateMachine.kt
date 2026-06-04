@@ -32,11 +32,11 @@ import tech.fika.monaka.plugin.Plugin
 interface StateMachine<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> {
     val id: String
     val initialState: State
-    val actionHandlers: Map<KClass<*>, Map<KClass<*>, ActionHandler<State, Action, Effect>>>
-    val enterHandlers: Map<KClass<*>, StateChangeHandler<State, Action, Effect>>
-    val exitHandlers: Map<KClass<*>, StateChangeHandler<State, Action, Effect>>
-    val updateHandlers: Map<KClass<*>, StateUpdateHandler<State, Action, Effect>>
-    val lifecycleHandlers: Map<KClass<*>, Map<LifecycleEvent, LifecycleHandler<State, Action, Effect>>>
-    val errorHandlers: Map<KClass<*>, StateErrorHandler<State, Action, Effect>>
+    val actionHandlers: Map<KClass<out State>, Map<KClass<out Action>, ActionHandler<State, Action, Effect>>>
+    val enterHandlers: Map<KClass<out State>, StateChangeHandler<State, Action, Effect>>
+    val exitHandlers: Map<KClass<out State>, StateChangeHandler<State, Action, Effect>>
+    val updateHandlers: Map<KClass<out State>, StateUpdateHandler<State, Action, Effect>>
+    val lifecycleHandlers: Map<KClass<out State>, Map<LifecycleEvent, LifecycleHandler<State, Action, Effect>>>
+    val errorHandlers: Map<KClass<out State>, StateErrorHandler<State, Action, Effect>>
     val plugins: List<Plugin<State, Action, Effect>>
 }

@@ -45,7 +45,7 @@ import tech.fika.monaka.handler.StateUpdateHandler
 class StateBuilder<State : StateMarker, SubState : State, Action : ActionMarker, Effect : EffectMarker> {
 
     @PublishedApi
-    internal val handlers: LinkedHashMap<KClass<*>, ActionHandler<State, Action, Effect>> = LinkedHashMap()
+    internal val handlers: LinkedHashMap<KClass<out Action>, ActionHandler<State, Action, Effect>> = LinkedHashMap()
 
     @PublishedApi
     internal var enterHandler: StateChangeHandler<State, Action, Effect>? = null

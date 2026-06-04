@@ -58,27 +58,27 @@ class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Effect : E
 
     // state-class → (action-class → handler)
     @PublishedApi
-    internal val actionHandlers: LinkedHashMap<KClass<*>, LinkedHashMap<KClass<*>, ActionHandler<State, Action, Effect>>> =
+    internal val actionHandlers: LinkedHashMap<KClass<out State>, LinkedHashMap<KClass<out Action>, ActionHandler<State, Action, Effect>>> =
         LinkedHashMap()
 
     // state-class → enter / exit / modify hooks
     @PublishedApi
-    internal val enterHandlers: LinkedHashMap<KClass<*>, StateChangeHandler<State, Action, Effect>> = LinkedHashMap()
+    internal val enterHandlers: LinkedHashMap<KClass<out State>, StateChangeHandler<State, Action, Effect>> = LinkedHashMap()
 
     @PublishedApi
-    internal val exitHandlers: LinkedHashMap<KClass<*>, StateChangeHandler<State, Action, Effect>> = LinkedHashMap()
+    internal val exitHandlers: LinkedHashMap<KClass<out State>, StateChangeHandler<State, Action, Effect>> = LinkedHashMap()
 
     @PublishedApi
-    internal val updateHandlers: LinkedHashMap<KClass<*>, StateUpdateHandler<State, Action, Effect>> = LinkedHashMap()
+    internal val updateHandlers: LinkedHashMap<KClass<out State>, StateUpdateHandler<State, Action, Effect>> = LinkedHashMap()
 
     // state-class → (lifecycle-event → hook)
     @PublishedApi
-    internal val lifecycleHandlers: LinkedHashMap<KClass<*>, LinkedHashMap<LifecycleEvent, LifecycleHandler<State, Action, Effect>>> =
+    internal val lifecycleHandlers: LinkedHashMap<KClass<out State>, LinkedHashMap<LifecycleEvent, LifecycleHandler<State, Action, Effect>>> =
         LinkedHashMap()
 
     // state-class → error recovery hook
     @PublishedApi
-    internal val errorHandlers: LinkedHashMap<KClass<*>, StateErrorHandler<State, Action, Effect>> = LinkedHashMap()
+    internal val errorHandlers: LinkedHashMap<KClass<out State>, StateErrorHandler<State, Action, Effect>> = LinkedHashMap()
 
     internal val plugins: MutableList<Plugin<State, Action, Effect>> = mutableListOf()
 
@@ -130,8 +130,6 @@ class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Effect : E
         // Error recovery hook
         builder.errorHandler?.let { errorHandlers[SubState::class] = it }
     }
-
-    // ── Plugin installation ───────────────────────────────────────────────────
 
     // ── Plugin installation ───────────────────────────────────────────────────
 
