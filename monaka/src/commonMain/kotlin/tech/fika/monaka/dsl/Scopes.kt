@@ -119,6 +119,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
     internal val pendingEffects: MutableList<Effect> = mutableListOf()
     @PublishedApi
     internal var rejected: Boolean = false
+    internal var guarded: Boolean = false
 
     // ── Result builders ───────────────────────────────────────────────────────
 
@@ -132,8 +133,35 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
      * }
      * ```
      */
+    /**
+     * Stop recording further results if [predicate] returns false.
+     *
+     * All verbs called before [guard] are preserved and returned as the handler result.
+     * All verbs called after a failing [guard] — [transition], [sideEffect], [dispatch],
+     * [task], and [cancel] — become no-ops for this handler invocation.
+     *
+     * Unlike [reject], a failing [guard] does not discard pre-guard recordings and does
+     * not notify plugins via `onRejected`. The result is whatever was recorded before the
+     * guard: a [transition], accumulated [sideEffect]s, or a silent no-op.
+     *
+     * Calling [guard] after [reject] is a no-op. Calling [reject] after a failing [guard]
+     * is also a no-op — guard semantics take precedence and pre-guard effects are preserved.
+     *
+     * ```kotlin
+     * on<MyAction.Submit> {
+     *     sideEffect(MyEffect.Analytics)   // always runs
+     *     guard { state.isValid }          // short-circuits below if invalid
+     *     transition { MyState.Submitting }
+     * }
+     * ```
+     */
+    fun guard(predicate: () -> Boolean) {
+        if (rejected || guarded) return
+        if (!predicate()) guarded = true
+    }
+
     fun <S : State> transition(block: () -> S) {
-        if (rejected || pendingState != null) return
+        if (guarded || rejected || pendingState != null) return
         pendingState = block()
     }
 
@@ -166,7 +194,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
      * ```
      */
     fun sideEffect(vararg effects: Effect) {
-        if (rejected) return
+        if (guarded || rejected) return
         pendingEffects += effects
     }
 
@@ -185,6 +213,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
      * ```
      */
     fun reject() {
+        if (guarded) return
         rejected = true
     }
 
@@ -198,7 +227,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
      * coroutine; does not suspend. No-op if [reject] has already been called.
      */
     fun dispatch(action: Action) {
-        if (rejected) return
+        if (guarded || rejected) return
         internalDispatch(action)
     }
 
@@ -213,7 +242,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
         coroutineScope: CoroutineScope = machineScope,
         block: suspend CoroutineScope.() -> Unit,
     ) {
-        if (rejected) return
+        if (guarded || rejected) return
         jobRegistry.launch(scope = coroutineScope, autoCancel = autoCancel, block = block)
     }
 
@@ -223,7 +252,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
      *
      * Use for debounce and "latest wins" patterns. When [autoCancel] is true, the job is
      * additionally canceled (and its key unregistered) on the next state-type change.
-     * No-op if [reject] has already been called.
+     * No-op if [reject] or [guard] has already been called.
      */
     fun task(
         key: String,
@@ -231,17 +260,16 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
         coroutineScope: CoroutineScope = machineScope,
         block: suspend CoroutineScope.() -> Unit,
     ) {
-        if (rejected) return
+        if (guarded || rejected) return
         jobRegistry.launch(scope = coroutineScope, key = key, autoCancel = autoCancel, block = block)
     }
 
-
     /**
      * Cancel the job registered under [key], if any, and remove it from the registry.
-     * No-op if [reject] has already been called.
+     * No-op if [reject] or [guard] has already been called.
      */
     fun cancel(key: String) {
-        if (rejected) return
+        if (guarded || rejected) return
         jobRegistry.cancel(key)
     }
 }
