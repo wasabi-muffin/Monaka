@@ -13,17 +13,57 @@ kotlin {
         compileSdk = 36
         minSdk = 24
         compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
         }
     }
 
-    iosX64()
+    // iOS
     iosArm64()
     iosSimulatorArm64()
+    iosX64()
 
+    // macOS
+    macosArm64()
+
+    // watchOS
+    watchosArm32()
+    watchosArm64()
+    watchosDeviceArm64()
+    watchosSimulatorArm64()
+
+    // tvOS
+    tvosArm64()
+    tvosSimulatorArm64()
+
+    // JVM / Desktop
     jvm()
 
-    // Automatically creates iosMain intermediate source set shared by all iOS targets
+    // Linux
+    linuxArm64()
+    linuxX64()
+
+    // Windows
+    mingwX64()
+
+    // Android Native
+    androidNativeArm32()
+    androidNativeArm64()
+    androidNativeX64()
+    androidNativeX86()
+
+    // JavaScript / WebAssembly
+    js {
+        browser()
+        nodejs()
+    }
+    wasmJs {
+        browser()
+        nodejs()
+    }
+    wasmWasi {
+        nodejs()
+    }
+
     applyDefaultHierarchyTemplate()
 
     sourceSets {
