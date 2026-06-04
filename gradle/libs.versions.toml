@@ -1,40 +1,65 @@
 [versions]
-agp = "9.1.1"
+# Kotlin
 kotlin = "2.3.21"
 coroutines = "1.11.0"
-turbine = "1.2.1"
-kotest = "5.9.1"
-composeMultiplatform = "1.11.1"
-datetime = "0.8.0"
-lifecycleMultiplatform = "2.10.0"
 
-# AndroidX
-coreKtx = "1.18.0"
-activityCompose = "1.13.0"
+# Kotlin Multiplatform
+compose = "1.11.1"
+compose-material3 = "1.11.0-alpha07"
+lifecycle = "2.10.0"
+datetime = "0.8.0"
+
+# Android
+android = "9.1.1"
+android-core = "1.19.0"
+activity-compose = "1.13.0"
+
+# Test
+turbine = "1.2.1"
+kotest = "6.1.11"
 
 [libraries]
-# Coroutines
-kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
-kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
-kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+# Gradle plugin artifacts
+gradle-android = { module =  "com.android.tools.build:gradle", version.ref = "android" }
+gradle-kotlin = { module =  "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+gradle-compose-multiplatform = { module =  "org.jetbrains.compose:compose-gradle-plugin", version.ref = "compose" }
 
-# Testing
-turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
-kotest-assertions = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
+# Coroutines
+kotlinx-coroutines-core = { module =  "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-android = { module =  "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-coroutines-test = { module =  "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
 # Multiplatform
-kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "datetime" }
-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleMultiplatform" }
-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleMultiplatform"}
+kotlinx-datetime = { module =  "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
+lifecycle-runtime-compose = { module =  "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
+lifecycle-viewmodel = { module =  "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+
+# Compose Multiplatform
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose" }
+compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose" }
+compose-components-ui-tooling-preview = { module = "org.jetbrains.compose.components:components-ui-tooling-preview", version.ref = "compose" }
+compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "compose-material3" }
 
 # AndroidX
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-core-ktx = { module =  "androidx.core:core-ktx", version.ref = "android-core" }
+androidx-activity-compose = { module =  "androidx.activity:activity-compose", version.ref = "activity-compose" }
+
+# Testing
+turbine = { module =  "app.cash.turbine:turbine", version.ref = "turbine" }
+kotest-assertions = { module =  "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 
 [plugins]
-android-application = { id = "com.android.application", version.ref = "agp" }
-android-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
+android-application = { id = "com.android.application", version.ref = "android" }
+android-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "android" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose" }
 compiler-plugin = { id = "org.jetbrains.kotlin.compiler.plugin.template", version = "0.1.0" }
+
+# Convention Plugins
+monaka-kmp-targets = { id = "monaka.kmp.targets", version = "UNDEFINED" }
+monaka-kmp-library = { id = "monaka.kmp.library", version = "UNDEFINED" }
+monaka-android-application = { id = "monaka.android.application", version = "UNDEFINED" }
+monaka-publication = { id = "monaka.publication", version = "UNDEFINED" }
+monaka-compose = { id = "monaka.compose", version = "UNDEFINED" }
