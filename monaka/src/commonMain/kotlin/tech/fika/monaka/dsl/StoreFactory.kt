@@ -8,9 +8,6 @@ import tech.fika.monaka.core.Store
 import tech.fika.monaka.plugin.Plugin
 import tech.fika.monaka.runtime.DefaultStore
 
-/** Default [kotlinx.coroutines.flow.SharedFlow] `extraBufferCapacity` for effects and actions. */
-private const val DEFAULT_BUFFER_CAPACITY: Int = 64
-
 /**
  * Create and start a [Store] using the declarative DSL.
  *
@@ -112,3 +109,6 @@ fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
     machineScope = scope,
     extraBufferCapacity = extraBufferCapacity,
 )
+
+/** Default [kotlinx.coroutines.flow.SharedFlow] `extraBufferCapacity` for effects and actions. */
+private const val DEFAULT_BUFFER_CAPACITY: Int = 64
