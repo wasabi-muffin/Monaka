@@ -79,12 +79,17 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     private val plugins: List<Plugin<State, Action, Effect>>,
     private val machineScope: CoroutineScope,
 ) : Store<State, Action, Effect> {
+    private enum class Phase { Idle, Running, Cancelled }
+
+    private var phase = Phase.Idle
 
     private val _state = MutableStateFlow(initialState)
     private val _actions = MutableSharedFlow<Action>(extraBufferCapacity = 64)
     private val _effects = MutableSharedFlow<Effect>(extraBufferCapacity = 64)
+
     private val currentState: State get() = _state.value
     private val triggers = Channel<Trigger<Action>>(Channel.UNLIMITED)
+
     private val ancestorCache = HashMap<KClass<out State>, List<KClass<out State>>>()
     private val registeredStates: Set<KClass<out State>> = buildSet {
         addAll(actionHandlers.keys)
@@ -94,6 +99,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         addAll(lifecycleHandlers.keys)
         addAll(errorHandlers.keys)
     }
+
     private val jobRegistry = JobRegistry()
     private val processingJob = machineScope.launch {
         for (trigger in triggers) {
@@ -108,22 +114,32 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     override val state: StateFlow<State> = _state.asStateFlow()
     override val actions: SharedFlow<Action> = _actions.asSharedFlow()
     override val effects: SharedFlow<Effect> = _effects.asSharedFlow()
+    override val isActive: Boolean get() = phase == Phase.Running
+
+    override fun start() {
+        if (phase != Phase.Idle) return
+        phase = Phase.Running
+        triggers.trySend(element = Trigger.Hook(hook = StateHook.OnEnter))
+    }
 
     override fun dispatch(action: Action) {
-        plugins.forEach { it.onAction(currentState = currentState, action = action) }
+        if (!isActive) return
         _actions.tryEmit(value = action)
         triggers.trySend(element = Trigger.Action(action = action))
     }
 
     override fun onLifecycleEvent(event: LifecycleEvent) {
+        if (!isActive) return
         triggers.trySend(element = Trigger.Lifecycle(event = event))
     }
 
     override fun triggerStateHook(hook: StateHook) {
+        if (!isActive) return
         triggers.trySend(element = Trigger.Hook(hook = hook))
     }
 
     override fun cancel() {
+        phase = Phase.Cancelled
         jobRegistry.cancelAll()
         processingJob.cancel()
         triggers.close()
@@ -135,6 +151,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     // ── Processing ────────────────────────────────────────────────────────────
 
     private suspend fun processAction(action: Action) {
+        plugins.forEach { it.onAction(currentState = currentState, action = action) }
         val handlerType = HandlerType.Action(action = action)
         resolveActionHandler(state = currentState, action = action)?.handle(
             handlerType = handlerType,
@@ -296,7 +313,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     }
 
     /**
-     * Run [handler] on [scope], then forward the returned [HandlerResult] into [processResult].
+     * Run handler on [scope], then forward the returned [HandlerResult] into [processResult].
      *
      * On failure:
      * 1. If an `onError` hook is registered for [state], it is invoked with an [ErrorScope]

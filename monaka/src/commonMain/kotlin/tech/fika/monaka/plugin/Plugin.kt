@@ -25,10 +25,13 @@ import tech.fika.monaka.core.State as StateMarker
 interface Plugin<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> {
 
     /**
-     * Called immediately when an action is dispatched, **before** it is processed.
+     * Called just before an action is processed, on the sequential processing coroutine.
      *
-     * At this point the state has not yet changed. Use this hook for logging or
-     * analytics that need to capture the "before" snapshot.
+     * [currentState] reflects the actual state at the moment the action is dequeued —
+     * which may differ from the state at the time [tech.fika.monaka.core.Store.dispatch]
+     * was called if other actions were queued ahead of it.
+     *
+     * Use this hook for logging or analytics that need to capture the pre-transition snapshot.
      */
     fun onAction(currentState: State, action: Action): Unit = Unit
 

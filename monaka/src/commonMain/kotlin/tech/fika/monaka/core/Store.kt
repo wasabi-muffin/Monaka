@@ -80,6 +80,29 @@ interface Store<out State : StateMarker, Action : ActionMarker, out Effect : Eff
     fun cancel()
 
     /**
+     * Whether this store is still active and processing actions.
+     *
+     * Returns `false` after [cancel] is called or after the store's owning
+     * [kotlinx.coroutines.CoroutineScope] is cancelled externally (e.g. a cleared ViewModel scope).
+     * Once inactive, [dispatch], [start], [onLifecycleEvent], and [triggerStateHook] are all silent no-ops.
+     */
+    val isActive: Boolean get() = true
+
+    /**
+     * Start the store by firing the `onEnter` hook for the initial state, if one is registered.
+     *
+     * Call this once after all observers (state collectors, effect handlers) are attached, so
+     * that any state transition or effect emitted by the initial `onEnter` is not missed.
+     *
+     * Calling [start] more than once is a safe no-op — the hook fires at most once per store
+     * instance. Calling [start] after [cancel] is also a no-op.
+     *
+     * The default implementation is a no-op, so stores that do not use `onEnter` on the
+     * initial state do not need to call this.
+     */
+    fun start(): Unit = Unit
+
+    /**
      * Forward an application [LifecycleEvent] into the machine.
      *
      * The event is enqueued in the same sequential channel as actions, so it is
