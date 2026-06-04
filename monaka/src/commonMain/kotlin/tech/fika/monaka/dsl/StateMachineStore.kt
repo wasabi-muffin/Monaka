@@ -4,6 +4,7 @@ package tech.fika.monaka.dsl
 
 import kotlin.uuid.ExperimentalUuidApi
 import kotlinx.coroutines.CoroutineScope
+import tech.fika.monaka.runtime.defaultCoroutineScope
 import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
 import tech.fika.monaka.core.State as StateMarker
@@ -87,7 +88,7 @@ import tech.fika.monaka.runtime.DefaultStore
  */
 class StateMachineStore<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
     val stateMachine: StateMachine<State, Action, Effect>,
-    private val scope: CoroutineScope,
+    private val scope: CoroutineScope = defaultCoroutineScope(),
     private val initialState: State? = null,
     private val plugins: List<Plugin<State, Action, Effect>> = emptyList(),
     private val extraBufferCapacity: Int = DEFAULT_BUFFER_CAPACITY,

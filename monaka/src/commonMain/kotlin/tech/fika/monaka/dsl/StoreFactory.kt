@@ -1,6 +1,7 @@
 package tech.fika.monaka.dsl
 
 import kotlinx.coroutines.CoroutineScope
+import tech.fika.monaka.runtime.defaultCoroutineScope
 import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
 import tech.fika.monaka.core.State as StateMarker
@@ -55,7 +56,7 @@ import tech.fika.monaka.runtime.DefaultStore
  *                              unless [initialState] is provided.
  */
 fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
-    scope: CoroutineScope,
+    scope: CoroutineScope = defaultCoroutineScope(),
     initialState: State? = null,
     plugins: List<Plugin<State, Action, Effect>> = emptyList(),
     extraBufferCapacity: Int = DEFAULT_BUFFER_CAPACITY,
@@ -92,7 +93,7 @@ fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
  */
 fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
     stateMachine: StateMachine<State, Action, Effect>,
-    scope: CoroutineScope,
+    scope: CoroutineScope = defaultCoroutineScope(),
     initialState: State? = null,
     plugins: List<Plugin<State, Action, Effect>> = emptyList(),
     extraBufferCapacity: Int = DEFAULT_BUFFER_CAPACITY,
