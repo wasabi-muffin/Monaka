@@ -7,9 +7,12 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import tech.fika.monaka.core.Action as ActionMarker
@@ -18,12 +21,6 @@ import tech.fika.monaka.core.LifecycleEvent
 import tech.fika.monaka.core.State as StateMarker
 import tech.fika.monaka.core.StateHook
 import tech.fika.monaka.core.Store
-import tech.fika.monaka.scopes.ActionScope
-import tech.fika.monaka.scopes.ErrorScope
-import tech.fika.monaka.scopes.HandlerScope
-import tech.fika.monaka.scopes.LifecycleScope
-import tech.fika.monaka.scopes.StateChangeScope
-import tech.fika.monaka.scopes.StateUpdateScope
 import tech.fika.monaka.handler.ActionHandler
 import tech.fika.monaka.handler.Handler
 import tech.fika.monaka.handler.HandlerResult
@@ -33,6 +30,12 @@ import tech.fika.monaka.handler.StateChangeHandler
 import tech.fika.monaka.handler.StateErrorHandler
 import tech.fika.monaka.handler.StateUpdateHandler
 import tech.fika.monaka.plugin.Plugin
+import tech.fika.monaka.scopes.ActionScope
+import tech.fika.monaka.scopes.ErrorScope
+import tech.fika.monaka.scopes.HandlerScope
+import tech.fika.monaka.scopes.LifecycleScope
+import tech.fika.monaka.scopes.StateChangeScope
+import tech.fika.monaka.scopes.StateUpdateScope
 
 /**
  * Default runtime implementation of [Store].
@@ -78,17 +81,17 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     private val plugins: List<Plugin<State, Action, Effect>>,
     private val machineScope: CoroutineScope = defaultCoroutineScope(),
     private val extraBufferCapacity: Int = DEFAULT_BUFFER_CAPACITY,
+    private val autoStart: Boolean = true,
 ) : Store<State, Action, Effect> {
     private enum class Phase { Idle, Running, Cancelled }
-
     private var phase = Phase.Idle
 
     private val _state = MutableStateFlow(initialState)
     private val _actions = MutableSharedFlow<Action>(extraBufferCapacity = extraBufferCapacity)
     private val _effects = MutableSharedFlow<Effect>(extraBufferCapacity = extraBufferCapacity)
 
-    private val currentState: State get() = _state.value
     private val triggers = Channel<Trigger<Action>>(Channel.UNLIMITED)
+    private val currentState: State get() = _state.value
 
     private val ancestorCache = HashMap<KClass<out State>, List<KClass<out State>>>()
     private val registeredStates: Set<KClass<out State>> = buildSet {
@@ -111,10 +114,14 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         }
     }
 
-    override val state: StateFlow<State> = _state.asStateFlow()
+    override val state: StateFlow<State> = _state
+        .onStart { if (autoStart) start() }
+        .stateIn(machineScope, SharingStarted.Lazily, _state.value)
     override val actions: SharedFlow<Action> = _actions.asSharedFlow()
-    override val effects: SharedFlow<Effect> = _effects.asSharedFlow()
-    override val isActive: Boolean get() = phase == Phase.Running
+    override val effects: SharedFlow<Effect> = _effects
+        .onStart { if (autoStart) start() }
+        .shareIn(machineScope, SharingStarted.Lazily, replay = 0)
+    override val isActive: Boolean get() = phase != Phase.Cancelled
 
     override fun start() {
         if (phase != Phase.Idle) return
@@ -122,19 +129,16 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         triggers.trySend(element = Trigger.Hook(hook = StateHook.OnEnter))
     }
 
-    override fun dispatch(action: Action) {
-        if (!isActive) return
+    override fun dispatch(action: Action) = whenActive {
         _actions.tryEmit(value = action)
         triggers.trySend(element = Trigger.Action(action = action))
     }
 
-    override fun onLifecycleEvent(event: LifecycleEvent) {
-        if (!isActive) return
+    override fun onLifecycleEvent(event: LifecycleEvent) = whenActive {
         triggers.trySend(element = Trigger.Lifecycle(event = event))
     }
 
-    override fun triggerStateHook(hook: StateHook) {
-        if (!isActive) return
+    override fun triggerStateHook(hook: StateHook) = whenActive {
         triggers.trySend(element = Trigger.Hook(hook = hook))
     }
 
@@ -147,6 +151,10 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
 
     override fun invokeOnCompletion(handler: (cause: Throwable?) -> Unit): DisposableHandle =
         machineScope.coroutineContext.job.invokeOnCompletion(handler)
+
+    private fun whenActive(block: () -> Unit) {
+        if (isActive) block()
+    }
 
     // ── Processing ────────────────────────────────────────────────────────────
 
