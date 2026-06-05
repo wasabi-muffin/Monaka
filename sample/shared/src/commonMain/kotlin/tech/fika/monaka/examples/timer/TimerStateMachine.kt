@@ -64,12 +64,13 @@ class TimerStateMachine : StateMachine<TimerState, TimerAction, TimerEffect> by 
 
         on<TimerAction.Tick> {
             if (state.remainingSeconds <= 1) {
-                transition(TimerEffect.Completed) {
+                transition {
                     TimerState.Finished(
                         totalSeconds = state.totalSeconds,
                         autoPause = state.autoPause,
                     )
                 }
+                sideEffect(TimerEffect.Completed)
             } else {
                 transition { state.copy(remainingSeconds = state.remainingSeconds - 1) }
             }

@@ -36,14 +36,12 @@ class CheckoutStateMachine(
                 )
         }
         on<CheckoutAction.PaymentSucceeded> {
-            transition(CheckoutEffect.OrderConfirmed(action.orderId)) {
-                CheckoutState.Done(action.orderId)
-            }
+            transition { CheckoutState.Done(action.orderId) }
+            sideEffect(CheckoutEffect.OrderConfirmed(action.orderId))
         }
         on<CheckoutAction.PaymentFailed> {
-            transition(CheckoutEffect.ShowPaymentError("Payment declined: ${action.reason}")) {
-                CheckoutState.PaymentFailed(action.reason, state.userId, state.items, state.total)
-            }
+            transition { CheckoutState.PaymentFailed(action.reason, state.userId, state.items, state.total) }
+            sideEffect(CheckoutEffect.ShowPaymentError("Payment declined: ${action.reason}"))
         }
         on<CheckoutAction.SyncCart> {
             transition { state.copy(items = action.items, total = action.total) }

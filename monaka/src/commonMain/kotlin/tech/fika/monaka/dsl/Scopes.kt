@@ -109,8 +109,8 @@ internal fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker>
 abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect : EffectMarker, SubState : State> internal constructor(
     open val machineScope: CoroutineScope,
     open val state: SubState,
-    private val internalDispatch: (Action) -> Unit,
-    private val jobRegistry: JobRegistry,
+    internal val internalDispatch: (Action) -> Unit,
+    internal val jobRegistry: JobRegistry,
 ) {
 
     @PublishedApi
@@ -165,20 +165,6 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
         pendingState = block()
     }
 
-    /**
-     * Convenience overload: record a transition and emit [effects] in one call.
-     * Equivalent to `transition(block); sideEffect(*effects)`.
-     *
-     * ```kotlin
-     * on<MyAction.Save> {
-     *     transition(MyEffect.Saved) { MyState.Idle }
-     * }
-     * ```
-     */
-    fun <S : State> transition(vararg effects: Effect, block: () -> S) {
-        transition(block)
-        sideEffect(effects = effects)
-    }
 
     /**
      * Emit [effects] in the order they appear. Multiple calls accumulate.
@@ -234,34 +220,47 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
     /**
      * Launch a fire-and-forget coroutine in [coroutineScope] (defaults to [machineScope]).
      *
+     * The lambda receives a [TaskScope] — a `@MonakaDsl`-annotated scope that exposes
+     * [TaskScope.state] and [TaskScope.dispatch] but deliberately omits [transition],
+     * [sideEffect], [reject], and [guard]. Attempting to call those inside a `task` body
+     * is a **compile error** enforced by `@DslMarker`.
+     *
      * When [autoCancel] is true, the job is canceled on the next state-type change
      * (before the corresponding `onExit` hook fires). No-op if [reject] has already been called.
      */
-    fun task(
+    open fun task(
         autoCancel: Boolean = false,
         coroutineScope: CoroutineScope = machineScope,
-        block: suspend CoroutineScope.() -> Unit,
+        block: suspend TaskScope<State, Action, SubState>.() -> Unit,
     ) {
         if (guarded || rejected) return
-        jobRegistry.launch(scope = coroutineScope, autoCancel = autoCancel, block = block)
+        val capturedState = state
+        val capturedDispatch = internalDispatch
+        jobRegistry.launch(scope = coroutineScope, autoCancel = autoCancel) {
+            block.invoke(TaskScope(this, capturedState, capturedDispatch))
+        }
     }
 
     /**
-     * Cancel any job previously registered under [key], launch a new keyed coroutine in
-     * [coroutineScope] (defaults to [machineScope]), and register it under [key].
+     * Cancel any job previously registered under [key], then launch a new keyed coroutine
+     * in [coroutineScope] (defaults to [machineScope]) registered under [key].
      *
      * Use for debounce and "latest wins" patterns. When [autoCancel] is true, the job is
      * additionally canceled (and its key unregistered) on the next state-type change.
      * No-op if [reject] or [guard] has already been called.
      */
-    fun task(
+    open fun task(
         key: String,
         autoCancel: Boolean = false,
         coroutineScope: CoroutineScope = machineScope,
-        block: suspend CoroutineScope.() -> Unit,
+        block: suspend TaskScope<State, Action, SubState>.() -> Unit,
     ) {
         if (guarded || rejected) return
-        jobRegistry.launch(scope = coroutineScope, key = key, autoCancel = autoCancel, block = block)
+        val capturedState = state
+        val capturedDispatch = internalDispatch
+        jobRegistry.launch(scope = coroutineScope, key = key, autoCancel = autoCancel) {
+            block.invoke(TaskScope(this, capturedState, capturedDispatch))
+        }
     }
 
     /**
@@ -297,7 +296,7 @@ class ErrorScope<State : StateMarker, Action : ActionMarker, Effect : EffectMark
     val error: Throwable,
     val handlerType: HandlerType<Action>,
     private val dispatch: (Action) -> Unit,
-    private val jobRegistry: JobRegistry,
+    jobRegistry: JobRegistry,
 ) : HandlerScope<State, Action, Effect, SubState>(
     machineScope = machineScope,
     state = state,
@@ -321,7 +320,7 @@ class LifecycleScope<State : StateMarker, Action : ActionMarker, Effect : Effect
     override val machineScope: CoroutineScope,
     override val state: SubState,
     private val dispatch: (Action) -> Unit,
-    private val jobRegistry: JobRegistry,
+    jobRegistry: JobRegistry,
 ) : HandlerScope<State, Action, Effect, SubState>(
     state = state,
     machineScope = machineScope,
@@ -345,13 +344,51 @@ class ActionScope<State : StateMarker, Action : ActionMarker, Effect : EffectMar
     override val state: SubState,
     val action: ActionType,
     private val dispatch: (Action) -> Unit,
-    private val jobRegistry: JobRegistry,
+    jobRegistry: JobRegistry,
 ) : HandlerScope<State, Action, Effect, SubState>(
     machineScope = machineScope,
     state = state,
     internalDispatch = dispatch,
     jobRegistry = jobRegistry,
-)
+) {
+    /**
+     * Launch a fire-and-forget coroutine with access to the typed [action].
+     *
+     * Shadows [HandlerScope.task] to provide an [ActionTaskScope] receiver so the
+     * dispatched action remains typed inside the coroutine body without manual capture.
+     * Attempting to call [transition], [sideEffect], [reject], or [guard] inside the
+     * lambda is a **compile error** (`@DslMarker` enforcement).
+     */
+    override fun task(
+        autoCancel: Boolean,
+        coroutineScope: CoroutineScope,
+        block: suspend TaskScope<State, Action, SubState>.() -> Unit,
+    ) {
+        if (guarded || rejected) return
+        val capturedState = state
+        val capturedAction = action
+        val capturedDispatch = internalDispatch
+        jobRegistry.launch(scope = coroutineScope, autoCancel = autoCancel) {
+            block.invoke(ActionTaskScope(this, capturedState, capturedAction, capturedDispatch))
+        }
+    }
+
+    /** @see task */
+    override fun task(
+        key: String,
+        autoCancel: Boolean,
+        coroutineScope: CoroutineScope,
+        block: suspend TaskScope<State, Action, SubState>.() -> Unit,
+    ) {
+        if (guarded || rejected) return
+        val capturedState = state
+        val capturedAction = action
+        val capturedDispatch = internalDispatch
+        jobRegistry.launch(scope = coroutineScope, key = key, autoCancel = autoCancel) {
+            block.invoke(ActionTaskScope(this, capturedState, capturedAction, capturedDispatch))
+        }
+    }
+}
 
 /**
  * Implicit receiver available inside state change hooks (`onEnter`, `onExit`).
@@ -368,7 +405,7 @@ class StateChangeScope<State : StateMarker, Action : ActionMarker, Effect : Effe
     override val machineScope: CoroutineScope,
     override val state: SubState,
     private val dispatch: (Action) -> Unit,
-    private val jobRegistry: JobRegistry,
+    jobRegistry: JobRegistry,
 ) : HandlerScope<State, Action, Effect, SubState>(
     machineScope = machineScope,
     state = state,
@@ -392,7 +429,7 @@ class StateUpdateScope<State : StateMarker, Action : ActionMarker, Effect : Effe
     override val state: SubState,
     val fromState: SubState,
     private val dispatch: (Action) -> Unit,
-    private val jobRegistry: JobRegistry,
+    jobRegistry: JobRegistry,
 ) : HandlerScope<State, Action, Effect, SubState>(
     machineScope = machineScope,
     state = state,

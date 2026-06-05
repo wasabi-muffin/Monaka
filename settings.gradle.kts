@@ -1,5 +1,6 @@
 pluginManagement {
     includeBuild("build-logic")
+    includeBuild("monaka-gradle-plugin")
     repositories {
         google {
             content {
@@ -38,6 +39,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Monaka"
+includeBuild("monaka-gradle-plugin")
 include(":monaka")
 include(":monaka-test")
 include(":sample:shared")

@@ -50,7 +50,8 @@ class LoginStateMachine(
     state<LoginState.Submitting> {
         onEnter {
             val username = loginRepository.login(state.username, state.password)
-            transition(LoginEffect.NavigateToHome) { LoginState.Authenticated(username) }
+            transition { LoginState.Authenticated(username) }
+            sideEffect(LoginEffect.NavigateToHome)
         }
 
         onError {
@@ -73,7 +74,8 @@ class LoginStateMachine(
     // Logout is valid from any state — registered on the parent sealed interface
     state<LoginState> {
         on<LoginAction.Logout> {
-            transition(LoginEffect.NavigateToLogin) { LoginState.Idle }
+            transition { LoginState.Idle }
+            sideEffect(LoginEffect.NavigateToLogin)
         }
     }
 

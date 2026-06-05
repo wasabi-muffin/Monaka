@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.monaka.kmp.library)
     alias(libs.plugins.monaka.compose)
     alias(libs.plugins.compiler.plugin)
+    id("tech.fika.monaka.yaml-export")
 }
 
 kotlin {
@@ -52,4 +53,10 @@ kotlin {
             implementation(libs.kotlinx.coroutines.android)
         }
     }
+}
+
+monakaYamlExport {
+    sources.from(
+        kotlin.sourceSets["commonMain"].kotlin.srcDirs
+    )
 }

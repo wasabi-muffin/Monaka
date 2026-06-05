@@ -140,9 +140,8 @@ class FeedStateMachine(
         on<FeedAction.SearchFailed> {
             if (action.query != state.query) return@on
             cancel("poll")
-            transition(FeedEffect.ShowToast("Search failed — tap Retry")) {
-                FeedState.Failed(action.query, action.message)
-            }
+            transition { FeedState.Failed(action.query, action.message) }
+            sideEffect(FeedEffect.ShowToast("Search failed — tap Retry"))
         }
 
         // Pattern 2 — start live polling loop
@@ -215,9 +214,8 @@ class FeedStateMachine(
         }
 
         on<FeedAction.SearchFailed> {
-            transition(FeedEffect.ShowToast("Retry ${action.generation} failed — tap to try again")) {
-                state.copy(message = action.message, retryCount = action.generation)
-            }
+            transition { state.copy(message = action.message, retryCount = action.generation) }
+            sideEffect(FeedEffect.ShowToast("Retry ${action.generation} failed — tap to try again"))
         }
 
         on<FeedAction.QueryChanged> {
