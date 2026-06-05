@@ -1,8 +1,9 @@
-package tech.fika.monaka.dsl
+package tech.fika.monaka.scopes
 
 import kotlinx.coroutines.CoroutineScope
 import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.State as StateMarker
+import tech.fika.monaka.dsl.MonakaDsl
 
 /**
  * Implicit receiver inside every `task { }` and `task("key") { }` lambda.
@@ -11,18 +12,11 @@ import tech.fika.monaka.core.State as StateMarker
  * All [CoroutineScope] APIs (`delay`, `launch`, `withContext`, …) are also available via
  * delegation.
  *
- * ### Compile-time enforcement
- * [transition], [sideEffect], [reject], and [guard] are declared on this class as
- * `@Deprecated(level = ERROR)` members. Because member functions always beat outer-scope
- * members in Kotlin's overload resolution, calling any of those verbs inside a `task { }`
- * body is a **compile error** — even though the same-named functions are in scope via the
- * surrounding handler scope.
- *
  * @see ActionTaskScope for the subtype used inside `on<>` handlers, which additionally
  *      exposes a typed [ActionTaskScope.action] property.
  */
-open class TaskScope<State : StateMarker, Action : ActionMarker, SubState : State>
-internal constructor(
+@MonakaDsl
+open class TaskScope<State : StateMarker, Action : ActionMarker, SubState : State> internal constructor(
     scope: CoroutineScope,
     open val state: SubState,
     private val internalDispatch: (Action) -> Unit,
@@ -54,8 +48,8 @@ internal constructor(
  * }
  * ```
  */
-class ActionTaskScope<State : StateMarker, Action : ActionMarker, SubState : State, ActionType : Action>
-internal constructor(
+@MonakaDsl
+class ActionTaskScope<State : StateMarker, Action : ActionMarker, SubState : State, ActionType : Action> internal constructor(
     scope: CoroutineScope,
     state: SubState,
     val action: ActionType,

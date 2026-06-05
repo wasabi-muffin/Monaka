@@ -18,13 +18,12 @@ import tech.fika.monaka.core.LifecycleEvent
 import tech.fika.monaka.core.State as StateMarker
 import tech.fika.monaka.core.StateHook
 import tech.fika.monaka.core.Store
-import tech.fika.monaka.dsl.ActionScope
-import tech.fika.monaka.dsl.ErrorScope
-import tech.fika.monaka.dsl.HandlerScope
-import tech.fika.monaka.dsl.LifecycleScope
-import tech.fika.monaka.dsl.StateChangeScope
-import tech.fika.monaka.dsl.StateUpdateScope
-import tech.fika.monaka.dsl.consumeResult
+import tech.fika.monaka.scopes.ActionScope
+import tech.fika.monaka.scopes.ErrorScope
+import tech.fika.monaka.scopes.HandlerScope
+import tech.fika.monaka.scopes.LifecycleScope
+import tech.fika.monaka.scopes.StateChangeScope
+import tech.fika.monaka.scopes.StateUpdateScope
 import tech.fika.monaka.handler.ActionHandler
 import tech.fika.monaka.handler.Handler
 import tech.fika.monaka.handler.HandlerResult

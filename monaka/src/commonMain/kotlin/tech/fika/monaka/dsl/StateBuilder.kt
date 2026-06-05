@@ -5,6 +5,12 @@ import tech.fika.monaka.core.Action as ActionMarker
 import tech.fika.monaka.core.Effect as EffectMarker
 import tech.fika.monaka.core.LifecycleEvent
 import tech.fika.monaka.core.State as StateMarker
+import tech.fika.monaka.scopes.ActionScope
+import tech.fika.monaka.scopes.ErrorScope
+import tech.fika.monaka.scopes.HandlerScope
+import tech.fika.monaka.scopes.LifecycleScope
+import tech.fika.monaka.scopes.StateChangeScope
+import tech.fika.monaka.scopes.StateUpdateScope
 import tech.fika.monaka.handler.ActionHandler
 import tech.fika.monaka.handler.LifecycleHandler
 import tech.fika.monaka.handler.StateChangeHandler

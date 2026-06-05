@@ -1,10 +1,10 @@
 package tech.fika.monaka.handler
 
-import tech.fika.monaka.dsl.ActionScope
-import tech.fika.monaka.dsl.ErrorScope
-import tech.fika.monaka.dsl.LifecycleScope
-import tech.fika.monaka.dsl.StateChangeScope
-import tech.fika.monaka.dsl.StateUpdateScope
+import tech.fika.monaka.scopes.ActionScope
+import tech.fika.monaka.scopes.ErrorScope
+import tech.fika.monaka.scopes.LifecycleScope
+import tech.fika.monaka.scopes.StateChangeScope
+import tech.fika.monaka.scopes.StateUpdateScope
 
 /**
  * Generic handler shape: a suspending lambda with [Scope] as receiver, returning [Unit].

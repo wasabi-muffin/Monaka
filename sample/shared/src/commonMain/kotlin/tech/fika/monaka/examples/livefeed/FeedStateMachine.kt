@@ -1,6 +1,7 @@
 package tech.fika.monaka.examples.livefeed
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import tech.fika.monaka.dsl.StateMachine
 import tech.fika.monaka.dsl.stateMachine
 import tech.fika.monaka.plugin.LoggingPlugin
@@ -108,7 +109,7 @@ class FeedStateMachine(
                 delay(DEBOUNCE_MS)
                 runCatching { feedRepository.search(action.query) }.onSuccess { result ->
                     dispatch(FeedAction.SearchCompleted(action.query, result))
-                    task { runCatching { analyticsRepository.trackSearch(action.query, result.size) } }
+                    launch { runCatching { analyticsRepository.trackSearch(action.query, result.size) } }
                 }.onFailure { error ->
                     dispatch(FeedAction.SearchFailed(action.query, error.message ?: "Unknown error"))
                 }
