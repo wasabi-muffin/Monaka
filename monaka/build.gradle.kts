@@ -6,7 +6,7 @@ plugins {
 kotlin {
     android {
         namespace = "tech.fika.monaka.library"
-        compileSdk = 36
+        compileSdk = 37
         minSdk = 24
         compilerOptions {
             jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11

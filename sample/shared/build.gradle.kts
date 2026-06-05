@@ -8,7 +8,7 @@ plugins {
 kotlin {
     android {
         namespace = "tech.fika.monaka.sample"
-        compileSdk = 36
+        compileSdk = 37
         minSdk = 24
         compilerOptions {
             jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
@@ -42,6 +42,7 @@ kotlin {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
+            implementation(libs.compose.material.icons.core)
             implementation(libs.compose.components.resources)
             implementation(libs.compose.components.ui.tooling.preview)
         }

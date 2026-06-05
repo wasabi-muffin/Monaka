@@ -6,6 +6,7 @@ coroutines = "1.11.0"
 # Kotlin Multiplatform
 compose = "1.11.1"
 compose-material3 = "1.11.0-alpha07"
+compose-material-icons = "1.7.3"
 lifecycle = "2.10.0"
 datetime = "0.8.0"
 
@@ -40,6 +41,7 @@ compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", v
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose" }
 compose-components-ui-tooling-preview = { module = "org.jetbrains.compose.components:components-ui-tooling-preview", version.ref = "compose" }
 compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "compose-material3" }
+compose-material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "compose-material-icons" }
 
 # AndroidX
 androidx-core-ktx = { module =  "androidx.core:core-ktx", version.ref = "android-core" }
