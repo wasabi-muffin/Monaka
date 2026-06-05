@@ -57,7 +57,7 @@ class KtSourceParser {
             val before = text.substring(maxOf(0, match.range.first - 600), match.range.first)
             val typeArgs = supertypeRegex.findAll(before).lastOrNull()
                 ?.groupValues?.get(1)?.split(",")?.map { it.trim() }
-                ?: listOf("?", "?", "?")
+                ?: continue
             result += parseMachineBody(
                 body = body,
                 name = inferName(before, fileHint),
