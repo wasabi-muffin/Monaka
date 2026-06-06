@@ -53,7 +53,7 @@ class CheckoutStateMachine(
     }
 
     state<CheckoutState> {
-        on<CheckoutAction.Cancel> { transition(CheckoutState.Idle })
+        on<CheckoutAction.Cancel> { transition(CheckoutState.Idle) }
     }
 
     install(LoggingPlugin(tag = "Checkout"))

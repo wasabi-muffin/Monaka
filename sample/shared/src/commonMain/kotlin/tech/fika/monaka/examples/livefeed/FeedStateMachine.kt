@@ -88,7 +88,7 @@ class FeedStateMachine(
                 }
             }
 
-            transition(state.toActive(query = action.query, items = emptyList(), isLoading = true, isLive = false)
+            transition(state.toActive(query = action.query, items = emptyList(), isLoading = true, isLive = false))
         }
     }
 
@@ -101,7 +101,7 @@ class FeedStateMachine(
             if (action.query.isBlank()) {
                 cancel("poll")
                 cancel("search")
-                return@on transition(state.toIdle()
+                return@on transition(state.toIdle())
             }
 
             // task("search") auto-cancels the previous debounce job (key-based)
@@ -118,7 +118,7 @@ class FeedStateMachine(
             // Query changed while live — timestamps are no longer valid; stop poll explicitly
             // (still in Active, so auto-cancel won't fire here)
             if (state.isLive) cancel("poll")
-            transition(state.copy(query = action.query, isLoading = true, isLive = false)
+            transition(state.copy(query = action.query, isLoading = true, isLive = false))
         }
 
         on<FeedAction.Refresh> {
@@ -130,18 +130,18 @@ class FeedStateMachine(
                     dispatch(FeedAction.SearchFailed(state.query, result.exceptionOrNull()?.message ?: "Unknown error"))
                 }
             }
-            transition(state.copy(isLoading = true)
+            transition(state.copy(isLoading = true))
         }
 
         on<FeedAction.SearchCompleted> {
             if (action.query != state.query) return@on
-            transition(state.copy(items = action.items, isLoading = false)
+            transition(state.copy(items = action.items, isLoading = false))
         }
 
         on<FeedAction.SearchFailed> {
             if (action.query != state.query) return@on
             cancel("poll")
-            transition(state.toFailed(query = action.query, message = action.message, retryCount = 0)
+            transition(state.toFailed(query = action.query, message = action.message, retryCount = 0))
             sideEffect(FeedEffect.ShowToast("Search failed — tap Retry"))
         }
 
@@ -165,13 +165,13 @@ class FeedStateMachine(
                 }
             }
 
-            transition(state.copy(isLive = true)
+            transition(state.copy(isLive = true))
         }
 
         // Pattern 2 — cancel the polling loop (still in Active; explicit cancel required)
         on<FeedAction.PauseLive> {
             cancel("poll")
-            transition(state.copy(isLive = false)
+            transition(state.copy(isLive = false))
         }
 
         on<FeedAction.NewItems> {
@@ -179,7 +179,7 @@ class FeedStateMachine(
                 .distinctBy { it.id }
                 .sortedByDescending { it.timestamp }
                 .take(MAX_ITEMS)
-            transition(state.copy(items = merged)
+            transition(state.copy(items = merged))
         }
 
         // Pattern 3 — fire-and-forget analytics; state unchanged
@@ -207,22 +207,22 @@ class FeedStateMachine(
                     dispatch(FeedAction.SearchFailed(state.query, result.exceptionOrNull()?.message ?: "Unknown error", nextGeneration))
                 }
             }
-            transition(state.toActive(query = state.query, items = emptyList(), isLoading = true, isLive = false)
+            transition(state.toActive(query = state.query, items = emptyList(), isLoading = true, isLive = false))
         }
 
         on<FeedAction.SearchCompleted> {
-            transition(state.toActive(query = action.query, items = action.items, isLoading = false, isLive = false)
+            transition(state.toActive(query = action.query, items = action.items, isLoading = false, isLive = false))
         }
 
         on<FeedAction.SearchFailed> {
-            transition(state.copy(message = action.message, retryCount = action.generation)
+            transition(state.copy(message = action.message, retryCount = action.generation))
             sideEffect(FeedEffect.ShowToast("Retry ${action.generation} failed — tap to try again"))
         }
 
         on<FeedAction.QueryChanged> {
             if (action.query.isBlank()) {
                 cancel("search")
-                return@on transition(state.toIdle()
+                return@on transition(state.toIdle())
             }
             task("search") {
                 delay(DEBOUNCE_MS)
@@ -233,7 +233,7 @@ class FeedStateMachine(
                     dispatch(FeedAction.SearchFailed(action.query, result.exceptionOrNull()?.message ?: "Unknown error"))
                 }
             }
-            transition(state.toActive(query = action.query, items = emptyList(), isLoading = true, isLive = false)
+            transition(state.toActive(query = action.query, items = emptyList(), isLoading = true, isLive = false))
         }
     }
 
