@@ -14,23 +14,23 @@ class CounterStateMachine(
 
         state<CounterState> {
             on<CounterAction.Increment> {
-                transition { state.copy(count = state.count + state.step) }
+                transition(state.copy(count = state.count + state.step))
             }
 
             on<CounterAction.Decrement> {
-                transition { state.copy(count = state.count - state.step) }
+                transition(state.copy(count = state.count - state.step))
             }
 
             on<CounterAction.SetStep> {
                 if (action.step < 1) {
                     sideEffect(CounterEffect.ShowMessage("Step must be at least 1."))
                 } else {
-                    transition { state.copy(step = action.step) }
+                    transition(state.copy(step = action.step))
                 }
             }
 
             on<CounterAction.Reset> {
-                transition { state.copy(count = 0) }
+                transition(state.copy(count = 0))
                 sideEffect(CounterEffect.ShowMessage("Counter reset!"))
                 sideEffect(CounterEffect.SaveCount(0))
             }

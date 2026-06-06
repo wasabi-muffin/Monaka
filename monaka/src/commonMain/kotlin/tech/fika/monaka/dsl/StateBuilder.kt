@@ -104,7 +104,7 @@ class StateBuilder<State : StateMarker, SubState : State, Action : ActionMarker,
      * state<MyState.Loading> {
      *     onEnter {
      *         val data = repository.load(state.id)
-     *         transition { MyState.Loaded(data) }
+     *         transition(MyState.Loaded(data))
      *     }
      * }
      * ```
@@ -246,10 +246,10 @@ class StateBuilder<State : StateMarker, SubState : State, Action : ActionMarker,
      * state<MyState.Loading> {
      *     onEnter {
      *         val data = repository.load()
-     *         transition { MyState.Loaded(data) }
+     *         transition(MyState.Loaded(data))
      *     }
      *     onError {
-     *         transition { MyState.Error(error.message ?: "Unknown error") }
+     *         transition(MyState.Error(error.message ?: "Unknown error"))
      *     }
      * }
      * ```

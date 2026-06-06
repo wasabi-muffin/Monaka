@@ -44,7 +44,7 @@ open class TaskScope<State : StateMarker, Action : ActionMarker, SubState : Stat
  *         val results = repository.search(action.query)   // action: FeedAction.QueryChanged
  *         dispatch(FeedAction.SearchCompleted(results))
  *     }
- *     transition { state.copy(isLoading = true) }
+ *     transition(state.copy(isLoading = true))
  * }
  * ```
  */

@@ -252,7 +252,7 @@ class KotlinStubEmitter {
         appendLine("${pad}$hookName {")
         hook.task?.let { append(emitTaskBlock(it, actionName, "$pad    ")) }
         hook.transitions.forEach { target ->
-            appendLine("${pad}    transition { ${stateTransitionExpr(sourcePath, target, rootName, isSingle, machineName)} }")
+            appendLine("${pad}    transition(${stateTransitionExpr(sourcePath, target, rootName, isSingle, machineName)})")
         }
         hook.effects.forEach { appendLine("${pad}    sideEffect($effectName.$it)") }
         hook.dispatch?.let { appendLine("${pad}    dispatch($it)") }
@@ -276,7 +276,7 @@ class KotlinStubEmitter {
         } else {
             handler.task?.let { append(emitTaskBlock(it, actionName, "$pad    ")) }
             handler.transition?.let { target ->
-                appendLine("${pad}    transition { ${stateTransitionExpr(sourcePath, target, rootName, isSingle, machineName)} }")
+                appendLine("${pad}    transition(${stateTransitionExpr(sourcePath, target, rootName, isSingle, machineName)})")
             }
             handler.effects.forEach { appendLine("${pad}    sideEffect($effectName.$it)") }
             handler.dispatch?.let { appendLine("${pad}    dispatch($actionName.$it)") }
@@ -300,7 +300,7 @@ class KotlinStubEmitter {
     private fun stateTypeRef(key: String, rootName: String): String =
         if (key == rootName) rootName else "$rootName.$key"
 
-    /** Reference to use in `transition { }` and `initialState()`. */
+    /** Reference to use in `transition(}` and `initialState()`. */
     private fun transitionRef(target: String, rootName: String, isSingle: Boolean, machineName: String): String =
         when {
             target == rootName && isSingle -> "$rootName.$machineName"
@@ -309,7 +309,7 @@ class KotlinStubEmitter {
         }
 
     /**
-     * Produces the expression inside `transition { }` for a given source state path and target path.
+     * Produces the expression inside `transition(}` for a given source state path and target path.
      *
      * - Catch-all state (sourcePath == rootName): keeps constructor reference — `state.toXxx()` is
      *   not available on the sealed interface receiver.

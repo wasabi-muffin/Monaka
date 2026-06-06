@@ -57,7 +57,7 @@ tech.fika.monaka/
 
 - **Action processing** — a single `Channel<Trigger>(UNLIMITED)` + one coroutine guarantees sequential, deterministic state transitions even with concurrent `dispatch()` calls.
 - **Handler dispatch** — `KClass` lookup: exact `state::class` → `action::class` first, then BFS supertype walk so a `state<ParentState>` block catches actions unhandled by leaf states.
-- **Handler API** — handlers are **statements**, not expressions. Each `on<>` / `onEnter` / etc. lambda returns `Unit` and records its outcome by calling `transition { }`, `sideEffect(...)`, or `reject()` on the scope. The runtime snapshots the recorded result via `consumeResult()` after the lambda returns.
+- **Handler API** — handlers are **statements**, not expressions. Each `on<>` / `onEnter` / etc. lambda returns `Unit` and records its outcome by calling `transition(nextState)`, `sideEffect(...)`, or `reject()` on the scope. The runtime snapshots the recorded result via `consumeResult()` after the lambda returns.
 - **Effects** — `MutableSharedFlow(extraBufferCapacity = 64)` with no replay; one-shot events not re-delivered to late subscribers.
 - **Plugins** — synchronous observers called inside the processing coroutine. Keep them fast; launch coroutines for heavy work.
 
@@ -68,13 +68,13 @@ val store = store<MyState, MyAction, MyEffect>(scope) {
     initialState(MyState.Idle)
 
     state<MyState.Idle> {
-        on<MyAction.Start> { transition { MyState.Loading } }
+        on<MyAction.Start> { transition(MyState.Loading) }
     }
 
     // Catch an action from any substate via the parent sealed interface:
     state<MyState> {
         on<MyAction.Logout> {
-            transition { MyState.Idle }
+            transition(MyState.Idle)
             sideEffect(MyEffect.NavigateToLogin)
         }
     }
@@ -84,8 +84,7 @@ val store = store<MyState, MyAction, MyEffect>(scope) {
 ```
 
 **Handler verbs** (on `HandlerScope`):
-- `transition { newState }` — record the new state. First call wins; later calls in the same handler are silent no-ops.
-- `transition(eff1, eff2) { newState }` — sugar for `transition { } + sideEffect(...)`.
+- `transition(nextState)` — record the new state. First call wins; later calls in the same handler are silent no-ops.
 - `sideEffect(eff1, eff2)` — append effects; emitted after the state change in call order.
 - `reject()` — terminal: marks the action as rejected, suppresses any subsequent verb calls in the same handler.
 - `dispatch(action)` / `task { }` / `task("key") { }` / `cancel("key")` — async helpers; all suppressed after `reject()`. Pass `autoCancel = true` to either `task` overload to have the runtime cancel the job on the next state-type change (just before `onExit` fires).
@@ -99,8 +98,8 @@ Every `on<>` lambda has `ActionScope<State, Action, Effect, SubState, ActionType
 on<Submit> {
     val result = loginRepository.login(state.username, state.password)
     when (result) {
-        is Success -> transition { LoginState.Authenticated(result.user) }
-        is Failure -> transition { LoginState.Error(result.message) }
+        is Success -> transition(LoginState.Authenticated(result.user))
+        is Failure -> transition(LoginState.Error(result.message))
     }
 }
 
@@ -113,13 +112,13 @@ on<Submit> {
             is Failure -> dispatch(LoginAction.LoginFailed(r.message))
         }
     }
-    transition { LoginState.Submitting }
+    transition(LoginState.Submitting)
 }
 
 // Fire-and-forget (no result action needed)
 on<Reset> {
     task { analyticsRepo.trackReset() }
-    transition { CounterState(0) }
+    transition(CounterState(0))
 }
 ```
 
@@ -216,7 +215,7 @@ testCase("non-exhaustive", exhaustive = false) { … }
 private val counterMachine = stateMachine<CounterState, CounterAction, CounterEffect> {
     initialState(CounterState(count = 0))
     state<CounterState> {
-        on<CounterAction.Increment> { transition { state.copy(count = state.count + 1) } }
+        on<CounterAction.Increment> { transition(state.copy(count = state.count + 1)) }
         …
     }
 }

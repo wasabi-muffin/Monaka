@@ -167,12 +167,12 @@ class KtSourceParser {
 
         val shallow = stripTaskBodies(body)
 
-        // Collect ALL direct transition { } calls (a hook may branch to multiple target states)
-        val allTransMatches = (transitionWithArgsRegex.findAll(shallow).toList() + transitionNoArgsRegex.findAll(shallow).toList())
+        // Collect ALL direct transition(...) calls (a hook may branch to multiple target states)
+        val allTransMatches = transitionCallRegex.findAll(shallow).toList()
             .sortedBy { it.range.first }
             .distinctBy { it.range.first }
         val transitions = allTransMatches.mapNotNull { transMatch ->
-            val transBody = extractBlock(body, transMatch.range.last)?.trim() ?: ""
+            val transBody = extractParen(body, transMatch.range.last)?.trim() ?: ""
             when {
                 // state.toXxx(...) — generated transition function; resolve via lookup first
                 transBody.startsWith("state.to") && !transBody.startsWith("state.toSelf") -> {
@@ -213,14 +213,12 @@ class KtSourceParser {
         // dispatch() calls that belong to the task, not the handler directly.
         val bodyNoTaskBodies = stripTaskBodies(body)
 
-        // transition(E1, E2) { NewState }  or  transition { NewState }
-        // Searched in original body — transition { } is always at handler level.
+        // transition(nextState)
+        // Searched in original body — transition() is always at handler level.
         var transition: String? = null
-        val transWithArgs = transitionWithArgsRegex.find(body)
-        val transNoArgs = transitionNoArgsRegex.find(body)
-        val transMatch = transWithArgs ?: transNoArgs
+        val transMatch = transitionCallRegex.find(body)
         if (transMatch != null) {
-            val transBody = extractBlock(body, transMatch.range.last)?.trim() ?: ""
+            val transBody = extractParen(body, transMatch.range.last)?.trim() ?: ""
             transition = when {
                 // state.toXxx(...) — resolve via lookup to recover dot-path for nested states
                 transBody.startsWith("state.to") && !transBody.startsWith("state.toSelf") -> {
@@ -234,12 +232,6 @@ class KtSourceParser {
                     .ifEmpty { stateType.substringAfterLast(".") }
                     .takeIf { it.isNotBlank() }
             }
-            // Effects passed as value args to transition(E1, E2) { }
-            transWithArgs?.groupValues?.get(1)
-                ?.splitArgs()
-                ?.filter { it.isNotBlank() }
-                ?.map { it.extractEffectName() }
-                ?.let { effects.addAll(it) }
         }
 
         effects.addAll(collectSideEffects(body).map { it.extractEffectName() })
@@ -455,8 +447,7 @@ class KtSourceParser {
         val supertypeRegex = Regex("""(?:StateMachine|Store)\s*<([^>]+)>""")
         val stateBlockRegex = Regex("""(?<!\w)state\s*<([^>]+)>\s*\{""")
         val onBlockRegex = Regex("""(?<!\w)on\s*<([^>]+)>\s*\{""")
-        val transitionWithArgsRegex = Regex("""(?<!\w)transition\s*\(([^)]*)\)\s*\{""")
-        val transitionNoArgsRegex = Regex("""(?<!\w)transition\s*\{""")
+        val transitionCallRegex = Regex("""(?<!\w)transition\s*\(""")
         val sideEffectRegex = Regex("""(?<!\w)sideEffect\s*\(""")
         val rejectRegex = Regex("""(?<!\w)reject\s*\(\s*\)""")
         val dispatchCallRegex = Regex("""(?<!\w)dispatch\s*\(""")

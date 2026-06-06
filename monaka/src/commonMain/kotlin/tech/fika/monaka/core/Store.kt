@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
  * val store = store<MyState, MyAction, MyEffect>(scope) {
  *     initialState(MyState.Idle)
  *     state<MyState.Idle> {
- *         on<MyAction.Start> { transition { MyState.Loading } }
+ *         on<MyAction.Start> { transition(MyState.Loading })
  *     }
  * }
  *

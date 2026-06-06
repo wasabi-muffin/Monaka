@@ -25,7 +25,7 @@ class KtSourceParserTest {
 
                 state<CounterState.Idle> {
                     on<CounterAction.Start> {
-                        transition { CounterState.Running }
+                        transition(CounterState.Running)
                         sideEffect(CounterEffect.PlaySound)
                     }
                     on<CounterAction.Reset> {
@@ -35,17 +35,17 @@ class KtSourceParserTest {
 
                 state<CounterState.Running> {
                     on<CounterAction.Stop> {
-                        transition { CounterState.Idle }
+                        transition(CounterState.Idle)
                     }
                     on<CounterAction.Pause> {
-                        transition { CounterState.Paused }
+                        transition(CounterState.Paused)
                         sideEffect(CounterEffect.ShowBanner, CounterEffect.Vibrate)
                     }
                 }
 
                 state<CounterState.Paused> {
                     on<CounterAction.Resume> {
-                        transition { CounterState.Running }
+                        transition(CounterState.Running)
                     }
                 }
 
@@ -90,7 +90,7 @@ class KtSourceParserTest {
 
                 state<LoginState.Idle> {
                     on<LoginAction.Submit> {
-                        transition { LoginState.Submitting }
+                        transition(LoginState.Submitting)
                     }
                 }
 
@@ -102,10 +102,10 @@ class KtSourceParserTest {
                         }
                     }
                     on<LoginAction.LoginSucceeded> {
-                        transition { LoginState.Authenticated }
+                        transition(LoginState.Authenticated)
                     }
                     on<LoginAction.LoginFailed> {
-                        transition { LoginState.Error }
+                        transition(LoginState.Error)
                         sideEffect(LoginEffect.ShowError)
                     }
                 }
@@ -144,7 +144,7 @@ class KtSourceParserTest {
                 initialState(FeedState.Active(""))
                 state<FeedState.Active> {
                     on<FeedAction.Update> {
-                        transition { state.copy(query = action.query) }
+                        transition(state.copy(query = action.query))
                     }
                 }
             }
@@ -164,31 +164,31 @@ class KtSourceParserTest {
                 initialState(LoginState.Idle)
                 state<LoginState.Idle> {
                     on<LoginAction.Update> {
-                        transition { state.toTyping(username = action.username, password = action.password) }
+                        transition(state.toTyping(username = action.username, password = action.password))
                     }
                 }
                 state<LoginState.Typing> {
                     on<LoginAction.Submit> {
-                        transition { state.toSubmitting() }
+                        transition(state.toSubmitting())
                     }
                     on<LoginAction.Update> {
-                        transition { state.copy(username = action.username) }
+                        transition(state.copy(username = action.username))
                     }
                 }
                 state<LoginState.Submitting> {
                     onEnter {
-                        transition { state.toAuthenticated(username = result) }
+                        transition(state.toAuthenticated(username = result))
                     }
                     onError {
-                        transition { state.toError(message = error.message ?: "") }
+                        transition(state.toError(message = error.message ?: ""))
                     }
                 }
                 state<LoginState.Error> {
                     on<LoginAction.Retry> {
-                        transition { state.toSubmitting() }
+                        transition(state.toSubmitting())
                     }
                     on<LoginAction.Update> {
-                        transition { state.toSelf(username = action.username) }
+                        transition(state.toSelf(username = action.username))
                     }
                 }
             }
@@ -223,20 +223,20 @@ class KtSourceParserTest {
                 }
                 state<AppState.Auth.SignedOut> {
                     on<AppAction.Attempt> {
-                        transition { state.toAuthSigningIn(username = action.username, password = action.password) }
+                        transition(state.toAuthSigningIn(username = action.username, password = action.password))
                     }
                 }
                 state<AppState.Auth.SigningIn> {
                     on<AppAction.Cancel> {
-                        transition { state.toAuthSignedOut() }
+                        transition(state.toAuthSignedOut())
                     }
                 }
                 state<AppState.Loading> {
                     on<AppAction.SignIn> {
-                        transition { state.toAuthSigningIn(username = action.username, password = action.password) }
+                        transition(state.toAuthSigningIn(username = action.username, password = action.password))
                     }
                     on<AppAction.Clear> {
-                        transition { state.toLoading() }
+                        transition(state.toLoading())
                     }
                 }
             }
@@ -275,7 +275,7 @@ class KtSourceParserTest {
                         cancel("poll")
                     }
                     on<FeedAction.GoLive> {
-                        transition { FeedState.Active }
+                        transition(FeedState.Active)
                     }
                 }
             }
@@ -297,21 +297,21 @@ class KtSourceParserTest {
             val machine = stateMachine<CallState, CallAction, CallEffect> {
                 initialState(CallState.Idle)
                 state<CallState.Idle> {
-                    on<CallAction.Dial> { transition { CallState.Active.Connecting } }
+                    on<CallAction.Dial> { transition(CallState.Active.Connecting) }
                 }
                 state<CallState.Active> {
                     on<CallAction.HangUp> {
-                        transition { CallState.Ended }
+                        transition(CallState.Ended)
                         sideEffect(CallEffect.ReleaseAudio)
                     }
                 }
                 state<CallState.Active.Connecting> {
                     on<CallAction.CallEstablished> {
-                        transition { CallState.Active.Connected.Talking }
+                        transition(CallState.Active.Connected.Talking)
                     }
                 }
                 state<CallState.Active.Connected.Talking> {
-                    on<CallAction.Hold> { transition { CallState.Active.Connected.OnHold } }
+                    on<CallAction.Hold> { transition(CallState.Active.Connected.OnHold) }
                 }
                 state<CallState.Ended> {}
             }
@@ -342,13 +342,13 @@ class KtSourceParserTest {
                 initialState(ToggleState.Off)
                 state<ToggleState.Off> {
                     on<ToggleAction.TurnOn> {
-                        transition { ToggleState.On }
+                        transition(ToggleState.On)
                         sideEffect(ToggleEffect.Flash)
                     }
                 }
                 state<ToggleState.On> {
                     on<ToggleAction.TurnOff> {
-                        transition { ToggleState.Off }
+                        transition(ToggleState.Off)
                     }
                 }
             }
@@ -377,10 +377,10 @@ class KtSourceParserTest {
                 state<AppState.Idle> {
                     on<AppAction.Start> {
                         dispatch(AppAction.Validate)
-                        transition { AppState.Loading }
+                        transition(AppState.Loading)
                     }
                     on<AppAction.Validate> {
-                        transition { AppState.Valid }
+                        transition(AppState.Valid)
                     }
                 }
                 state<AppState.Loading> {}

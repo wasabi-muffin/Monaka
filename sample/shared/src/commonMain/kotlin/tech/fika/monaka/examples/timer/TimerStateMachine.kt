@@ -30,18 +30,18 @@ class TimerStateMachine : StateMachine<TimerState, TimerAction, TimerEffect> by 
 
     state<TimerState.Idle> {
         on<TimerAction.SetDuration> {
-            transition { state.copy(durationSeconds = action.seconds.coerceAtLeast(1)) }
+            transition(state.copy(durationSeconds = action.seconds.coerceAtLeast(1)))
         }
         on<TimerAction.SetAutoPause> {
-            transition { state.toSelf(autoPause = action.enabled) }
+            transition(state.toSelf(autoPause = action.enabled))
         }
         on<TimerAction.Start> {
-            transition {
+            transition(
                 state.toRunning(
                     remainingSeconds = state.durationSeconds,
                     totalSeconds = state.durationSeconds,
                 )
-            }
+            )
         }
     }
 
@@ -63,21 +63,21 @@ class TimerStateMachine : StateMachine<TimerState, TimerAction, TimerEffect> by 
 
         on<TimerAction.Tick> {
             if (state.remainingSeconds <= 1) {
-                transition { state.toFinished() }
+                transition(state.toFinished())
                 sideEffect(TimerEffect.Completed)
             } else {
-                transition { state.copy(remainingSeconds = state.remainingSeconds - 1) }
+                transition(state.copy(remainingSeconds = state.remainingSeconds - 1))
             }
         }
         on<TimerAction.Pause> {
-            transition { state.toPaused(pausedByLifecycle = false) }
+            transition(state.toPaused(pausedByLifecycle = false))
         }
         on<TimerAction.PauseForLifecycle> {
-            transition { state.toPaused(pausedByLifecycle = true) }
+            transition(state.toPaused(pausedByLifecycle = true))
         }
-        on<TimerAction.SetAutoPause> { transition { state.toSelf(autoPause = action.enabled) } }
+        on<TimerAction.SetAutoPause> { transition(state.toSelf(autoPause = action.enabled)) }
         on<TimerAction.Reset> {
-            transition { state.toIdle(durationSeconds = state.totalSeconds) }
+            transition(state.toIdle(durationSeconds = state.totalSeconds))
         }
 
         // Auto-pause when the app goes to the background (if the user opted in).
@@ -90,11 +90,11 @@ class TimerStateMachine : StateMachine<TimerState, TimerAction, TimerEffect> by 
 
     state<TimerState.Paused> {
         on<TimerAction.Resume> {
-            transition { state.toRunning() }
+            transition(state.toRunning())
         }
-        on<TimerAction.SetAutoPause> { transition { state.toSelf(autoPause = action.enabled) } }
+        on<TimerAction.SetAutoPause> { transition(state.toSelf(autoPause = action.enabled)) }
         on<TimerAction.Reset> {
-            transition { state.toIdle(durationSeconds = state.totalSeconds) }
+            transition(state.toIdle(durationSeconds = state.totalSeconds))
         }
 
         // Auto-resume when the app returns to the foreground — only if this pause was
@@ -108,7 +108,7 @@ class TimerStateMachine : StateMachine<TimerState, TimerAction, TimerEffect> by 
 
     state<TimerState.Finished> {
         on<TimerAction.Reset> {
-            transition { state.toIdle(durationSeconds = state.totalSeconds) }
+            transition(state.toIdle(durationSeconds = state.totalSeconds))
         }
     }
 

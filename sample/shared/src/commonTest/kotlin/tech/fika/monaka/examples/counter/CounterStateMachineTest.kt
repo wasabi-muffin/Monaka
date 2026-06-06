@@ -11,20 +11,20 @@ private val counterMachine = stateMachine<CounterState, CounterAction, CounterEf
     initialState(CounterState(count = 0, step = 1))
     state<CounterState> {
         on<CounterAction.Increment> {
-            transition { state.copy(count = state.count + state.step) }
+            transition(state.copy(count = state.count + state.step))
         }
         on<CounterAction.Decrement> {
-            transition { state.copy(count = state.count - state.step) }
+            transition(state.copy(count = state.count - state.step))
         }
         on<CounterAction.SetStep> {
             if (action.step < 1) {
                 sideEffect(CounterEffect.ShowMessage("Step must be at least 1."))
             } else {
-                transition { state.copy(step = action.step) }
+                transition(state.copy(step = action.step))
             }
         }
         on<CounterAction.Reset> {
-            transition { CounterState(count = 0, step = state.step) }
+            transition(CounterState(count = 0, step = state.step))
             sideEffect(CounterEffect.ShowMessage("Counter reset!"))
             sideEffect(CounterEffect.SaveCount(0))
         }

@@ -147,7 +147,7 @@ class PumlEmitter {
 
     /**
      * States reachable from a hook, mirroring YamlEmitter.reachableTransitions:
-     * 1. Direct `transition { Target }` calls recorded in [HookModel.transitions].
+     * 1. Direct `transition(Target }` calls recorded in [HookModel.transitions].
      * 2. For each action the task dispatches: the transition recorded in that action's handler.
      * 3. Same resolution for a bare `dispatch(Action)` in the hook body.
      */

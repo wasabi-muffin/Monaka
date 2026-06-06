@@ -29,20 +29,20 @@ class LoginStateMachine(
 
     state<LoginState.Idle> {
         on<LoginAction.UpdateCredentials> {
-            transition { state.toTyping(username = action.username, password = action.password) }
+            transition(state.toTyping(username = action.username, password = action.password))
         }
     }
 
     state<LoginState.Typing> {
         on<LoginAction.UpdateCredentials> {
-            transition { state.copy(username = action.username, password = action.password) }
+            transition(state.copy(username = action.username, password = action.password))
         }
 
         on<LoginAction.Submit> {
             if (!state.isValid) {
                 sideEffect(LoginEffect.ShowValidationError("Please fill in all fields."))
             } else {
-                transition { state.toSubmitting() }
+                transition(state.toSubmitting())
             }
         }
     }
@@ -50,29 +50,29 @@ class LoginStateMachine(
     state<LoginState.Submitting> {
         onEnter {
             val username = loginRepository.login(state.username, state.password)
-            transition { state.toAuthenticated(username = username) }
+            transition(state.toAuthenticated(username = username))
             sideEffect(LoginEffect.NavigateToHome)
         }
 
         onError {
-            transition { state.toError(message = error.message ?: "") }
+            transition(state.toError(message = error.message ?: ""))
         }
     }
 
     state<LoginState.Error> {
         on<LoginAction.UpdateCredentials> {
-            transition { state.copy(username = action.username, password = action.password) }
+            transition(state.copy(username = action.username, password = action.password))
         }
 
         on<LoginAction.Retry> {
-            transition { state.toSubmitting() }
+            transition(state.toSubmitting())
         }
     }
 
     // Logout is valid from any state — registered on the parent sealed interface
     state<LoginState> {
         on<LoginAction.Logout> {
-            transition { LoginState.Idle }
+            transition(LoginState.Idle)
             sideEffect(LoginEffect.NavigateToLogin)
         }
     }

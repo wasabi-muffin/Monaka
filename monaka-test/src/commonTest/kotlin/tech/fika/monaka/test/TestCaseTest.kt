@@ -29,12 +29,12 @@ private val incrementingMachine = stateMachine<CounterState, CounterAction, Coun
     state<CounterState.Idle> {
         on<CounterAction.Start> {
             sideEffect(CounterEffect.Started)
-            transition { CounterState.Counting(count = 0) }
+            transition(CounterState.Counting(count = 0))
         }
     }
     state<CounterState.Counting> {
         on<CounterAction.Increment> {
-            transition { state.copy(count = state.count + 1) }
+            transition(state.copy(count = state.count + 1))
         }
         on<CounterAction.DoubleUp> {
             dispatch(CounterAction.Increment)
@@ -42,7 +42,7 @@ private val incrementingMachine = stateMachine<CounterState, CounterAction, Coun
         }
         onPause {
             sideEffect(CounterEffect.Persisted)
-            transition { CounterState.Paused }
+            transition(CounterState.Paused)
         }
     }
 }

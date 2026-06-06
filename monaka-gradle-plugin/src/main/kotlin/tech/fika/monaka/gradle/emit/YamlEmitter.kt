@@ -78,7 +78,7 @@ class YamlEmitter {
 
     /**
      * States reachable from a hook:
-     * 1. A direct `transition { Target }` inside the hook body.
+     * 1. A direct `transition(Target }` inside the hook body.
      * 2. For each action the task dispatches: look up that action's handler in this state
      *    and take its transition target.
      * 3. Same resolution for a direct `dispatch(Action)` in the hook.

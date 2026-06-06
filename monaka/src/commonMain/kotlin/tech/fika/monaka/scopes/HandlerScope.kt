@@ -28,8 +28,8 @@ import tech.fika.monaka.runtime.JobRegistry
  *
  * ```kotlin
  * on<Refresh> {
- *     if (state.isStale) transition { Refreshing }
- *     transition { Active }   // fallback when not stale
+ *     if (state.isStale) transition(Refreshing)
+ *     transition(Active)   // fallback when not stale
  * }
  * ```
  *
@@ -88,7 +88,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
      * on<MyAction.Submit> {
      *     sideEffect(MyEffect.Analytics)   // always runs
      *     guard { state.isValid }          // short-circuits below if invalid
-     *     transition { MyState.Submitting }
+     *     transition(MyState.Submitting)
      * }
      * ```
      */
@@ -98,18 +98,18 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
     }
 
     /**
-     * Record the new state produced by [block]. First call wins — subsequent calls in the same
-     * handler are no-ops and [block] is not evaluated.
+     * Record [nextState] as the new state. First call wins — subsequent calls in the same
+     * handler are no-ops.
      *
      * ```kotlin
      * on<MyAction.Load> {
-     *     transition { MyState.Loading(action.id) }
+     *     transition(MyState.Loading(action.id))
      * }
      * ```
      */
-    fun <S : State> transition(block: () -> S) {
+    fun <S : State> transition(nextState: S) {
         if (guarded || rejected || pendingState != null) return
-        pendingState = block()
+        pendingState = nextState
     }
 
     /**
@@ -119,7 +119,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
      *
      * ```kotlin
      * on<MyAction.Submit> {
-     *     transition { MyState.Submitting }
+     *     transition(MyState.Submitting)
      *     sideEffect(MyEffect.Analytics("submit_started"))
      *     if (state.shouldNotify) sideEffect(MyEffect.Notify)
      * }
@@ -140,7 +140,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
      * ```kotlin
      * on<MyAction.Submit> {
      *     if (!state.isValid) { reject(); return@on }
-     *     transition { MyState.Submitting }
+     *     transition(MyState.Submitting)
      * }
      * ```
      */

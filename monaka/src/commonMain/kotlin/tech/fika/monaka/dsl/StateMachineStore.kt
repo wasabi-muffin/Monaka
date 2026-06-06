@@ -32,28 +32,28 @@ import tech.fika.monaka.runtime.DefaultStore
  *
  *         state<LoginState.Idle> {
  *             on<LoginAction.UpdateCredentials> {
- *                 transition { LoginState.Typing(action.username, action.password) }
+ *                 transition(LoginState.Typing(action.username, action.password))
  *             }
  *         }
  *
  *         state<LoginState.Typing> {
  *             on<LoginAction.Submit> {
- *                 transition { LoginState.Submitting }
+ *                 transition(LoginState.Submitting)
  *             }
  *         }
  *
  *         state<LoginState.Submitting> {
  *             onEnter {
  *                 when (val r = loginRepository.login(state.username, state.password)) {
- *                     is Success -> transition(LoginEffect.NavigateToHome) { LoginState.Authenticated(r.username) }
- *                     is Failure -> transition { LoginState.Error(r.reason) }
+ *                     is Success -> transition(LoginEffect.NavigateToHome) { LoginState.Authenticated(r.username))
+ *                     is Failure -> transition(LoginState.Error(r.reason))
  *                 }
  *             }
  *         }
  *
  *         state<LoginState> {
  *             on<LoginAction.Logout> {
- *                 transition { LoginState.Idle }
+ *                 transition(LoginState.Idle)
  *                 sideEffect(LoginEffect.NavigateToLogin)
  *             }
  *         }

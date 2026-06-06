@@ -21,8 +21,8 @@ import tech.fika.monaka.runtime.DefaultStore
  *     initialState(CounterState(count = 0))
  *
  *     state<CounterState> {
- *         on<CounterAction.Increment> { transition { state.copy(count = state.count + 1) } }
- *         on<CounterAction.Decrement> { transition { state.copy(count = state.count - 1) } }
+ *         on<CounterAction.Increment> { transition(state.copy(count = state.count + 1) })
+ *         on<CounterAction.Decrement> { transition(state.copy(count = state.count - 1) })
  *     }
  *
  *     install(LoggingPlugin())

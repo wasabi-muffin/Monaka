@@ -12,16 +12,16 @@ class CheckoutStateMachine(
 
     state<CheckoutState.Idle> {
         on<CheckoutAction.Begin> {
-            transition { state.toReviewingOrder(userId = action.userId, items = action.items, total = action.total) }
+            transition(state.toReviewingOrder(userId = action.userId, items = action.items, total = action.total))
         }
     }
 
     state<CheckoutState.ReviewingOrder> {
         on<CheckoutAction.SyncCart> {
-            transition { state.copy(items = action.items, total = action.total) }
+            transition(state.copy(items = action.items, total = action.total))
         }
         on<CheckoutAction.Confirm> {
-            transition { state.toProcessingPayment() }
+            transition(state.toProcessingPayment())
         }
     }
 
@@ -34,26 +34,26 @@ class CheckoutStateMachine(
                 )
         }
         on<CheckoutAction.PaymentSucceeded> {
-            transition { state.toDone(orderId = action.orderId) }
+            transition(state.toDone(orderId = action.orderId))
             sideEffect(CheckoutEffect.OrderConfirmed(action.orderId))
         }
         on<CheckoutAction.PaymentFailed> {
-            transition { state.toPaymentFailed(reason = action.reason) }
+            transition(state.toPaymentFailed(reason = action.reason))
             sideEffect(CheckoutEffect.ShowPaymentError("Payment declined: ${action.reason}"))
         }
         on<CheckoutAction.SyncCart> {
-            transition { state.copy(items = action.items, total = action.total) }
+            transition(state.copy(items = action.items, total = action.total))
         }
     }
 
     state<CheckoutState.PaymentFailed> {
         on<CheckoutAction.RetryPayment> {
-            transition { state.toProcessingPayment() }
+            transition(state.toProcessingPayment())
         }
     }
 
     state<CheckoutState> {
-        on<CheckoutAction.Cancel> { transition { CheckoutState.Idle } }
+        on<CheckoutAction.Cancel> { transition(CheckoutState.Idle })
     }
 
     install(LoggingPlugin(tag = "Checkout"))

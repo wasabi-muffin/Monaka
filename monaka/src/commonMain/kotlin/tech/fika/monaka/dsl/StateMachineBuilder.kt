@@ -39,7 +39,7 @@ import tech.fika.monaka.plugin.Plugin
  *
  * ```kotlin
  * state<MyState> {                        // matches any MyState subtype as fallback
- *     on<MyAction.Reset> { transition { MyState.Idle } }
+ *     on<MyAction.Reset> { transition(MyState.Idle })
  * }
  *
  * state<MyState.Loading> {                // exact match — takes priority for its actions
