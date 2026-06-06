@@ -9,4 +9,7 @@ abstract class MonakaExtension {
 
     /** Directory where generated `.yaml` files are written. Defaults to `build/monaka-yaml`. */
     abstract val outputDir: DirectoryProperty
+
+    /** Directory where generated `.puml` files are written. Defaults to `build/monaka-puml`. */
+    abstract val pumlOutputDir: DirectoryProperty
 }

@@ -15,6 +15,8 @@ class MonakaPlugin : Plugin<Project> {
             target.layout.buildDirectory.dir("monaka-yaml")
         )
 
+        yamlExtension.pumlOutputDir.convention(yamlExtension.outputDir)
+
         target.tasks.register(
             "generateMonakaYaml",
             GenerateStateMachineYamlTask::class.java,
@@ -23,6 +25,16 @@ class MonakaPlugin : Plugin<Project> {
             task.description = "Generates YAML documentation from stateMachine { } DSL blocks."
             task.sources.setFrom(yamlExtension.sources)
             task.outputDir.set(yamlExtension.outputDir)
+        }
+
+        target.tasks.register(
+            "generateMonakaPuml",
+            GenerateStateMachinePumlTask::class.java,
+        ) { task ->
+            task.group = "monaka"
+            task.description = "Generates PlantUML state diagrams from stateMachine { } DSL blocks."
+            task.sources.setFrom(yamlExtension.sources)
+            task.outputDir.set(yamlExtension.pumlOutputDir)
         }
 
         val stubsExtension = target.extensions.create(
