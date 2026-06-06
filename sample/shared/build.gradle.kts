@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.monaka.kmp.library)
     alias(libs.plugins.monaka.compose)
     alias(libs.plugins.compiler.plugin)
+    alias(libs.plugins.ksp)
     id("tech.fika.monaka.yaml-export")
 }
 
@@ -53,6 +54,20 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.kotlinx.coroutines.android)
         }
+    }
+}
+
+dependencies {
+    add("kspCommonMainMetadata", project(":monaka-processor"))
+}
+
+kotlin.sourceSets.commonMain {
+    kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
+    if (name != "kspCommonMainKotlinMetadata") {
+        dependsOn("kspCommonMainKotlinMetadata")
     }
 }
 

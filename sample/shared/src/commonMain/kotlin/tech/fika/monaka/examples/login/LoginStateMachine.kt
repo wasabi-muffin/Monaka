@@ -29,7 +29,7 @@ class LoginStateMachine(
 
     state<LoginState.Idle> {
         on<LoginAction.UpdateCredentials> {
-            transition { LoginState.Typing(action.username, action.password) }
+            transition { state.toTyping(username = action.username, password = action.password) }
         }
     }
 
@@ -42,7 +42,7 @@ class LoginStateMachine(
             if (!state.isValid) {
                 sideEffect(LoginEffect.ShowValidationError("Please fill in all fields."))
             } else {
-                transition { LoginState.Submitting(state.username, state.password) }
+                transition { state.toSubmitting() }
             }
         }
     }
@@ -50,14 +50,12 @@ class LoginStateMachine(
     state<LoginState.Submitting> {
         onEnter {
             val username = loginRepository.login(state.username, state.password)
-            transition { LoginState.Authenticated(username) }
+            transition { state.toAuthenticated(username = username) }
             sideEffect(LoginEffect.NavigateToHome)
         }
 
         onError {
-            transition {
-                LoginState.Error(state.username, state.password, error.message ?: "")
-            }
+            transition { state.toError(message = error.message ?: "") }
         }
     }
 
@@ -67,7 +65,7 @@ class LoginStateMachine(
         }
 
         on<LoginAction.Retry> {
-            transition { LoginState.Submitting(state.username, state.password) }
+            transition { state.toSubmitting() }
         }
     }
 

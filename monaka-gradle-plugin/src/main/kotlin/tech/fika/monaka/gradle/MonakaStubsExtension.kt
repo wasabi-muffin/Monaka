@@ -21,4 +21,10 @@ abstract class MonakaStubsExtension {
      * When `true`, overwrite any existing files.
      */
     abstract val replace: Property<Boolean>
+
+    /**
+     * When `true` (default), emit `@Transition` annotations on the generated state sealed
+     * interface and each substate, based on the transitions declared in the YAML model.
+     */
+    abstract val useTransitionAnnotation: Property<Boolean>
 }

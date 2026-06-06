@@ -91,6 +91,19 @@ class KtSourceParser {
             ?.ifEmpty { stateType.substringAfterLast(".") }
             ?: ""
 
+        // Pre-compute a lookup from concatenated PascalCase name → dot-path so that
+        // state.toAuthSigningIn() resolves to "Auth.SigningIn" rather than "AuthSigningIn".
+        // For flat hierarchies (e.g. "Submitting") the key equals the path, so nothing changes.
+        val statePathLookup: Map<String, String> = stateBlockRegex.findAll(body)
+            .mapNotNull { match ->
+                val rawType = match.groupValues[1].trim()
+                val path = rawType.stripPrefix(stateType).ifEmpty { stateType.substringAfterLast(".") }
+                if (path.isBlank()) return@mapNotNull null
+                val key = path.split(".").joinToString("")
+                key to path
+            }
+            .toMap()
+
         val flatStates = mutableMapOf<String, StateNode>()
         for (match in stateBlockRegex.findAll(body)) {
             val rawType = match.groupValues[1].trim()
@@ -99,7 +112,7 @@ class KtSourceParser {
             val statePath = rawType.stripPrefix(stateType)
                 .ifEmpty { stateType.substringAfterLast(".") }
             val stateBody = extractBlock(body, match.range.last) ?: continue
-            flatStates[statePath] = parseStateBody(stateBody, stateType, actionType, statePath)
+            flatStates[statePath] = parseStateBody(stateBody, stateType, actionType, statePath, statePathLookup)
         }
 
         return MachineModel(
@@ -116,16 +129,17 @@ class KtSourceParser {
         stateType: String,
         actionType: String,
         statePath: String,
+        statePathLookup: Map<String, String> = emptyMap(),
     ): StateNode {
         val onEnter = findBlockByKeyword(body, "onEnter")
-            ?.let { parseHookBody(it, stateType, statePath) }
+            ?.let { parseHookBody(it, stateType, statePath, statePathLookup) }
         val onExit = findBlockByKeyword(body, "onExit")
-            ?.let { parseHookBody(it, stateType, statePath) }
+            ?.let { parseHookBody(it, stateType, statePath, statePathLookup) }
 
         val lifecycleHooks = mutableMapOf<String, HookModel>()
         for (event in LIFECYCLE_EVENTS) {
             val hookBody = findBlockByKeyword(body, event) ?: continue
-            lifecycleHooks[event] = parseHookBody(hookBody, stateType, statePath) ?: HookModel()
+            lifecycleHooks[event] = parseHookBody(hookBody, stateType, statePath, statePathLookup) ?: HookModel()
         }
 
         val on = mutableMapOf<String, HandlerModel>()
@@ -133,7 +147,7 @@ class KtSourceParser {
             val rawAction = match.groupValues[1].trim()
             val actionName = rawAction.stripPrefix(actionType)
             val handlerBody = extractBlock(body, match.range.last) ?: continue
-            on[actionName] = parseHandlerBody(handlerBody, stateType, actionType, statePath)
+            on[actionName] = parseHandlerBody(handlerBody, stateType, actionType, statePath, statePathLookup)
         }
 
         return StateNode(onEnter = onEnter, onExit = onExit, lifecycleHooks = lifecycleHooks, on = on)
@@ -141,7 +155,12 @@ class KtSourceParser {
 
     // ── Hook (onEnter / onExit / lifecycle) ───────────────────────────────────
 
-    private fun parseHookBody(body: String, stateType: String = "", statePath: String = ""): HookModel? {
+    private fun parseHookBody(
+        body: String,
+        stateType: String = "",
+        statePath: String = "",
+        statePathLookup: Map<String, String> = emptyMap(),
+    ): HookModel? {
         val task = findTaskBlock(body)
         val cancel = cancelRegex.find(body)?.groupValues?.get(1)
         val effects = collectSideEffects(body).map { it.extractEffectName() }
@@ -155,6 +174,11 @@ class KtSourceParser {
         val transitions = allTransMatches.mapNotNull { transMatch ->
             val transBody = extractBlock(body, transMatch.range.last)?.trim() ?: ""
             when {
+                // state.toXxx(...) — generated transition function; resolve via lookup first
+                transBody.startsWith("state.to") && !transBody.startsWith("state.toSelf") -> {
+                    val suffix = transBody.removePrefix("state.to").substringBefore("(").trim()
+                    (statePathLookup[suffix] ?: suffix).takeIf { it.isNotBlank() }
+                }
                 transBody.startsWith("state.") || transBody == "state" -> statePath.takeIf { it.isNotBlank() }
                 else -> transBody.substringBefore("(").trim()
                     .stripPrefix(stateType)
@@ -181,6 +205,7 @@ class KtSourceParser {
         stateType: String,
         actionType: String,
         statePath: String,
+        statePathLookup: Map<String, String> = emptyMap(),
     ): HandlerModel {
         val effects = mutableListOf<String>()
 
@@ -197,7 +222,12 @@ class KtSourceParser {
         if (transMatch != null) {
             val transBody = extractBlock(body, transMatch.range.last)?.trim() ?: ""
             transition = when {
-                // state.copy(...) or state.anything — the state stays the same type
+                // state.toXxx(...) — resolve via lookup to recover dot-path for nested states
+                transBody.startsWith("state.to") && !transBody.startsWith("state.toSelf") -> {
+                    val suffix = transBody.removePrefix("state.to").substringBefore("(").trim()
+                    (statePathLookup[suffix] ?: suffix).takeIf { it.isNotBlank() } ?: statePath
+                }
+                // state.copy(...) / state.toSelf(...) / bare state — stays in same state
                 transBody.startsWith("state.") || transBody == "state" -> statePath
                 else -> transBody.substringBefore("(").trim()
                     .stripPrefix(stateType)

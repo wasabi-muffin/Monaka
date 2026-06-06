@@ -42,5 +42,6 @@ rootProject.name = "Monaka"
 includeBuild("monaka-gradle-plugin")
 include(":monaka")
 include(":monaka-test")
+include(":monaka-processor")
 include(":sample:shared")
 include(":sample:androidApp")

@@ -7,7 +7,12 @@ class KotlinStubEmitter {
 
     data class GeneratedFile(val name: String, val content: String)
 
-    fun emit(model: MachineModel, style: StubStyle, pkg: String?): List<GeneratedFile> {
+    fun emit(
+        model: MachineModel,
+        style: StubStyle,
+        pkg: String?,
+        useTransitionAnnotation: Boolean = true,
+    ): List<GeneratedFile> {
         val rootName = "${model.name}State"
         val actionName = "${model.name}Action"
         val effectName = "${model.name}Effect"
@@ -16,14 +21,45 @@ class KotlinStubEmitter {
         val isSingle = stateTree.children.isEmpty()
         val actions = collectActions(model)
         val effects = collectEffects(model)
+        val transitions = if (useTransitionAnnotation) computeTransitions(model) else emptyMap()
 
         return listOf(
-            GeneratedFile("$rootName.kt", emitStateFile(model, rootName, stateTree, isSingle, pkg)),
+            GeneratedFile("$rootName.kt", emitStateFile(model, rootName, stateTree, isSingle, pkg, transitions)),
             GeneratedFile("$actionName.kt", emitSealedFile(actionName, "Action", actions, pkg)),
             GeneratedFile("$effectName.kt", emitSealedFile(effectName, "Effect", effects, pkg)),
             GeneratedFile("${model.name}StateMachine.kt",
                 emitStateMachineFile(model, rootName, actionName, effectName, isSingle, style, pkg)),
         )
+    }
+
+    // ── Transition map ────────────────────────────────────────────────────────
+
+    /**
+     * Computes a map of state simple-name → list of distinct non-self transition targets
+     * by walking every handler and hook in the model.
+     */
+    private fun computeTransitions(model: MachineModel): Map<String, List<String>> {
+        val result = linkedMapOf<String, LinkedHashSet<String>>()
+
+        fun addTarget(stateName: String, target: String?) {
+            if (target != null && target != stateName) {
+                result.getOrPut(stateName) { linkedSetOf() }.add(target.substringAfterLast("."))
+            }
+        }
+
+        fun walk(states: Map<String, tech.fika.monaka.gradle.model.StateNode>) {
+            for ((key, node) in states) {
+                val name = key.substringAfterLast(".")
+                node.on.values.forEach { handler -> addTarget(name, handler.transition) }
+                node.onEnter?.transitions?.forEach { addTarget(name, it) }
+                node.onExit?.transitions?.forEach { addTarget(name, it) }
+                node.lifecycleHooks.values.forEach { h -> h.transitions.forEach { addTarget(name, it) } }
+                walk(node.states)
+            }
+        }
+
+        walk(model.states)
+        return result.mapValues { it.value.toList() }
     }
 
     // ── State tree ────────────────────────────────────────────────────────────
@@ -67,27 +103,40 @@ class KotlinStubEmitter {
         tree: StateNode,
         isSingle: Boolean,
         pkg: String?,
+        transitions: Map<String, List<String>>,
     ): String = buildString {
         pkg?.let { appendLine("package $it\n") }
+        if (transitions.isNotEmpty()) appendLine("import tech.fika.monaka.core.Transition")
         appendLine("import tech.fika.monaka.core.State\n")
+        if (transitions.isNotEmpty()) appendLine("@Transition")
         appendLine("sealed interface $rootName : State {")
         if (isSingle) {
             appendLine("    data object ${model.name} : $rootName")
         } else {
             for ((_, child) in tree.children) {
-                append(emitStateNode(child, rootName, "    "))
+                append(emitStateNode(child, rootName, "    ", transitions))
             }
         }
         appendLine("}")
     }
 
-    private fun emitStateNode(node: StateNode, parentType: String, indent: String): String = buildString {
+    private fun emitStateNode(
+        node: StateNode,
+        parentType: String,
+        indent: String,
+        transitions: Map<String, List<String>>,
+    ): String = buildString {
+        val targets = transitions[node.name]
+        if (!targets.isNullOrEmpty()) {
+            val args = targets.joinToString(", ") { "${it}::class" }
+            appendLine("${indent}@Transition($args)")
+        }
         if (node.isLeaf) {
             appendLine("${indent}data object ${node.name} : $parentType")
         } else {
             appendLine("${indent}sealed interface ${node.name} : $parentType {")
             for ((_, child) in node.children) {
-                append(emitStateNode(child, node.name, "$indent    "))
+                append(emitStateNode(child, node.name, "$indent    ", transitions))
             }
             appendLine("${indent}}")
         }
@@ -175,13 +224,13 @@ class KotlinStubEmitter {
     ): String = buildString {
         val typeRef = stateTypeRef(key, rootName)
         appendLine("${pad}state<$typeRef> {")
-        node.onEnter?.let { append(emitHookBlock("onEnter", it, rootName, actionName, effectName, isSingle, machineName, "$pad    ")) }
-        node.onExit?.let { append(emitHookBlock("onExit", it, rootName, actionName, effectName, isSingle, machineName, "$pad    ")) }
+        node.onEnter?.let { append(emitHookBlock("onEnter", it, rootName, actionName, effectName, isSingle, machineName, key, "$pad    ")) }
+        node.onExit?.let { append(emitHookBlock("onExit", it, rootName, actionName, effectName, isSingle, machineName, key, "$pad    ")) }
         for ((event, hook) in node.lifecycleHooks) {
-            append(emitHookBlock(event, hook, rootName, actionName, effectName, isSingle, machineName, "$pad    "))
+            append(emitHookBlock(event, hook, rootName, actionName, effectName, isSingle, machineName, key, "$pad    "))
         }
         for ((action, handler) in node.on) {
-            append(emitHandlerBlock(action, handler, rootName, actionName, effectName, isSingle, machineName, "$pad    "))
+            append(emitHandlerBlock(action, handler, rootName, actionName, effectName, isSingle, machineName, key, "$pad    "))
         }
         appendLine("${pad}}")
     }
@@ -194,12 +243,13 @@ class KotlinStubEmitter {
         effectName: String,
         isSingle: Boolean,
         machineName: String,
+        sourcePath: String,
         pad: String,
     ): String = buildString {
         appendLine("${pad}$hookName {")
         hook.task?.let { append(emitTaskBlock(it, actionName, "$pad    ")) }
-        hook.transitions.forEach {
-            appendLine("${pad}    transition { ${transitionRef(it, rootName, isSingle, machineName)} }")
+        hook.transitions.forEach { target ->
+            appendLine("${pad}    transition { ${stateTransitionExpr(sourcePath, target, rootName, isSingle, machineName)} }")
         }
         hook.effects.forEach { appendLine("${pad}    sideEffect($effectName.$it)") }
         hook.dispatch?.let { appendLine("${pad}    dispatch($it)") }
@@ -214,6 +264,7 @@ class KotlinStubEmitter {
         effectName: String,
         isSingle: Boolean,
         machineName: String,
+        sourcePath: String,
         pad: String,
     ): String = buildString {
         appendLine("${pad}on<$actionName.$action> {")
@@ -221,8 +272,8 @@ class KotlinStubEmitter {
             appendLine("${pad}    reject()")
         } else {
             handler.task?.let { append(emitTaskBlock(it, actionName, "$pad    ")) }
-            handler.transition?.let {
-                appendLine("${pad}    transition { ${transitionRef(it, rootName, isSingle, machineName)} }")
+            handler.transition?.let { target ->
+                appendLine("${pad}    transition { ${stateTransitionExpr(sourcePath, target, rootName, isSingle, machineName)} }")
             }
             handler.effects.forEach { appendLine("${pad}    sideEffect($effectName.$it)") }
             handler.dispatch?.let { appendLine("${pad}    dispatch($actionName.$it)") }
@@ -253,6 +304,44 @@ class KotlinStubEmitter {
             target == rootName -> rootName
             else -> "$rootName.$target"
         }
+
+    /**
+     * Produces the expression inside `transition { }` for a given source state path and target path.
+     *
+     * - Catch-all state (sourcePath == rootName): keeps constructor reference — `state.toXxx()` is
+     *   not available on the sealed interface receiver.
+     * - Self-transition (target == source): `state.toSelf()`
+     * - Cross-state: `state.toXxx()` where the name is derived by stripping the common enclosing
+     *   prefix between source and target, mirroring the processor's `buildFunctionName` algorithm.
+     */
+    private fun stateTransitionExpr(
+        sourcePath: String,
+        target: String,
+        rootName: String,
+        isSingle: Boolean,
+        machineName: String,
+    ): String {
+        if (sourcePath == rootName) return transitionRef(target, rootName, isSingle, machineName)
+        if (target == sourcePath) return "state.toSelf()"
+        return "state.${toStateFunctionName(sourcePath, target)}()"
+    }
+
+    /**
+     * Mirrors `TargetTransitionGenerator.buildFunctionName` using dot-path strings instead of KSP
+     * class declarations.
+     *
+     * Examples (sourcePath → target → result):
+     *   Loading          → Auth.SigningIn  → toAuthSigningIn
+     *   Auth.SignedOut   → Auth.SigningIn  → toSigningIn
+     *   Auth.SigningIn   → Auth.SignedOut  → toSignedOut
+     *   Auth.SignedOut   → Loading         → toLoading
+     */
+    private fun toStateFunctionName(sourcePath: String, target: String): String {
+        val sourceEnclosing = sourcePath.split(".").dropLast(1)
+        val targetParts = target.split(".")
+        val prefixLen = sourceEnclosing.zip(targetParts).takeWhile { (a, b) -> a == b }.size
+        return "to" + targetParts.drop(prefixLen).joinToString("") { it.replaceFirstChar { c -> c.uppercase() } }
+    }
 
     // ── Collect actions / effects ─────────────────────────────────────────────
 

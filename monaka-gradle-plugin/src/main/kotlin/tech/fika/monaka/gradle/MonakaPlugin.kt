@@ -45,6 +45,7 @@ class MonakaPlugin : Plugin<Project> {
         stubsExtension.input.convention(target.projectDir.absolutePath)
         stubsExtension.style.convention(StubStyle.CLASS)
         stubsExtension.replace.convention(false)
+        stubsExtension.useTransitionAnnotation.convention(true)
 
         target.tasks.register(
             "generateMonakaStubs",
@@ -56,6 +57,7 @@ class MonakaPlugin : Plugin<Project> {
             task.extensionOutputDir.set(stubsExtension.outputDir)
             task.extensionStyle.set(stubsExtension.style)
             task.extensionReplace.set(stubsExtension.replace)
+            task.extensionUseTransitionAnnotation.set(stubsExtension.useTransitionAnnotation)
         }
     }
 }

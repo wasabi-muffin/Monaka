@@ -155,6 +155,111 @@ class KtSourceParserTest {
         assertEquals("Active", transition)
     }
 
+    // ── state.toXxx() generated transitions ──────────────────────────────────
+
+    @Test
+    fun `resolves state-dot-toXxx transition to target state name`() {
+        val src = """
+            val m = stateMachine<LoginState, LoginAction, LoginEffect> {
+                initialState(LoginState.Idle)
+                state<LoginState.Idle> {
+                    on<LoginAction.Update> {
+                        transition { state.toTyping(username = action.username, password = action.password) }
+                    }
+                }
+                state<LoginState.Typing> {
+                    on<LoginAction.Submit> {
+                        transition { state.toSubmitting() }
+                    }
+                    on<LoginAction.Update> {
+                        transition { state.copy(username = action.username) }
+                    }
+                }
+                state<LoginState.Submitting> {
+                    onEnter {
+                        transition { state.toAuthenticated(username = result) }
+                    }
+                    onError {
+                        transition { state.toError(message = error.message ?: "") }
+                    }
+                }
+                state<LoginState.Error> {
+                    on<LoginAction.Retry> {
+                        transition { state.toSubmitting() }
+                    }
+                    on<LoginAction.Update> {
+                        transition { state.toSelf(username = action.username) }
+                    }
+                }
+            }
+        """.trimIndent()
+
+        val model = parser.parseFiles(listOf(writeTempFile("Login.kt", src))).first()
+
+        // state.toXxx() resolves to target state
+        assertEquals("Typing", model.states["Idle"]?.on?.get("Update")?.transition)
+        assertEquals("Submitting", model.states["Typing"]?.on?.get("Submit")?.transition)
+        assertEquals("Submitting", model.states["Error"]?.on?.get("Retry")?.transition)
+
+        // state.copy() stays in same state
+        assertEquals("Typing", model.states["Typing"]?.on?.get("Update")?.transition)
+
+        // state.toSelf() stays in same state
+        assertEquals("Error", model.states["Error"]?.on?.get("Update")?.transition)
+
+        // onEnter hook transitions via state.toXxx()
+        // (onError is a separate DSL hook, not captured in onEnter.transitions)
+        assertEquals(listOf("Authenticated"), model.states["Submitting"]?.onEnter?.transitions)
+    }
+
+    @Test
+    fun `resolves cross-hierarchy state-dot-toXxx to dot-path using state lookup`() {
+        val src = """
+            val m = stateMachine<AppState, AppAction, AppEffect> {
+                initialState(AppState.Auth.SignedOut)
+
+                state<AppState.Auth> {
+                    on<AppAction.DoNothing> {}
+                }
+                state<AppState.Auth.SignedOut> {
+                    on<AppAction.Attempt> {
+                        transition { state.toAuthSigningIn(username = action.username, password = action.password) }
+                    }
+                }
+                state<AppState.Auth.SigningIn> {
+                    on<AppAction.Cancel> {
+                        transition { state.toAuthSignedOut() }
+                    }
+                }
+                state<AppState.Loading> {
+                    on<AppAction.SignIn> {
+                        transition { state.toAuthSigningIn(username = action.username, password = action.password) }
+                    }
+                    on<AppAction.Clear> {
+                        transition { state.toLoading() }
+                    }
+                }
+            }
+        """.trimIndent()
+
+        val model = parser.parseFiles(listOf(writeTempFile("App.kt", src))).first()
+
+        // buildHierarchy nests Auth.SignedOut under states["Auth"].states["SignedOut"]
+        val signedOut  = model.states["Auth"]?.states?.get("SignedOut")
+        val signingIn  = model.states["Auth"]?.states?.get("SigningIn")
+        val loading    = model.states["Loading"]
+
+        // Cross-hierarchy: toAuthSigningIn → dot-path "Auth.SigningIn"
+        assertEquals("Auth.SigningIn", signedOut?.on?.get("Attempt")?.transition)
+        assertEquals("Auth.SigningIn", loading?.on?.get("SignIn")?.transition)
+
+        // Same-level within Auth: toAuthSignedOut → dot-path "Auth.SignedOut"
+        assertEquals("Auth.SignedOut", signingIn?.on?.get("Cancel")?.transition)
+
+        // Flat self-reference: toLoading → "Loading"
+        assertEquals("Loading", loading?.on?.get("Clear")?.transition)
+    }
+
     // ── Lifecycle hooks ───────────────────────────────────────────────────────
 
     @Test

@@ -12,35 +12,33 @@ class CartStateMachine(
 
     state<CartState.Empty> {
         on<CartAction.LoadForUser> {
-            transition {
-                CartState.Loading(action.userId)
-            }
+            transition { state.toLoading(userId = action.userId) }
         }
     }
 
     state<CartState.Loading> {
         onEnter {
             val items = cartRepository.loadCart(state.userId)
-            transition { CartState.WithItems(state.userId, items) }
+            transition { state.toWithItems(items = items) }
         }
     }
 
     state<CartState.WithItems> {
         on<CartAction.AddItem> {
             val updated = state.items + action.item
-            transition { CartState.WithItems(state.userId, updated) }
+            transition { state.copy(items = updated) }
             sideEffect(CartEffect.CartChanged(state.userId, updated, updated.sumOf { it.subtotal }))
         }
         on<CartAction.RemoveItem> {
             val updated = state.items.filter { it.productId != action.productId }
-            transition { CartState.WithItems(state.userId, updated) }
+            transition { state.copy(items = updated) }
             sideEffect(CartEffect.CartChanged(state.userId, updated, updated.sumOf { it.subtotal }))
         }
         on<CartAction.UpdateQuantity> {
             val updated = state.items
                 .map { if (it.productId == action.productId) it.copy(quantity = action.quantity) else it }
                 .filter { it.quantity > 0 }
-            transition { CartState.WithItems(state.userId, updated) }
+            transition { state.copy(items = updated) }
             sideEffect(CartEffect.CartChanged(state.userId, updated, updated.sumOf { it.subtotal }))
         }
     }

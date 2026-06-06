@@ -45,6 +45,13 @@ abstract class GenerateStubsFromYamlTask @Inject constructor(
     @Option(option = "replace", description = "Overwrite existing stub files (default: false)")
     fun setCliReplace(value: Boolean) = cliReplace.set(value)
 
+    @get:Input
+    @get:Optional
+    val cliUseTransitionAnnotation: Property<Boolean> = objects.property(Boolean::class.java)
+
+    @Option(option = "use-transition-annotation", description = "Emit @Transition annotations on generated state classes (default: true)")
+    fun setCliUseTransitionAnnotation(value: Boolean) = cliUseTransitionAnnotation.set(value)
+
     // ── Extension defaults (wired by MonakaPlugin) ────────────────────────────
 
     @get:Internal
@@ -58,6 +65,9 @@ abstract class GenerateStubsFromYamlTask @Inject constructor(
 
     @get:Internal
     abstract val extensionReplace: Property<Boolean>
+
+    @get:Internal
+    abstract val extensionUseTransitionAnnotation: Property<Boolean>
 
     // ── Action ────────────────────────────────────────────────────────────────
 
@@ -87,6 +97,8 @@ abstract class GenerateStubsFromYamlTask @Inject constructor(
 
         val style = resolveStyle()
         val replace = cliReplace.orNull ?: extensionReplace.orNull ?: false
+        val useTransitionAnnotation = cliUseTransitionAnnotation.orNull
+            ?: extensionUseTransitionAnnotation.orNull ?: true
         val parser = YamlParser()
         val emitter = KotlinStubEmitter()
 
@@ -96,7 +108,7 @@ abstract class GenerateStubsFromYamlTask @Inject constructor(
             outDir.mkdirs()
 
             val pkg = inferPackage(yamlFile)
-            val files = emitter.emit(model, style, pkg)
+            val files = emitter.emit(model, style, pkg, useTransitionAnnotation)
 
             for (file in files) {
                 val out = outDir.resolve(file.name)

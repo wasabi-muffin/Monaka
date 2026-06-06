@@ -6,4 +6,5 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.compose.multiplatform) apply false
     alias(libs.plugins.compiler.plugin) apply false
+    alias(libs.plugins.ksp) apply false
 }

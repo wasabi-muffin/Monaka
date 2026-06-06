@@ -14,33 +14,29 @@ class CounterStateMachine(
 
         state<CounterState> {
             on<CounterAction.Increment> {
-                transition { state.copy(count = state.count + state.step) }
+                transition { state.toSelf(count = state.count + state.step) }
             }
 
             on<CounterAction.Decrement> {
-                transition { state.copy(count = state.count - state.step) }
+                transition { state.toSelf(count = state.count - state.step) }
             }
 
             on<CounterAction.SetStep> {
                 if (action.step < 1) {
-                    // Invalid step: stay, emit error message
                     sideEffect(CounterEffect.ShowMessage("Step must be at least 1."))
                 } else {
-                    transition { state.copy(step = action.step) }
+                    transition { state.toSelf(step = action.step) }
                 }
             }
 
             on<CounterAction.Reset> {
-                transition {
-                    CounterState(count = 0, step = state.step)
-                }
+                transition { state.toSelf(count = 0) }
                 sideEffect(CounterEffect.ShowMessage("Counter reset!"))
                 sideEffect(CounterEffect.SaveCount(0))
             }
 
             on<CounterAction.SaveCompleted> {
                 if (action.success) sideEffect(CounterEffect.ShowMessage("Saved ✓"))
-                // failed saves are silently ignored in this example
             }
         }
 

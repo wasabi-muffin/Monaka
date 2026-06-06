@@ -12,9 +12,7 @@ class AuthStateMachine(
 
     state<AuthState.SignedOut> {
         on<AuthAction.Attempt> {
-            transition {
-                AuthState.SigningIn(action.username, action.password)
-            }
+            transition { state.toSigningIn(username = action.username, password = action.password) }
         }
     }
 
@@ -22,22 +20,20 @@ class AuthStateMachine(
         onEnter {
             runCatching { authRepository.signIn(state.username, state.password) }
                 .fold(
-                    onSuccess = { user -> transition { AuthState.SignedIn(user) } },
-                    onFailure = { e -> transition { AuthState.SignInFailed(e.message ?: "Sign-in failed") } },
+                    onSuccess = { user -> transition { state.toSignedIn(user = user) } },
+                    onFailure = { e -> transition { state.toSignInFailed(reason = e.message ?: "Sign-in failed") } },
                 )
         }
     }
 
     state<AuthState.SignInFailed> {
         on<AuthAction.Attempt> {
-            transition {
-                AuthState.SigningIn(action.username, action.password)
-            }
+            transition { state.toSigningIn(username = action.username, password = action.password) }
         }
     }
 
     state<AuthState.SignedIn> {
-        on<AuthAction.SignOut> { transition { AuthState.SignedOut } }
+        on<AuthAction.SignOut> { transition { state.toSignedOut() } }
     }
 
     install(LoggingPlugin(tag = "Auth"))

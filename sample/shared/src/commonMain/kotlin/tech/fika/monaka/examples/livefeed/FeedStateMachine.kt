@@ -88,7 +88,7 @@ class FeedStateMachine(
                 }
             }
 
-            transition { FeedState.Active(query = action.query, isLoading = true) }
+            transition { state.toActive(query = action.query, items = emptyList(), isLoading = true, isLive = false) }
         }
     }
 
@@ -101,7 +101,7 @@ class FeedStateMachine(
             if (action.query.isBlank()) {
                 cancel("poll")
                 cancel("search")
-                return@on transition { FeedState.Idle }
+                return@on transition { state.toIdle() }
             }
 
             // task("search") auto-cancels the previous debounce job (key-based)
@@ -141,7 +141,7 @@ class FeedStateMachine(
         on<FeedAction.SearchFailed> {
             if (action.query != state.query) return@on
             cancel("poll")
-            transition { FeedState.Failed(action.query, action.message) }
+            transition { state.toFailed(query = action.query, message = action.message, retryCount = 0) }
             sideEffect(FeedEffect.ShowToast("Search failed — tap Retry"))
         }
 
@@ -207,11 +207,11 @@ class FeedStateMachine(
                     dispatch(FeedAction.SearchFailed(state.query, result.exceptionOrNull()?.message ?: "Unknown error", nextGeneration))
                 }
             }
-            transition { FeedState.Active(query = state.query, isLoading = true) }
+            transition { state.toActive(query = state.query, items = emptyList(), isLoading = true, isLive = false) }
         }
 
         on<FeedAction.SearchCompleted> {
-            transition { FeedState.Active(query = action.query, items = action.items, isLoading = false) }
+            transition { state.toActive(query = action.query, items = action.items, isLoading = false, isLive = false) }
         }
 
         on<FeedAction.SearchFailed> {
@@ -222,7 +222,7 @@ class FeedStateMachine(
         on<FeedAction.QueryChanged> {
             if (action.query.isBlank()) {
                 cancel("search")
-                return@on transition { FeedState.Idle }
+                return@on transition { state.toIdle() }
             }
             task("search") {
                 delay(DEBOUNCE_MS)
@@ -233,7 +233,7 @@ class FeedStateMachine(
                     dispatch(FeedAction.SearchFailed(action.query, result.exceptionOrNull()?.message ?: "Unknown error"))
                 }
             }
-            transition { FeedState.Active(query = action.query, isLoading = true) }
+            transition { state.toActive(query = action.query, items = emptyList(), isLoading = true, isLive = false) }
         }
     }
 
