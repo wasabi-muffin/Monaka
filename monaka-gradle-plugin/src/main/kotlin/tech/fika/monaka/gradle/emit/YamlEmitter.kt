@@ -85,7 +85,7 @@ class YamlEmitter {
      */
     private fun reachableTransitions(hook: HookModel, state: StateNode): List<String> =
         buildList {
-            hook.transition?.let { add(it) }
+            addAll(hook.transitions)
             hook.task?.dispatches?.forEach { dispatched ->
                 state.on[dispatched.substringAfterLast(".")]?.transition?.let { add(it) }
             }

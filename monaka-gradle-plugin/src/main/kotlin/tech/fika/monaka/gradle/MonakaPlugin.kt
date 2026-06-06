@@ -6,12 +6,12 @@ import org.gradle.api.Project
 class MonakaPlugin : Plugin<Project> {
 
     override fun apply(target: Project) {
-        val extension = target.extensions.create(
+        val yamlExtension = target.extensions.create(
             "monakaYamlExport",
             MonakaExtension::class.java,
         )
 
-        extension.outputDir.convention(
+        yamlExtension.outputDir.convention(
             target.layout.buildDirectory.dir("monaka-yaml")
         )
 
@@ -21,8 +21,29 @@ class MonakaPlugin : Plugin<Project> {
         ) { task ->
             task.group = "monaka"
             task.description = "Generates YAML documentation from stateMachine { } DSL blocks."
-            task.sources.setFrom(extension.sources)
-            task.outputDir.set(extension.outputDir)
+            task.sources.setFrom(yamlExtension.sources)
+            task.outputDir.set(yamlExtension.outputDir)
+        }
+
+        val stubsExtension = target.extensions.create(
+            "monakaStubs",
+            MonakaStubsExtension::class.java,
+        )
+
+        stubsExtension.input.convention(target.projectDir.absolutePath)
+        stubsExtension.style.convention(StubStyle.CLASS)
+        stubsExtension.replace.convention(false)
+
+        target.tasks.register(
+            "generateMonakaStubs",
+            GenerateStubsFromYamlTask::class.java,
+        ) { task ->
+            task.group = "monaka"
+            task.description = "Generates Kotlin stub files (State, Action, Effect, StateMachine) from YAML definitions."
+            task.extensionInput.set(stubsExtension.input)
+            task.extensionOutputDir.set(stubsExtension.outputDir)
+            task.extensionStyle.set(stubsExtension.style)
+            task.extensionReplace.set(stubsExtension.replace)
         }
     }
 }

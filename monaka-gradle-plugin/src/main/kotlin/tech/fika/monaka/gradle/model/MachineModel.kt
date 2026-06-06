@@ -19,7 +19,7 @@ data class HookModel(
     val effects: List<String> = emptyList(),
     val cancel: String? = null,
     val dispatch: String? = null,
-    val transition: String? = null,
+    val transitions: List<String> = emptyList(),
 )
 
 data class HandlerModel(

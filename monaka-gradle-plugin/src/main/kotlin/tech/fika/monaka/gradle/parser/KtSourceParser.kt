@@ -148,9 +148,11 @@ class KtSourceParser {
 
         val shallow = stripTaskBodies(body)
 
-        // Direct transition { } call inside the hook (e.g. onEnter { transition { Loading } })
-        val transMatch = transitionWithArgsRegex.find(shallow) ?: transitionNoArgsRegex.find(shallow)
-        val transition = if (transMatch != null) {
+        // Collect ALL direct transition { } calls (a hook may branch to multiple target states)
+        val allTransMatches = (transitionWithArgsRegex.findAll(shallow).toList() + transitionNoArgsRegex.findAll(shallow).toList())
+            .sortedBy { it.range.first }
+            .distinctBy { it.range.first }
+        val transitions = allTransMatches.mapNotNull { transMatch ->
             val transBody = extractBlock(body, transMatch.range.last)?.trim() ?: ""
             when {
                 transBody.startsWith("state.") || transBody == "state" -> statePath.takeIf { it.isNotBlank() }
@@ -159,7 +161,7 @@ class KtSourceParser {
                     .ifEmpty { stateType.substringAfterLast(".") }
                     .takeIf { it.isNotBlank() }
             }
-        } else null
+        }.distinct()
 
         val dispatchMatch = dispatchCallRegex.find(shallow)
         val dispatch = if (dispatchMatch != null)
@@ -167,8 +169,8 @@ class KtSourceParser {
                 ?.substringAfterLast(".")?.takeIf { it.isNotBlank() }
         else null
 
-        return if (task != null || cancel != null || effects.isNotEmpty() || dispatch != null || transition != null)
-            HookModel(task = task, effects = effects, cancel = cancel, dispatch = dispatch, transition = transition)
+        return if (task != null || cancel != null || effects.isNotEmpty() || dispatch != null || transitions.isNotEmpty())
+            HookModel(task = task, effects = effects, cancel = cancel, dispatch = dispatch, transitions = transitions)
         else null
     }
 
