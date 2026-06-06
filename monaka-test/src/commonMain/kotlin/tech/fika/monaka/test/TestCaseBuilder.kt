@@ -168,17 +168,31 @@ class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : Effec
 
     private fun ensureStarted(): Store<State, Action, Effect> {
         store?.let { return it }
+
+        // Capture every state transition through a plugin rather than observing the
+        // StateFlow directly. StateFlow conflates rapid sequential updates — if two
+        // state transitions happen before the collector coroutine is scheduled, only
+        // the final value is delivered. A SharedFlow with an UNLIMITED buffer retains
+        // every emission in arrival order with no conflation.
+        val stateTransitions = MutableSharedFlow<State>(extraBufferCapacity = Channel.UNLIMITED)
+        val statePlugin = object : Plugin<State, Action, Effect> {
+            override fun onTransition(fromState: State, toState: State) {
+                stateTransitions.tryEmit(toState)
+            }
+        }
+
         val testStore = store(
             stateMachine = machine,
             scope = testScope.backgroundScope,
             initialState = initialState,
+            plugins = listOf(statePlugin),
         )
         store = testStore
 
         val reentrant = MutableSharedFlow<Action>(extraBufferCapacity = Channel.UNLIMITED)
         startActionFilter(scope = testScope.backgroundScope, source = testStore, sink = reentrant)
 
-        stateTurbine = testStore.state.drop(count = 1).testIn(scope = turbineScope)
+        stateTurbine = stateTransitions.testIn(scope = turbineScope)
         effectTurbine = testStore.effects.testIn(scope = turbineScope)
         actionTurbine = reentrant.testIn(scope = turbineScope)
         testStore.start()
