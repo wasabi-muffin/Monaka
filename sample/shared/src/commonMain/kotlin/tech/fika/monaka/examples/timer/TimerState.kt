@@ -1,9 +1,10 @@
 package tech.fika.monaka.examples.timer
 
+import tech.fika.monaka.core.SelfTransition
 import tech.fika.monaka.core.State
 import tech.fika.monaka.core.Transition
 
-@Transition
+@SelfTransition
 sealed interface TimerState : State {
     val autoPause: Boolean
 

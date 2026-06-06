@@ -1,10 +1,11 @@
 package tech.fika.monaka.examples.checkout.auth
 
+import tech.fika.monaka.core.SelfTransition
 import tech.fika.monaka.core.State
 import tech.fika.monaka.core.Transition
 import tech.fika.monaka.examples.checkout.data.User
 
-@Transition
+@SelfTransition
 sealed interface AuthState : State {
     @Transition(SigningIn::class)
     data object SignedOut : AuthState

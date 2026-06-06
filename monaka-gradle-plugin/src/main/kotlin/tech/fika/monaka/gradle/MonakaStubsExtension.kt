@@ -23,8 +23,8 @@ abstract class MonakaStubsExtension {
     abstract val replace: Property<Boolean>
 
     /**
-     * When `true` (default), emit `@Transition` annotations on the generated state sealed
-     * interface and each substate, based on the transitions declared in the YAML model.
+     * When `true` (default), emit `@SelfTransition` on the root sealed interface and
+     * `@Transition(...)` on each substate, based on the transitions declared in the YAML model.
      */
     abstract val useTransitionAnnotation: Property<Boolean>
 }

@@ -106,9 +106,12 @@ class KotlinStubEmitter {
         transitions: Map<String, List<String>>,
     ): String = buildString {
         pkg?.let { appendLine("package $it\n") }
-        if (transitions.isNotEmpty()) appendLine("import tech.fika.monaka.core.Transition")
+        if (transitions.isNotEmpty()) {
+            appendLine("import tech.fika.monaka.core.SelfTransition")
+            appendLine("import tech.fika.monaka.core.Transition")
+        }
         appendLine("import tech.fika.monaka.core.State\n")
-        if (transitions.isNotEmpty()) appendLine("@Transition")
+        if (transitions.isNotEmpty()) appendLine("@SelfTransition")
         appendLine("sealed interface $rootName : State {")
         if (isSingle) {
             appendLine("    data object ${model.name} : $rootName")

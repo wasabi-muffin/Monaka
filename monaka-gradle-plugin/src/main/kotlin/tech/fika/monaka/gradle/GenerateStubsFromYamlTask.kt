@@ -49,7 +49,7 @@ abstract class GenerateStubsFromYamlTask @Inject constructor(
     @get:Optional
     val cliUseTransitionAnnotation: Property<Boolean> = objects.property(Boolean::class.java)
 
-    @Option(option = "use-transition-annotation", description = "Emit @Transition annotations on generated state classes (default: true)")
+    @Option(option = "use-transition-annotation", description = "Emit @SelfTransition on the root sealed interface and @Transition(...) on each substate (default: true)")
     fun setCliUseTransitionAnnotation(value: Boolean) = cliUseTransitionAnnotation.set(value)
 
     // ── Extension defaults (wired by MonakaPlugin) ────────────────────────────

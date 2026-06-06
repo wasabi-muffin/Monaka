@@ -7,15 +7,15 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.Modifier
 import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.ksp.writeTo
-import tech.fika.monaka.processor.generator.TargetTransitionGenerator
+import tech.fika.monaka.processor.generator.SealedSelfGenerator
 
-private const val TRANSITION_ANNOTATION = "tech.fika.monaka.core.Transition"
+private const val SELF_TRANSITION_ANNOTATION = "tech.fika.monaka.core.SelfTransition"
 
-class TransitionProcessor(
+class SelfTransitionProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
 ) : SymbolProcessor {
@@ -24,7 +24,7 @@ class TransitionProcessor(
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val annotated = resolver
-            .getSymbolsWithAnnotation(TRANSITION_ANNOTATION)
+            .getSymbolsWithAnnotation(SELF_TRANSITION_ANNOTATION)
             .filterIsInstance<KSClassDeclaration>()
 
         val deferred = mutableListOf<KSAnnotated>()
@@ -41,7 +41,7 @@ class TransitionProcessor(
                 processDeclaration(declaration)
                 processed += qualifiedName
             } catch (e: Exception) {
-                logger.error("TransitionProcessor failed on $qualifiedName: ${e.message}", declaration)
+                logger.error("SelfTransitionProcessor failed on $qualifiedName: ${e.message}", declaration)
             }
         }
 
@@ -49,36 +49,24 @@ class TransitionProcessor(
     }
 
     private fun processDeclaration(declaration: KSClassDeclaration) {
-        val annotation = declaration.annotations.first {
-            it.shortName.asString() == "Transition" &&
-                it.annotationType.resolve().declaration.qualifiedName?.asString() == TRANSITION_ANNOTATION
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        val toTargets: List<KSClassDeclaration> = (annotation.arguments
-            .firstOrNull { it.name?.asString() == "to" }
-            ?.value as? List<KSType>)
-            ?.mapNotNull { it.declaration as? KSClassDeclaration }
-            ?: emptyList()
-
-        if (declaration.typeParameters.isNotEmpty()) {
-            logger.warn(
-                "@Transition on generic types is not supported: ${declaration.qualifiedName?.asString()}",
+        if (Modifier.SEALED !in declaration.modifiers) {
+            logger.error(
+                "@SelfTransition can only be applied to sealed classes or sealed interfaces, " +
+                    "but ${declaration.qualifiedName?.asString()} is not sealed.",
                 declaration,
             )
             return
         }
 
-        val funSpecs = buildList {
-            for (target in toTargets) {
-                TargetTransitionGenerator.generate(
-                    source = declaration,
-                    target = target,
-                    logger = logger,
-                )?.let { add(it) }
-            }
+        if (declaration.typeParameters.isNotEmpty()) {
+            logger.warn(
+                "@SelfTransition on generic types is not supported: ${declaration.qualifiedName?.asString()}",
+                declaration,
+            )
+            return
         }
 
+        val funSpecs = SealedSelfGenerator.generate(declaration, logger)
         if (funSpecs.isEmpty()) return
 
         val packageName = declaration.packageName.asString()
