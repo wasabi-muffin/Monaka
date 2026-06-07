@@ -81,9 +81,9 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     private val plugins: List<Plugin<State, Action, Effect>>,
     private val machineScope: CoroutineScope = defaultCoroutineScope(),
     private val extraBufferCapacity: Int = DEFAULT_BUFFER_CAPACITY,
-    private val autoStart: Boolean = true,
 ) : Store<State, Action, Effect> {
     private enum class Phase { Idle, Running, Cancelled }
+
     private var phase = Phase.Idle
 
     private val _state = MutableStateFlow(initialState)
@@ -108,20 +108,20 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         for (trigger in triggers) {
             when (trigger) {
                 is Trigger.Action -> processAction(action = trigger.action)
-                is Trigger.Lifecycle -> processLifecycleEvent(trigger.event)
-                is Trigger.Hook -> processStateHook(trigger.hook)
+                is Trigger.Lifecycle -> processLifecycleEvent(event = trigger.event)
+                is Trigger.Hook -> processStateHook(hook = trigger.hook)
             }
         }
     }
 
+    override val isActive: Boolean get() = phase != Phase.Cancelled
     override val state: StateFlow<State> = _state
-        .onStart { if (autoStart) start() }
-        .stateIn(machineScope, SharingStarted.Lazily, _state.value)
+        .onStart { start() }
+        .stateIn(scope = machineScope, started = SharingStarted.Lazily, initialValue = _state.value)
     override val actions: SharedFlow<Action> = _actions.asSharedFlow()
     override val effects: SharedFlow<Effect> = _effects
-        .onStart { if (autoStart) start() }
-        .shareIn(machineScope, SharingStarted.Lazily, replay = 0)
-    override val isActive: Boolean get() = phase != Phase.Cancelled
+        .onStart { start() }
+        .shareIn(scope = machineScope, started = SharingStarted.Lazily)
 
     override fun start() {
         if (phase != Phase.Idle) return

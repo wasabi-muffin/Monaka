@@ -6,7 +6,6 @@ import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import tech.fika.monaka.core.Action as ActionMarker
@@ -17,6 +16,7 @@ import tech.fika.monaka.core.StateHook
 import tech.fika.monaka.core.Store
 import tech.fika.monaka.dsl.StateMachine
 import tech.fika.monaka.dsl.store
+import tech.fika.monaka.plugin.Plugin
 
 @MonakaTestDsl
 class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> internal constructor(
