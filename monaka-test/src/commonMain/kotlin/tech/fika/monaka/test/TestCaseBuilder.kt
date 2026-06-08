@@ -107,10 +107,11 @@ class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : Effec
      *
      * - [StateHook.OnEnter] fires the `onEnter { }` handler registered for the current state.
      * - [StateHook.OnExit] fires the `onExit { }` handler registered for the current state.
-     * - [StateHook.OnUpdate] fires the `onUpdate { }` handler registered for the current state.
+     * - [StateHook.OnUpdate] fires the `onUpdate { }` handler, with [StateHook.OnUpdate.previousState]
+     *   supplied as the baseline for [tech.fika.monaka.scopes.StateUpdateScope.fromState].
      */
     suspend fun trigger(
-        hook: StateHook,
+        hook: StateHook<State>,
         block: suspend AssertScope<State, Action, Effect>.() -> Unit = {},
     ) {
         val s = ensureStartedAndSubscribed()

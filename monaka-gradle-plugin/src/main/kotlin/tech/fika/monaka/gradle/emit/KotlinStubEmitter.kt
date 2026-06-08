@@ -53,6 +53,7 @@ class KotlinStubEmitter {
                 node.on.values.forEach { handler -> addTarget(name, handler.transition) }
                 node.onEnter?.transitions?.forEach { addTarget(name, it) }
                 node.onExit?.transitions?.forEach { addTarget(name, it) }
+                node.onUpdate?.transitions?.forEach { addTarget(name, it) }
                 node.lifecycleHooks.values.forEach { h -> h.transitions.forEach { addTarget(name, it) } }
                 walk(node.states)
             }
@@ -229,6 +230,7 @@ class KotlinStubEmitter {
         appendLine("${pad}state<$typeRef> {")
         node.onEnter?.let { append(emitHookBlock("onEnter", it, rootName, actionName, effectName, isSingle, machineName, key, "$pad    ")) }
         node.onExit?.let { append(emitHookBlock("onExit", it, rootName, actionName, effectName, isSingle, machineName, key, "$pad    ")) }
+        node.onUpdate?.let { append(emitHookBlock("onUpdate", it, rootName, actionName, effectName, isSingle, machineName, key, "$pad    ")) }
         for ((event, hook) in node.lifecycleHooks) {
             append(emitHookBlock(event, hook, rootName, actionName, effectName, isSingle, machineName, key, "$pad    "))
         }
@@ -362,6 +364,7 @@ class KotlinStubEmitter {
         for ((_, node) in model.states) {
             node.onEnter?.let { addAll(it.effects) }
             node.onExit?.let { addAll(it.effects) }
+            node.onUpdate?.let { addAll(it.effects) }
             node.lifecycleHooks.values.forEach { addAll(it.effects) }
             node.on.values.forEach { addAll(it.effects) }
         }
@@ -370,7 +373,7 @@ class KotlinStubEmitter {
 
     companion object {
         private val HOOKS = setOf(
-            "onEnter", "onExit",
+            "onEnter", "onExit", "onUpdate",
             "onResume", "onPause", "onStart", "onStop", "onCreate", "onDestroy",
         )
     }

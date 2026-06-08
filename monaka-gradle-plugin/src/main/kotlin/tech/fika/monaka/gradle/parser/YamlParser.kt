@@ -70,6 +70,7 @@ class YamlParser {
         var i = start
         var onEnter: HookModel? = null
         var onExit: HookModel? = null
+        var onUpdate: HookModel? = null
         val lifecycleHooks = LinkedHashMap<String, HookModel>()
         val on = LinkedHashMap<String, HandlerModel>()
 
@@ -94,6 +95,13 @@ class YamlParser {
                         onExit = HookModel(); i++
                     }
                 }
+                entry.startsWith("onUpdate:") -> {
+                    if (entry == "onUpdate:") {
+                        i++; val (h, next) = parseHookModel(lines, i); onUpdate = h; i = next
+                    } else {
+                        onUpdate = HookModel(); i++
+                    }
+                }
                 LIFECYCLE_EVENTS.any { entry.startsWith("$it:") } -> {
                     val event = entry.substringBefore(":")
                     if (entry == "$event:") {
@@ -113,7 +121,7 @@ class YamlParser {
             }
         }
 
-        return StateNode(onEnter = onEnter, onExit = onExit, lifecycleHooks = lifecycleHooks, on = on) to i
+        return StateNode(onEnter = onEnter, onExit = onExit, onUpdate = onUpdate, lifecycleHooks = lifecycleHooks, on = on) to i
     }
 
     // ── Hook ──────────────────────────────────────────────────────────────────

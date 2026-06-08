@@ -135,6 +135,8 @@ class KtSourceParser {
             ?.let { parseHookBody(it, stateType, statePath, statePathLookup) }
         val onExit = findBlockByKeyword(body, "onExit")
             ?.let { parseHookBody(it, stateType, statePath, statePathLookup) }
+        val onUpdate = findBlockByKeyword(body, "onUpdate")
+            ?.let { parseHookBody(it, stateType, statePath, statePathLookup) }
 
         val lifecycleHooks = mutableMapOf<String, HookModel>()
         for (event in LIFECYCLE_EVENTS) {
@@ -150,7 +152,7 @@ class KtSourceParser {
             on[actionName] = parseHandlerBody(handlerBody, stateType, actionType, statePath, statePathLookup)
         }
 
-        return StateNode(onEnter = onEnter, onExit = onExit, lifecycleHooks = lifecycleHooks, on = on)
+        return StateNode(onEnter = onEnter, onExit = onExit, onUpdate = onUpdate, lifecycleHooks = lifecycleHooks, on = on)
     }
 
     // ── Hook (onEnter / onExit / lifecycle) ───────────────────────────────────
@@ -286,6 +288,7 @@ class KtSourceParser {
         data class Mutable(
             var onEnter: HookModel? = null,
             var onExit: HookModel? = null,
+            var onUpdate: HookModel? = null,
             val lifecycleHooks: MutableMap<String, HookModel> = mutableMapOf(),
             val on: MutableMap<String, HandlerModel> = mutableMapOf(),
             val states: MutableMap<String, Mutable> = mutableMapOf(),
@@ -293,6 +296,7 @@ class KtSourceParser {
             fun freeze(): StateNode = StateNode(
                 onEnter = onEnter,
                 onExit = onExit,
+                onUpdate = onUpdate,
                 lifecycleHooks = lifecycleHooks,
                 on = on,
                 states = states.mapValues { it.value.freeze() },
@@ -309,6 +313,7 @@ class KtSourceParser {
             with(current.getOrPut(parts.last()) { Mutable() }) {
                 onEnter = node.onEnter
                 onExit = node.onExit
+                onUpdate = node.onUpdate
                 lifecycleHooks.putAll(node.lifecycleHooks)
                 on.putAll(node.on)
             }

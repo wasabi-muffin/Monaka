@@ -39,7 +39,7 @@ class YamlEmitter {
 
     private fun emitState(path: String, node: StateNode): String = buildString {
         val pad = "  "
-        val empty = node.onEnter == null && node.onExit == null &&
+        val empty = node.onEnter == null && node.onExit == null && node.onUpdate == null &&
                 node.lifecycleHooks.isEmpty() && node.on.isEmpty()
 
         if (empty) {
@@ -50,6 +50,7 @@ class YamlEmitter {
         appendLine("$pad$path:")
         node.onEnter?.let { append(emitHook("onEnter", it, node)) }
         node.onExit?.let { append(emitHook("onExit", it, node)) }
+        node.onUpdate?.let { append(emitHook("onUpdate", it, node)) }
         for ((event, hook) in node.lifecycleHooks) {
             append(emitHook(event, hook, node))
         }

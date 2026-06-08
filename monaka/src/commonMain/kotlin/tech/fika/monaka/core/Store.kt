@@ -33,7 +33,7 @@ import kotlinx.coroutines.flow.StateFlow
  * machine.dispatch(MyAction.Start)
  * ```
  */
-interface Store<out State : StateMarker, Action : ActionMarker, out Effect : EffectMarker> {
+interface Store<State : StateMarker, Action : ActionMarker, out Effect : EffectMarker> {
 
     val id: String
 
@@ -124,7 +124,7 @@ interface Store<out State : StateMarker, Action : ActionMarker, out Effect : Eff
      *
      * Primarily intended for testing via `:monaka-test`'s `trigger(StateHook)` DSL.
      */
-    fun triggerStateHook(hook: StateHook): Unit = Unit
+    fun triggerStateHook(hook: StateHook<State>): Unit = Unit
 
     /**
      * Register a [handler] to be invoked when this store's scope completes (including cancellation).

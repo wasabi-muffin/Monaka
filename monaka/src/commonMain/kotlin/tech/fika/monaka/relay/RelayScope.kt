@@ -58,7 +58,8 @@ class RelayScope<out Event> @PublishedApi internal constructor(
      * ```
      */
     fun <A : ActionMarker> dispatch(target: KClass<out Store<*, A, *>>, action: A, id: String? = null) {
-        val targets = registry.getAll(kClass = target)
+        @Suppress("UNCHECKED_CAST")
+        val targets = registry.getAll(kClass = target as KClass<out Store<StateMarker, A, EffectMarker>>)
         targets.forEach { store ->
             if (id == null || store.id == id) store.dispatch(action = action)
         }

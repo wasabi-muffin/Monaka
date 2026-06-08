@@ -89,7 +89,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     private val _actions = MutableSharedFlow<Action>(extraBufferCapacity = extraBufferCapacity)
     private val _effects = MutableSharedFlow<Effect>(extraBufferCapacity = extraBufferCapacity)
 
-    private val triggers = Channel<Trigger<Action>>(Channel.UNLIMITED)
+    private val triggers = Channel<Trigger<State, Action>>(Channel.UNLIMITED)
     private val currentState: State get() = _state.value
 
     private val ancestorCache = HashMap<KClass<out State>, List<KClass<out State>>>()
@@ -138,7 +138,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         triggers.trySend(element = Trigger.Lifecycle(event = event))
     }
 
-    override fun triggerStateHook(hook: StateHook) = whenActive {
+    override fun triggerStateHook(hook: StateHook<State>) = whenActive {
         triggers.trySend(element = Trigger.Hook(hook = hook))
     }
 
@@ -177,7 +177,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         )
     }
 
-    private suspend fun processStateHook(hook: StateHook) {
+    private suspend fun processStateHook(hook: StateHook<State>) {
         when (hook) {
             StateHook.OnEnter -> resolveHandler(handlerMap = enterHandlers, state = currentState)?.handle(
                 handlerType = HandlerType.Hook.Enter,
@@ -191,11 +191,16 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
                 state = currentState,
             )
 
-            StateHook.OnUpdate -> resolveHandler(handlerMap = updateHandlers, state = currentState)?.handle(
-                handlerType = HandlerType.Hook.Update,
-                scope = updateHandlerScope(fromState = currentState, toState = currentState),
-                state = currentState,
-            )
+            is StateHook.OnUpdate<*> -> {
+                // Safe: hook is StateHook<State> so the only OnUpdate subtype it can be is OnUpdate<State>.
+                @Suppress("UNCHECKED_CAST")
+                val update = hook as StateHook.OnUpdate<State>
+                resolveHandler(handlerMap = updateHandlers, state = currentState)?.handle(
+                    handlerType = HandlerType.Hook.Update,
+                    scope = updateHandlerScope(fromState = update.previousState, toState = currentState),
+                    state = currentState,
+                )
+            }
         }
     }
 

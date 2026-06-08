@@ -9,6 +9,7 @@ data class MachineModel(
 data class StateNode(
     val onEnter: HookModel? = null,
     val onExit: HookModel? = null,
+    val onUpdate: HookModel? = null,
     val lifecycleHooks: Map<String, HookModel> = emptyMap(),
     val on: Map<String, HandlerModel> = emptyMap(),
     val states: Map<String, StateNode> = emptyMap(),
