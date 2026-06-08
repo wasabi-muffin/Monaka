@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -118,7 +117,9 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     override val state: StateFlow<State> = _state
         .onStart { start() }
         .stateIn(scope = machineScope, started = SharingStarted.Lazily, initialValue = _state.value)
-    override val actions: SharedFlow<Action> = _actions.asSharedFlow()
+    override val actions: SharedFlow<Action> = _actions
+        .onStart { start() }
+        .shareIn(scope = machineScope, started = SharingStarted.Lazily)
     override val effects: SharedFlow<Effect> = _effects
         .onStart { start() }
         .shareIn(scope = machineScope, started = SharingStarted.Lazily)
@@ -130,7 +131,6 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     }
 
     override fun dispatch(action: Action) = whenActive {
-        _actions.tryEmit(value = action)
         triggers.trySend(element = Trigger.Action(action = action))
     }
 
@@ -159,6 +159,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     // ── Processing ────────────────────────────────────────────────────────────
 
     private suspend fun processAction(action: Action) {
+        _actions.tryEmit(action)
         plugins.forEach { it.onAction(currentState = currentState, action = action) }
         val handlerType = HandlerType.Action(action = action)
         resolveActionHandler(state = currentState, action = action)?.handle(
