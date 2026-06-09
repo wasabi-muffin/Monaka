@@ -38,8 +38,8 @@ class PublicationConventionPlugin : Plugin<Project> {
                 pom {
                     name.set(project.name)
                     description.set("A Kotlin Multiplatform MVI based State Machine library.")
-                    url.set("https://github.com/fika-tech/Monaka")
-                    inceptionYear.set("2024")
+                    url.set("https://github.com/wasabi-muffin/Monaka")
+                    inceptionYear.set("2026")
 
                     licenses {
                         license {
