@@ -1,3 +1,5 @@
+@file:OptIn(dev.gmvalentino.monaka.core.InternalMonakaApi::class)
+
 package dev.gmvalentino.monaka.test
 
 import app.cash.turbine.ReceiveTurbine

@@ -125,6 +125,7 @@ public interface Store<State : StateMarker, Action : ActionMarker, out Effect : 
      *
      * Primarily intended for testing via `:monaka-test`'s `trigger(StateHook)` DSL.
      */
+    @InternalMonakaApi
     public fun triggerStateHook(hook: StateHook<State>): Unit = Unit
 
     /**

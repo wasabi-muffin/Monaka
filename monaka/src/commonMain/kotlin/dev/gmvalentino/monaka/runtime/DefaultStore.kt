@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.LifecycleEvent
+import dev.gmvalentino.monaka.core.InternalMonakaApi
 import dev.gmvalentino.monaka.core.State as StateMarker
 import dev.gmvalentino.monaka.core.StateHook
 import dev.gmvalentino.monaka.core.Store
@@ -68,6 +69,7 @@ import dev.gmvalentino.monaka.scopes.StateUpdateScope
  * Handler and hook exceptions are caught and discarded — the state remains unchanged.
  * Handler errors are forwarded to plugins via [Plugin.onError].
  */
+@OptIn(InternalMonakaApi::class)
 internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
     override val id: String,
     initialState: State,

@@ -4,6 +4,9 @@ public abstract interface class dev/gmvalentino/monaka/core/Action {
 public abstract interface class dev/gmvalentino/monaka/core/Effect {
 }
 
+public abstract interface annotation class dev/gmvalentino/monaka/core/InternalMonakaApi : java/lang/annotation/Annotation {
+}
+
 public final class dev/gmvalentino/monaka/core/LifecycleEvent : java/lang/Enum {
 	public static final field OnCreate Ldev/gmvalentino/monaka/core/LifecycleEvent;
 	public static final field OnDestroy Ldev/gmvalentino/monaka/core/LifecycleEvent;
