@@ -24,6 +24,10 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
             pluginManager.apply("monaka.android.library")
 
             extensions.configure<KotlinMultiplatformExtension> {
+                compilerOptions {
+                    apiVersion.set(Config.kotlinApiVersion)
+                    languageVersion.set(Config.kotlinLanguageVersion)
+                }
                 applyDefaultHierarchyTemplate()
             }
         }
