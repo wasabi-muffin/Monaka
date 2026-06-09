@@ -34,6 +34,7 @@ import dev.gmvalentino.monaka.runtime.StoreRegistry
  * relaying logic requires injected dependencies or more complex coordination.
  */
 public interface Relay<SourceState : StateMarker, SourceAction : ActionMarker, SourceEffect : EffectMarker> {
+    /** The [KClass] of the [Store] subclass this relay observes. */
     public val source: KClass<out Store<SourceState, SourceAction, SourceEffect>>
 
     /**

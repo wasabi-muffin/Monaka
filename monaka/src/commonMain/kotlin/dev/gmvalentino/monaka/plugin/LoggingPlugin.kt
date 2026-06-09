@@ -59,6 +59,8 @@ public class LoggingPlugin<State : StateMarker, Action : ActionMarker, Effect : 
     }
 }
 
+/** Receives formatted log lines from [LoggingPlugin]. Implement to redirect output to a platform logger. */
 public fun interface Logger {
+    /** Write [message] to the log output. [tag] is the prefix configured on [LoggingPlugin]. */
     public fun log(tag: String, message: String)
 }

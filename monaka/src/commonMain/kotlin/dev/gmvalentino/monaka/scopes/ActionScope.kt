@@ -25,6 +25,7 @@ import dev.gmvalentino.monaka.runtime.JobRegistry
 public class ActionScope<State : StateMarker, Action : ActionMarker, Effect : EffectMarker, SubState : State, ActionType : Action> internal constructor(
     override val machineScope: CoroutineScope,
     override val state: SubState,
+    /** The action being processed in this handler invocation. */
     public val action: ActionType,
     private val dispatch: (Action) -> Unit,
     jobRegistry: JobRegistry,

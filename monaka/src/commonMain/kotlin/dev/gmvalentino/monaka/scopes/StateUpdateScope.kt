@@ -21,6 +21,7 @@ import dev.gmvalentino.monaka.runtime.JobRegistry
 public class StateUpdateScope<State : StateMarker, Action : ActionMarker, Effect : EffectMarker, SubState : State> internal constructor(
     override val machineScope: CoroutineScope,
     override val state: SubState,
+    /** The previous state value before the same-type transition that triggered `onUpdate`. */
     public val fromState: SubState,
     private val dispatch: (Action) -> Unit,
     jobRegistry: JobRegistry,

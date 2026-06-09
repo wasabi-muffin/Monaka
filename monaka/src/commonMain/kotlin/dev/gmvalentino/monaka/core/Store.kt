@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.StateFlow
  */
 public interface Store<State : StateMarker, Action : ActionMarker, out Effect : EffectMarker> {
 
+    /** Unique identifier for this store instance. Auto-generated as a UUID by default. */
     public val id: String
 
     /**

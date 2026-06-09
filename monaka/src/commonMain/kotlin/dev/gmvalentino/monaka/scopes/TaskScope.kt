@@ -52,6 +52,7 @@ public open class TaskScope<State : StateMarker, Action : ActionMarker, SubState
 public class ActionTaskScope<State : StateMarker, Action : ActionMarker, SubState : State, ActionType : Action> internal constructor(
     scope: CoroutineScope,
     state: SubState,
+    /** The action that launched this task, typed as [ActionType]. */
     public val action: ActionType,
     internalDispatch: (Action) -> Unit,
 ) : TaskScope<State, Action, SubState>(scope, state, internalDispatch)

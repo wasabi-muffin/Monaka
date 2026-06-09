@@ -35,6 +35,7 @@ public interface Plugin<State : StateMarker, Action : ActionMarker, Effect : Eff
      */
     public fun onAction(currentState: State, action: Action): Unit = Unit
 
+    /** Called after an effect is emitted. Use this hook for analytics or side-effect monitoring. */
     public fun onEffect(effect: Effect): Unit = Unit
 
     /**

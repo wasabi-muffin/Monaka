@@ -30,13 +30,22 @@ import dev.gmvalentino.monaka.plugin.Plugin
  * @param plugins        Observers installed in the machine, invoked in registration order.
  */
 public interface StateMachine<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> {
+    /** Unique identifier for this configuration, used as the [dev.gmvalentino.monaka.core.Store.id] of created stores. */
     public val id: String
+    /** The state the machine starts in before any action is processed. */
     public val initialState: State
+    /** Registered `on<>` handlers, keyed by state class then action class. */
     public val actionHandlers: Map<KClass<out State>, Map<KClass<out Action>, ActionHandler<State, Action, Effect>>>
+    /** Hooks registered via `onEnter { }`, keyed by state class. */
     public val enterHandlers: Map<KClass<out State>, StateChangeHandler<State, Action, Effect>>
+    /** Hooks registered via `onExit { }`, keyed by state class. */
     public val exitHandlers: Map<KClass<out State>, StateChangeHandler<State, Action, Effect>>
+    /** Hooks registered via `onUpdate { }`, keyed by state class. */
     public val updateHandlers: Map<KClass<out State>, StateUpdateHandler<State, Action, Effect>>
+    /** Hooks registered via `onResume { }` etc., keyed by state class then lifecycle event. */
     public val lifecycleHandlers: Map<KClass<out State>, Map<LifecycleEvent, LifecycleHandler<State, Action, Effect>>>
+    /** Recovery hooks registered via `onError { }`, keyed by state class. */
     public val errorHandlers: Map<KClass<out State>, StateErrorHandler<State, Action, Effect>>
+    /** Observers installed via `install(...)`, invoked in registration order. */
     public val plugins: List<Plugin<State, Action, Effect>>
 }

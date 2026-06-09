@@ -18,11 +18,17 @@ import dev.gmvalentino.monaka.core.LifecycleEvent
  * - [Hook.Update] — the `onUpdate` block for a state.
  */
 public sealed interface HandlerType<out Action : ActionMarker> {
+    /** Wraps the [action] that triggered the handler. */
     public data class Action<out Action : ActionMarker>(public val action: Action) : HandlerType<Action>
+    /** Wraps the [event] that triggered the lifecycle hook. */
     public data class Lifecycle(public val event: LifecycleEvent) : HandlerType<Nothing>
+    /** Marker for state-lifecycle hook origins (`onEnter`, `onExit`, `onUpdate`). */
     public sealed interface Hook : HandlerType<Nothing>{
+        /** The handler was triggered by an `onEnter` hook. */
         public data object Enter : Hook
+        /** The handler was triggered by an `onExit` hook. */
         public data object Exit : Hook
+        /** The handler was triggered by an `onUpdate` hook. */
         public data object Update : Hook
     }
 }

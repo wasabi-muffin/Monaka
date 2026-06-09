@@ -28,7 +28,9 @@ import dev.gmvalentino.monaka.runtime.JobRegistry
 public class ErrorScope<State : StateMarker, Action : ActionMarker, Effect : EffectMarker, SubState : State> internal constructor(
     override val machineScope: CoroutineScope,
     override val state: SubState,
+    /** The exception thrown by the handler or hook. */
     public val error: Throwable,
+    /** Identifies the handler origin that threw [error]. */
     public val handlerType: HandlerType<Action>,
     private val dispatch: (Action) -> Unit,
     jobRegistry: JobRegistry,

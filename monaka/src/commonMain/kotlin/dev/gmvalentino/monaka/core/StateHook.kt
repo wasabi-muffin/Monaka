@@ -13,7 +13,9 @@ package dev.gmvalentino.monaka.core
  * Primarily intended for testing via `:monaka-test`'s `trigger(StateHook)` DSL.
  */
 public sealed interface StateHook<out S> {
+    /** Trigger the `onEnter` hook for the current state. */
     public data object OnEnter : StateHook<Nothing>
+    /** Trigger the `onExit` hook for the current state. */
     public data object OnExit : StateHook<Nothing>
 
     /**

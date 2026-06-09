@@ -14,6 +14,7 @@ import dev.gmvalentino.monaka.runtime.StoreRegistry
  * actions into target stores resolved from the enclosing [StoreRegistry].
  */
 public class RelayScope<out Event> @PublishedApi internal constructor(
+    /** The matched source event (state, effect, or action) that triggered this relay block. */
     public val event: Event,
     @PublishedApi internal val registry: StoreRegistry,
 ) {

@@ -87,6 +87,7 @@ import dev.gmvalentino.monaka.runtime.DefaultStore
  *   Increase this if your machine emits effects in rapid bursts. Defaults to [DEFAULT_BUFFER_CAPACITY].
  */
 public class StateMachineStore<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
+    /** The immutable [StateMachine] configuration this store is backed by. */
     public val stateMachine: StateMachine<State, Action, Effect>,
     private val scope: CoroutineScope = defaultCoroutineScope(),
     private val initialState: State? = null,
