@@ -116,3 +116,32 @@ on<Submit> {
 
 Once `reject()` is called, the runtime treats the action as rejected regardless of what was
 recorded before it. The state is not changed and effects are not emitted.
+
+### `guard` — conditional short-circuit
+
+`guard { predicate }` stops recording further results if `predicate` returns `false`. Unlike
+`reject()`, any verbs called **before** the guard are preserved and will be applied — and
+plugins are **not** notified. Use it when partial work should still take effect even if the
+main transition shouldn't happen:
+
+```kotlin
+on<MyAction.Submit> {
+    sideEffect(MyEffect.Analytics)   // always emitted — recorded before the guard
+    guard { state.isValid }          // short-circuits everything below when invalid
+    transition(MyState.Submitting)
+    sideEffect(MyEffect.HideKeyboard)
+}
+```
+
+When `state.isValid` is `false`: only `Analytics` is emitted; no transition, no `HideKeyboard`.
+When `state.isValid` is `true`: all three verbs apply.
+
+Compare with `reject()`, which discards **everything** (including pre-reject side effects) and
+notifies plugins:
+
+| | Pre-call verbs | Plugins notified |
+|---|---|---|
+| `guard { false }` | **preserved** | no |
+| `reject()` | discarded | yes (`onRejected`) |
+
+Calling `reject()` after a failing `guard` is a no-op — guard semantics take precedence.

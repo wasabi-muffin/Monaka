@@ -53,6 +53,7 @@ nav:
     - KSP Setup (KMP): getting-started/ksp-setup.md
   - Guide:
     - Handlers: guide/handlers.md
+    - Error Handling: guide/error-handling.md
     - Lifecycle Hooks: guide/lifecycle-hooks.md
     - Hierarchical States: guide/hierarchical-states.md
     - StateMachineStore & Configs: guide/state-machine-store.md
@@ -61,9 +62,17 @@ nav:
     - Multi-Machine Coordination: guide/multi-machine.md
     - Compose Integration: guide/compose.md
     - Architecture: guide/architecture.md
+  - Samples:
+    - Counter: samples/counter.md
+    - Login: samples/login.md
+    - Timer: samples/timer.md
+    - Live Feed: samples/live-feed.md
+    - Checkout: samples/checkout.md
   - Gradle Plugin:
     - YAML Generator: gradle-plugin/yaml-generator.md
     - PlantUML Generator: gradle-plugin/puml-generator.md
     - Stub Generator: gradle-plugin/stub-generator.md
   - Reference:
+    - Store API: reference/store-api.md
+    - KSP Annotations: reference/ksp-annotations.md
     - FAQ & Troubleshooting: reference/faq.md
