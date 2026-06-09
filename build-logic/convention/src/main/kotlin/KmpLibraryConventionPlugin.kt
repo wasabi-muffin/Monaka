@@ -8,22 +8,22 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
  *
  * Applies:
  *   - org.jetbrains.kotlin.multiplatform
- *   - com.android.kotlin.multiplatform.library
+ *   - monaka.android.library (via [AndroidLibraryConventionPlugin])
+ *   - monaka.explicit.api (via [ExplicitApiConventionPlugin])
  *
  * Configures:
  *   - applyDefaultHierarchyTemplate()
  *
  * Each module must still declare:
- *   android { namespace = "…"; compileSdk = 36; minSdk = 24; compilerOptions { jvmTarget = JVM_11 } }
+ *   android { namespace = "…"; compileSdk = Config.COMPILE_SDK; minSdk = Config.MIN_SDK }
  */
 class KmpLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             pluginManager.apply("org.jetbrains.kotlin.multiplatform")
-            pluginManager.apply("com.android.kotlin.multiplatform.library")
+            pluginManager.apply("monaka.android.library")
 
             extensions.configure<KotlinMultiplatformExtension> {
-                explicitApi()
                 applyDefaultHierarchyTemplate()
             }
         }

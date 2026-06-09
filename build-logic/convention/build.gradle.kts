@@ -29,6 +29,14 @@ gradlePlugin {
             id = "monaka.compose"
             implementationClass = "ComposeConventionPlugin"
         }
+        register("monakaAndroidLibrary") {
+            id = "monaka.android.library"
+            implementationClass = "AndroidLibraryConventionPlugin"
+        }
+        register("monakaExplicitApi") {
+            id = "monaka.explicit.api"
+            implementationClass = "ExplicitApiConventionPlugin"
+        }
         register("monakaAndroidApplication") {
             id = "monaka.android.application"
             implementationClass = "AndroidApplicationConventionPlugin"

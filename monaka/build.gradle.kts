@@ -1,16 +1,14 @@
 plugins {
     alias(libs.plugins.monaka.kmp.targets)
+    alias(libs.plugins.monaka.explicit.api)
     alias(libs.plugins.monaka.publication)
 }
 
 kotlin {
     android {
         namespace = "dev.gmvalentino.monaka.library"
-        compileSdk = 37
-        minSdk = 24
-        compilerOptions {
-            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
-        }
+        compileSdk = Config.COMPILE_SDK
+        minSdk = Config.MIN_SDK
     }
 
     sourceSets {

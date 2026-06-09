@@ -82,6 +82,8 @@ binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibil
 # Convention Plugins
 monaka-kmp-targets = { id = "monaka.kmp.targets", version = "UNDEFINED" }
 monaka-kmp-library = { id = "monaka.kmp.library", version = "UNDEFINED" }
+monaka-android-library = { id = "monaka.android.library", version = "UNDEFINED" }
+monaka-explicit-api = { id = "monaka.explicit.api", version = "UNDEFINED" }
 monaka-android-application = { id = "monaka.android.application", version = "UNDEFINED" }
 monaka-publication = { id = "monaka.publication", version = "UNDEFINED" }
 monaka-compose = { id = "monaka.compose", version = "UNDEFINED" }
