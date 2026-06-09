@@ -1,2 +1,2 @@
-tech.fika.monaka.processor.TransitionProcessorProvider
-tech.fika.monaka.processor.SelfTransitionProcessorProvider
+dev.gmvalentino.monaka.processor.TransitionProcessorProvider
+dev.gmvalentino.monaka.processor.SelfTransitionProcessorProvider
