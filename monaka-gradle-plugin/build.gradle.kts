@@ -4,6 +4,12 @@ plugins {
     alias(libs.plugins.monaka.publication)
 }
 
+mavenPublishing {
+    pom {
+        description.set("Gradle plugin for Monaka that provides state machine YAML export, stub code genration and PlantUML diagram generation tasks.")
+    }
+}
+
 dependencies {
     compileOnly(gradleApi())
     testImplementation(gradleApi())
