@@ -71,9 +71,9 @@ fun CheckoutScreen(onBack: () -> Unit) {
     }
     DisposableEffect(coordinator) {
         onDispose {
-            coordinator.registry.get(AuthStore::class)?.cancel()
-            coordinator.registry.get(CartStore::class)?.cancel()
-            coordinator.registry.get(CheckoutStore::class)?.cancel()
+            coordinator.registry.get(AuthStore::class)?.stop()
+            coordinator.registry.get(CartStore::class)?.stop()
+            coordinator.registry.get(CheckoutStore::class)?.stop()
         }
     }
     @Suppress("UNCHECKED_CAST")

@@ -14,7 +14,7 @@ import dev.gmvalentino.monaka.runtime.DefaultStore
  * Create and start a [Store] using the declarative DSL.
  *
  * The machine begins processing actions immediately when [scope] is active.
- * Cancelling [scope] (or calling [Store.cancel]) stops the machine.
+ * Cancelling [scope] (or calling [Store.stop]) stops the machine.
  *
  * ### Minimal example
  * ```kotlin

@@ -58,7 +58,6 @@ public final class dev/gmvalentino/monaka/core/StateHook$OnUpdate : dev/gmvalent
 }
 
 public abstract interface class dev/gmvalentino/monaka/core/Store {
-	public abstract fun cancel ()V
 	public abstract fun dispatch (Ldev/gmvalentino/monaka/core/Action;)V
 	public abstract fun getActions ()Lkotlinx/coroutines/flow/SharedFlow;
 	public abstract fun getEffects ()Lkotlinx/coroutines/flow/SharedFlow;
@@ -68,6 +67,7 @@ public abstract interface class dev/gmvalentino/monaka/core/Store {
 	public fun isActive ()Z
 	public fun onLifecycleEvent (Ldev/gmvalentino/monaka/core/LifecycleEvent;)V
 	public fun start ()V
+	public abstract fun stop ()V
 	public fun triggerStateHook (Ldev/gmvalentino/monaka/core/StateHook;)V
 }
 
@@ -145,7 +145,6 @@ public final class dev/gmvalentino/monaka/dsl/StateMachineFactoryKt {
 public final class dev/gmvalentino/monaka/dsl/StateMachineStore : dev/gmvalentino/monaka/core/Store {
 	public fun <init> (Ldev/gmvalentino/monaka/dsl/StateMachine;Lkotlinx/coroutines/CoroutineScope;Ldev/gmvalentino/monaka/core/State;Ljava/util/List;ILkotlin/jvm/functions/Function1;)V
 	public synthetic fun <init> (Ldev/gmvalentino/monaka/dsl/StateMachine;Lkotlinx/coroutines/CoroutineScope;Ldev/gmvalentino/monaka/core/State;Ljava/util/List;ILkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun cancel ()V
 	public fun dispatch (Ldev/gmvalentino/monaka/core/Action;)V
 	public fun getActions ()Lkotlinx/coroutines/flow/SharedFlow;
 	public fun getEffects ()Lkotlinx/coroutines/flow/SharedFlow;
@@ -156,6 +155,7 @@ public final class dev/gmvalentino/monaka/dsl/StateMachineStore : dev/gmvalentin
 	public fun isActive ()Z
 	public fun onLifecycleEvent (Ldev/gmvalentino/monaka/core/LifecycleEvent;)V
 	public fun start ()V
+	public fun stop ()V
 	public fun triggerStateHook (Ldev/gmvalentino/monaka/core/StateHook;)V
 }
 

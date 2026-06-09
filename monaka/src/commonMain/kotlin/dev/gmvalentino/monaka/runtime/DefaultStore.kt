@@ -151,7 +151,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         triggers.trySend(element = Trigger.Hook(hook = hook))
     }
 
-    override fun cancel() {
+    override fun stop() {
         phase = Phase.Cancelled
         jobRegistry.cancelAll()
         processingJob.cancel()

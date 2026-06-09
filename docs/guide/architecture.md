@@ -133,7 +133,7 @@ keys to `Job` instances:
 - `autoCancel = true` marks the job as auto-cancellable; the runtime calls
   `jobRegistry.cancelAutoCancellable()` before firing `onExit`, so the job is cancelled
   automatically on every state-type change.
-- `cancel()` on the store calls `jobRegistry.cancelAll()`, which cancels all running tasks.
+- `stop()` on the store calls `jobRegistry.cancelAll()`, which cancels all running tasks.
 
 ---
 
@@ -185,6 +185,6 @@ Idle ──▶ Running ──▶ Cancelled
   has not fired.
 - **Running** — `start()` was called (or a collector subscribed to `state`/`effects`/`actions`).
   The initial state's `onEnter` fires once. All subsequent calls to `start()` are no-ops.
-- **Cancelled** — `cancel()` was called or the owning `CoroutineScope` was cancelled. The
+- **Cancelled** — `stop()` was called or the owning `CoroutineScope` was cancelled. The
   processing coroutine and all keyed jobs are cancelled. The channel is closed. Further calls to
   `dispatch` and `onLifecycleEvent` are silent no-ops.

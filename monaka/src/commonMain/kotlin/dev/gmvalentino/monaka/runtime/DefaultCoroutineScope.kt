@@ -7,7 +7,7 @@ import kotlinx.coroutines.CoroutineScope
  * given an explicit scope.
  *
  * Each call returns a fresh, independent scope. Callers are responsible for cancelling it
- * (via [dev.gmvalentino.monaka.core.Store.cancel]) when the store is no longer needed.
+ * (via [dev.gmvalentino.monaka.core.Store.stop]) when the store is no longer needed.
  *
  * Platform implementations:
  * - **Android / iOS** — `SupervisorJob() + Dispatchers.Main.immediate`, matching the convention

@@ -222,6 +222,6 @@ public class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect 
         stateTurbine?.cancelAndIgnoreRemainingEvents()
         effectTurbine?.cancelAndIgnoreRemainingEvents()
         actionTurbine?.cancelAndIgnoreRemainingEvents()
-        store?.cancel()
+        store?.stop()
     }
 }

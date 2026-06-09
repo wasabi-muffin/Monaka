@@ -71,19 +71,21 @@ public interface Store<State : StateMarker, Action : ActionMarker, out Effect : 
     public fun dispatch(action: Action)
 
     /**
-     * Cancel the internal processing coroutine.
+     * Stop the store permanently.
      *
-     * After cancellation, no further actions will be processed and no new
-     * state/effect emissions will occur. On Android, prefer tying the
-     * state machine's [kotlinx.coroutines.CoroutineScope] to the ViewModel lifecycle instead
-     * of calling this manually.
+     * Cancels the internal processing coroutine and all running keyed jobs. Closes the trigger
+     * channel. No further actions will be processed and no new state/effect emissions will occur.
+     *
+     * On Android, prefer tying the state machine's [kotlinx.coroutines.CoroutineScope] to the
+     * ViewModel lifecycle instead of calling this manually — the store stops automatically when
+     * the scope is cancelled.
      */
-    public fun cancel()
+    public fun stop()
 
     /**
      * Whether this store is still active and processing actions.
      *
-     * Returns `false` after [cancel] is called or after the store's owning
+     * Returns `false` after [stop] is called or after the store's owning
      * [kotlinx.coroutines.CoroutineScope] is cancelled externally (e.g. a cleared ViewModel scope).
      * Once inactive, [dispatch], [start], [onLifecycleEvent], and [triggerStateHook] are all silent no-ops.
      */
@@ -96,7 +98,7 @@ public interface Store<State : StateMarker, Action : ActionMarker, out Effect : 
      * that any state transition or effect emitted by the initial `onEnter` is not missed.
      *
      * Calling [start] more than once is a safe no-op — the hook fires at most once per store
-     * instance. Calling [start] after [cancel] is also a no-op.
+     * instance. Calling [start] after [stop] is also a no-op.
      *
      * The default implementation is a no-op, so stores that do not use `onEnter` on the
      * initial state do not need to call this.

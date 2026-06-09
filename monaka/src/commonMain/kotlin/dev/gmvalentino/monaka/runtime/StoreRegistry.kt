@@ -217,7 +217,7 @@ public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> S
     val store = this
     registry.register(store = store)
     invokeOnCompletion {
-        store.cancel()
+        store.stop()
         registry.unregister(store = store)
     }
     return store

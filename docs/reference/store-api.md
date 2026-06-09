@@ -73,7 +73,7 @@ store.actions.collect { action -> logger.d("dispatched: $action") }
 
 ### `isActive: Boolean`
 
-`true` while the store is processing actions; `false` after `cancel()` is called or the owning
+`true` while the store is processing actions; `false` after `stop()` is called or the owning
 `CoroutineScope` is cancelled. All write operations (`dispatch`, `onLifecycleEvent`) are silent
 no-ops when `isActive` is `false`.
 
@@ -125,16 +125,17 @@ class SyncViewModel : ViewModel() {
 }
 ```
 
-Calling `start()` more than once is a safe no-op. Calling it after `cancel()` is also a no-op.
+Calling `start()` more than once is a safe no-op. Calling it after `stop()` is also a no-op.
 
 ---
 
-### `cancel()`
+### `stop()`
 
-Stop the store. Cancels the internal processing coroutine and all running keyed jobs. Closes the
-trigger channel. All subsequent calls to `dispatch` and `onLifecycleEvent` become silent no-ops.
+Stop the store permanently. Cancels the internal processing coroutine and all running keyed jobs.
+Closes the trigger channel. All subsequent calls to `dispatch` and `onLifecycleEvent` become
+silent no-ops.
 
-On Android, prefer letting the owning `CoroutineScope` (e.g. `viewModelScope`) cancel the store
+On Android, prefer letting the owning `CoroutineScope` (e.g. `viewModelScope`) stop the store
 automatically rather than calling this directly. Call it explicitly only when the store has a
 shorter lifetime than its scope — for example, when removing a store from a `StoreRegistry` before
 the ViewModel is cleared.

@@ -109,6 +109,6 @@ fun <S : StateMarker, A : ActionMarker, E : EffectMarker> rememberStore(
 ): Store<S, A, E> {
     val scope = rememberCoroutineScope()
     val store = remember(scope) { factory(scope) }
-    DisposableEffect(store) { onDispose { store.cancel() } }
+    DisposableEffect(store) { onDispose { store.stop() } }
     return store
 }
