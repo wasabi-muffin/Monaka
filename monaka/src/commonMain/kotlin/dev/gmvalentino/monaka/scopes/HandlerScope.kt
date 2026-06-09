@@ -16,10 +16,13 @@ import dev.gmvalentino.monaka.runtime.JobRegistry
  *
  * ### Result resolution
  * After the lambda finishes, the runtime resolves the recorded state as follows:
- * 1. [reject] was called → the action is treated as rejected; plugins notified via `onInvalid`.
+ * 1. [reject] was called → the action is treated as rejected; **all accumulated effects are
+ *    discarded**; plugins notified via `onRejected`. Use [guard] instead to preserve
+ *    pre-guard recordings.
  * 2. [transition] was called → the recorded state becomes the new state, followed by all
  *    accumulated [sideEffect] emissions in call order.
- * 3. Only [sideEffect] was called → effects emit; state is unchanged.
+ * 3. Only [sideEffect] was called → effects emit; state is unchanged. This is a valid
+ *    pattern for actions that should notify the UI without changing state.
  * 4. Nothing was called → silent no-op.
  *
  * ### First-write-wins for [transition]
@@ -115,7 +118,21 @@ public abstract class HandlerScope<State : StateMarker, Action : ActionMarker, E
     /**
      * Emit [effects] in the order they appear. Multiple calls accumulate.
      *
-     * If [reject] has already been called in this handler, this call is a no-op.
+     * If [reject] has already been called in this handler, this call is a no-op. Conversely,
+     * if [reject] is called *after* [sideEffect], the accumulated effects are discarded — no
+     * effects emit when the handler is rejected. Use [guard] if you want effects recorded before
+     * a failing predicate to still be emitted.
+     *
+     * Calling [sideEffect] without [transition] is a valid pattern — the state stays unchanged
+     * and only the effects are emitted:
+     *
+     * ```kotlin
+     * on<MyAction.Ping> {
+     *     sideEffect(MyEffect.Toast("Pong"))   // state unchanged, effect emitted
+     * }
+     * ```
+     *
+     * Combined with [transition]:
      *
      * ```kotlin
      * on<MyAction.Submit> {
@@ -131,11 +148,16 @@ public abstract class HandlerScope<State : StateMarker, Action : ActionMarker, E
     }
 
     /**
-     * Mark the action as rejected. Plugins are notified via
-     * [dev.gmvalentino.monaka.plugin.Plugin.onRejected]; no state change or effect emission occurs.
+     * Mark the action as rejected. No state change occurs, no effects emit (including any
+     * [sideEffect] calls made **before** this call), and plugins are notified via
+     * [dev.gmvalentino.monaka.plugin.Plugin.onRejected].
      *
      * Terminal: all subsequent [transition], [sideEffect], [dispatch], [task], and [cancel]
      * calls in the same handler become no-ops.
+     *
+     * If you want verbs recorded before a failing predicate to still take effect (e.g. emit an
+     * analytics effect even when the transition is skipped), use [guard] instead — a failing
+     * [guard] preserves pre-guard recordings and does not notify plugins.
      *
      * ```kotlin
      * on<MyAction.Submit> {

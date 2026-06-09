@@ -104,9 +104,9 @@ open socket, a scoped DI component) that can be cancelled independently of the m
 | Verb | Behaviour |
 |---|---|
 | `transition(newState)` | Record the next state. **First call wins** — subsequent calls in the same handler are silent no-ops. |
-| `sideEffect(e1, e2, …)` | Append effects; emitted in call order after the state change. |
-| `reject()` | Mark the action as rejected. **Terminal** — all subsequent verb calls become no-ops. Plugins are notified via `onRejected`. |
-| `guard { predicate }` | Short-circuit all subsequent verbs if `predicate` returns `false`. Unlike `reject()`, pre-guard recordings are preserved and plugins are not notified. |
+| `sideEffect(e1, e2, …)` | Append effects; emitted in call order. If no `transition()` is recorded, state remains unchanged (effect-only handler). |
+| `reject()` | Mark the action as rejected. **Terminal** — all subsequent verb calls become no-ops, **and any effects accumulated before this call are also discarded**. Plugins are notified via `onRejected`. |
+| `guard { predicate }` | Short-circuit all subsequent verbs if `predicate` returns `false`. Unlike `reject()`, pre-guard recordings are **preserved** and plugins are not notified. |
 | `dispatch(action)` | Enqueue an action on the store's channel for later processing. |
 | `task { }` / `task("key") { }` | Launch a fire-and-forget coroutine, optionally keyed for cancellation. |
 | `cancel("key")` | Cancel the running job with the given key. No-op if no job is running. |
@@ -134,8 +134,39 @@ on<Submit> {
 }
 ```
 
-Once `reject()` is called, the runtime treats the action as rejected regardless of what was
-recorded before it. The state is not changed and effects are not emitted.
+`reject()` is terminal and unconditional: the runtime discards **everything** recorded before
+the call — state, effects, and any pending dispatches. Nothing is emitted and the state is
+unchanged. If you want effects recorded before a failing predicate to still emit, use `guard`
+instead.
+
+### Effect-only handlers
+
+Calling `sideEffect()` without `transition()` is a valid and intentional pattern. The state
+stays unchanged and the effects are emitted normally:
+
+```kotlin
+on<CartAction.Ping> {
+    sideEffect(CartEffect.Toast("Cart is ready"))   // state unchanged; effect emitted
+}
+```
+
+This is useful for actions that need to communicate a one-shot event to the UI without
+changing the machine's state — validation feedback, accessibility announcements, analytics
+pings, and similar fire-and-forget notifications.
+
+Multiple effects work the same way:
+
+```kotlin
+on<AuthAction.SessionExpired> {
+    sideEffect(
+        AuthEffect.Toast("Session expired"),
+        AuthEffect.ClearLocalCache,
+    )
+    // No transition — state stays as-is; both effects emit in call order
+}
+```
+
+---
 
 ### `guard` — conditional short-circuit
 

@@ -38,6 +38,15 @@ public sealed interface HandlerResult<out State : StateMarker, out Effect : Effe
      *
      * Use this when the action is valid and the machine should stay in the current state,
      * but still needs to notify the UI (e.g. show a toast, trigger navigation).
+     *
+     * Produced automatically when only [dev.gmvalentino.monaka.scopes.HandlerScope.sideEffect]
+     * is called in a handler (no [dev.gmvalentino.monaka.scopes.HandlerScope.transition]):
+     *
+     * ```kotlin
+     * on<MyAction.Ping> {
+     *     sideEffect(MyEffect.Toast("Pong"))   // HandlerResult.SideEffect — state unchanged
+     * }
+     * ```
      */
     public data class SideEffect<out Effect : EffectMarker>(
         public val effects: List<Effect>,
