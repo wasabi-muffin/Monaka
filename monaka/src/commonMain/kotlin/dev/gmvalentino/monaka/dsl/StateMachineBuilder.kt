@@ -25,8 +25,9 @@ import dev.gmvalentino.monaka.plugin.Plugin
  * ### Handler lookup order
  * When an action is dispatched, the runtime resolves a handler as follows:
  * 1. Look for a handler registered under the **exact runtime class** of the current state.
- * 2. Walk up the supertype hierarchy (BFS), checking each ancestor class in order
- *    of proximity. The closest registered ancestor wins.
+ * 2. Check each registered ancestor class in **registration order** (the order
+ *    `state<T>` blocks appear in the builder). Register more-specific parent blocks
+ *    after leaf blocks so that the leaf-nearest ancestor is found first.
  * 3. If nothing matches, notify plugins via [Plugin.onRejected] and skip.
  *
  * The same lookup order applies to state lifecycle hooks ([StateBuilder.onEnter],

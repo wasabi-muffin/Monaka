@@ -219,7 +219,7 @@ state<MyState.Loading> {
 state<MyState.Active> {
     onUpdate {
         // State value changed but type stayed Active
-        if (fromState.query != toState.query) task { analytics.track(toState.query) }
+        if (fromState.query != state.query) task { analytics.track(state.query) }
     }
 }
 ```
@@ -294,12 +294,15 @@ class AnalyticsPlugin : Plugin<MyState, MyAction, MyEffect> {
 
 ---
 
-## Named-class machines (`StateMachineStore`)
+## Named-class machines
 
-For larger machines, combine `stateMachine { }` with `StateMachineStore` to define configuration as a named class:
+For larger machines with injected dependencies, implement `StateMachine` via delegation to `stateMachine { }`. The handlers close over the constructor parameters; the class is an immutable config snapshot that can be passed directly to `testStore`:
 
 ```kotlin
-val loginMachineConfig = stateMachine<LoginState, LoginAction, LoginEffect> {
+class LoginStateMachine(
+    private val repo: LoginRepository,
+) : StateMachine<LoginState, LoginAction, LoginEffect> by stateMachine(builder = {
+
     initialState(LoginState.Idle)
 
     state<LoginState.Idle> {
@@ -333,15 +336,23 @@ val loginMachineConfig = stateMachine<LoginState, LoginAction, LoginEffect> {
     }
 
     install(LoggingPlugin(tag = "Login"))
-}
+})
+```
 
-class LoginStateMachine(
-    scope: CoroutineScope,
-    private val repo: LoginRepository,
-) : StateMachineStore<LoginState, LoginAction, LoginEffect>(
-    stateMachine = loginMachineConfig,
-    scope = scope,
-)
+Start it from a ViewModel using `store(machine, scope)`:
+
+```kotlin
+class LoginViewModel(repo: LoginRepository) : ViewModel() {
+    private val machine = LoginStateMachine(repo)
+    val store = store(machine, viewModelScope)
+}
+```
+
+Pass the same `LoginStateMachine` directly to `testStore` in tests:
+
+```kotlin
+@Test
+fun loginFlow() = testStore(machine = LoginStateMachine(fakeRepo)) { … }
 ```
 
 ---
@@ -462,7 +473,7 @@ The store is automatically cancelled when `viewModelScope` is cleared.
 │  DefaultStore  ─────────────────────────────────────    │
 │    Channel<Trigger>(UNLIMITED)                          │
 │    └─ processingJob (single coroutine)                  │
-│         ├─ resolveActionHandler (exact → supertype BFS) │
+│         ├─ resolveActionHandler (exact → ancestor, reg. order) │
 │         ├─ processTransition                            │
 │         │    ├─ onExit hook                             │
 │         │    └─ onEnter hook                            │

@@ -73,80 +73,68 @@ val store = store(
 
 ---
 
-## `StateMachineStore` — named class with injected dependencies
+## `StateMachine` delegation — named class with injected dependencies
 
-`StateMachineStore` is a concrete `Store` implementation that delegates to a `StateMachine`
-snapshot. It is the recommended base when the machine has constructor-injected dependencies
-(repositories, use-cases) and you want to keep the DSL close to its dependencies:
+When a machine needs constructor-injected dependencies (repositories, use-cases), declare it as
+a named class that implements `StateMachine` via delegation to `stateMachine { }`. The handlers
+close over the constructor parameters; the class itself is just an immutable config snapshot:
 
 ```kotlin
 class LoginStateMachine(
-    stateMachine: StateMachine<LoginState, LoginAction, LoginEffect>,
-    scope: CoroutineScope,
-    initialState: LoginState? = null,
-    plugins: List<Plugin<LoginState, LoginAction, LoginEffect>> = emptyList(),
-) : StateMachineStore<LoginState, LoginAction, LoginEffect>(
-    stateMachine = stateMachine,
-    scope = scope,
-    initialState = initialState,
-    plugins = plugins,
-)
-```
+    loginRepository: LoginRepository,
+) : StateMachine<LoginState, LoginAction, LoginEffect> by stateMachine(builder = {
 
-Build the `StateMachine` separately (often as a named function or factory that takes
-dependencies as parameters):
+    initialState(LoginState.Idle)
 
-```kotlin
-fun LoginStateMachine(loginRepository: LoginRepository) =
-    stateMachine<LoginState, LoginAction, LoginEffect> {
-        initialState(LoginState.Idle)
-
-        state<LoginState.Typing> {
-            on<LoginAction.Submit> {
-                task("login", autoCancel = true) {
-                    when (val result = loginRepository.login(state.username, state.password)) {
-                        is Success -> dispatch(LoginAction.LoginSucceeded(result.user))
-                        is Failure -> dispatch(LoginAction.LoginFailed(result.message))
-                    }
+    state<LoginState.Typing> {
+        on<LoginAction.Submit> {
+            task("login", autoCancel = true) {
+                when (val result = loginRepository.login(state.username, state.password)) {
+                    is Success -> dispatch(LoginAction.LoginSucceeded(result.user))
+                    is Failure -> dispatch(LoginAction.LoginFailed(result.message))
                 }
-                transition(LoginState.Submitting)
             }
+            transition(LoginState.Submitting)
         }
-
-        state<LoginState.Submitting> {
-            on<LoginAction.LoginSucceeded> {
-                transition(LoginState.Authenticated(action.user))
-                sideEffect(LoginEffect.NavigateToHome)
-            }
-            on<LoginAction.LoginFailed> {
-                transition(LoginState.Idle)
-                sideEffect(LoginEffect.ShowError(action.message))
-            }
-        }
-
-        state<LoginState> {
-            on<LoginAction.Logout> {
-                transition(LoginState.Idle)
-                sideEffect(LoginEffect.NavigateToLogin)
-            }
-        }
-
-        install(LoggingPlugin(tag = "Login"))
     }
+
+    state<LoginState.Submitting> {
+        on<LoginAction.LoginSucceeded> {
+            transition(LoginState.Authenticated(action.user))
+            sideEffect(LoginEffect.NavigateToHome)
+        }
+        on<LoginAction.LoginFailed> {
+            transition(LoginState.Idle)
+            sideEffect(LoginEffect.ShowError(action.message))
+        }
+    }
+
+    state<LoginState> {
+        on<LoginAction.Logout> {
+            transition(LoginState.Idle)
+            sideEffect(LoginEffect.NavigateToLogin)
+        }
+    }
+
+    install(LoggingPlugin(tag = "Login"))
+})
 ```
 
-Use from a ViewModel:
+Start the machine from a ViewModel using `store(config, scope)` or `StateMachineStore`:
 
 ```kotlin
 class LoginViewModel(loginRepository: LoginRepository) : ViewModel() {
-    val store = LoginStateMachine(
-        stateMachine = LoginStateMachine(loginRepository),
-        scope = viewModelScope,
-    )
+    private val machine = LoginStateMachine(loginRepository)
+
+    // Option A — store factory
+    val store: Store<LoginState, LoginAction, LoginEffect> = store(machine, viewModelScope)
+
+    // Option B — StateMachineStore wrapper (also exposes `store.stateMachine`)
+    val store = StateMachineStore(machine, viewModelScope)
 }
 ```
 
-Because the `StateMachine` value is separate, it can be passed directly to `testStore`:
+Because `LoginStateMachine` implements `StateMachine`, pass it directly to `testStore`:
 
 ```kotlin
 @Test
@@ -159,9 +147,9 @@ fun loginFlow() = testStore(machine = LoginStateMachine(fakeRepository)) { … }
 
 | Pattern | Use when |
 |---|---|
-| `store { }` inline | Small machine, no testing needed, or machine lives inside a ViewModel. |
-| `stateMachine { }` + `store(config, scope)` | You need multiple instances, want to test with `testStore`, or want to separate configuration from startup. |
-| `StateMachineStore` | The machine has injected dependencies and you want a named, typed class as the public API surface. |
+| `store { }` inline | Small machine, no testing needed, or machine lives entirely inside a ViewModel. |
+| `stateMachine { }` + `store(config, scope)` | You want a reusable config value — multiple instances, passing to `testStore`, or separating config from startup. |
+| Named class `: StateMachine<> by stateMachine { }` | The machine has injected dependencies and you want a named, typed class that is also directly passable to `testStore`. |
 
 All three patterns produce a `Store<S, A, E>` — the rest of the API (`state`, `effects`,
 `dispatch`, plugins, relays) is identical regardless of which pattern you use.

@@ -24,18 +24,28 @@ Multiple plugins can be installed; they are called in declaration order.
 
 ## Built-in: `LoggingPlugin`
 
-Logs every transition, rejection, and error to the platform logger.
+Logs every action received, every state transition, every effect, every rejection, and every
+error to the platform logger.
 
 ```kotlin
 install(LoggingPlugin(tag = "Auth"))
 ```
 
-Output format (simplified):
+Sample output:
 
 ```
-[Auth] transition: Idle → Submitting (action: Submit)
-[Auth] rejected: action Submit in state Error
-[Auth] error: IllegalStateException in state Loading
+[Auth] → ACTION   : LoginAction.Submit
+[Auth]   IN STATE : LoginState.Typing(username=alice, password=secret)
+[Auth] ← STATE   : LoginState.Typing → LoginState.Submitting
+[Auth]   EFFECT  : LoginEffect.NavigateToHome
+[Auth] ⚠ UNHANDLED: Action(Logout)  (state: Authenticated)
+[Auth] ✗ ERROR    : IllegalStateException: token expired  (handler: Hook.Enter)
+```
+
+To redirect output to a platform logger (Logcat, NSLog, SLF4J, etc.), pass a custom `Logger`:
+
+```kotlin
+install(LoggingPlugin(tag = "Auth") { tag, message -> Log.d(tag, message) })
 ```
 
 ---
@@ -78,10 +88,11 @@ class AnalyticsPlugin : Plugin<MyState, MyAction, MyEffect> {
 
 | Callback | When it is called |
 |---|---|
+| `onAction(state, action)` | Just before an action is dequeued and processed. `state` reflects the actual state at dequeue time, which may differ from the state when `dispatch()` was called. |
 | `onTransition(from, to)` | A state transition was recorded and applied. |
-| `onRejected(state, handlerType)` | A handler called `reject()`. |
+| `onEffect(effect)` | A side effect was emitted. |
+| `onRejected(state, handlerType)` | No handler was registered for the current state + action pair, or a handler called `reject()`. |
 | `onError(error, state, handlerType)` | An unhandled exception was thrown inside a handler or hook. The state is **not** changed. |
-| `onSideEffect(effect)` | A side effect was emitted. |
 
 ### Launching coroutines from a plugin
 

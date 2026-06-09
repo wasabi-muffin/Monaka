@@ -145,8 +145,8 @@ public class StateBuilder<State : StateMarker, SubState : State, Action : Action
      *
      * ```kotlin
      * state<MyState.Active> {
-     *     onUpdate { old, new ->
-     *         if (old.query != new.query) task { analytics.track(new.query) }
+     *     onUpdate {
+     *         if (fromState.query != state.query) task { analytics.track(state.query) }
      *     }
      * }
      * ```
