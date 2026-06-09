@@ -60,7 +60,7 @@ val store = store(
 )
 ```
 
-`extraBufferCapacity` (default: `64`) controls the `SharedFlow` buffer for effects and actions.
+`extraBufferCapacity` (default: `DEFAULT_BUFFER_CAPACITY` = `64`) controls the `SharedFlow` buffer for effects and actions.
 Increase it if your machine emits effects in rapid bursts:
 
 ```kotlin
@@ -70,6 +70,48 @@ val store = store(
     extraBufferCapacity = 128,
 )
 ```
+
+---
+
+## Async state restoration
+
+When persisted state lives in an async source (e.g. Jetpack `DataStore`, a SQLite database, or
+encrypted preferences), pass an `initializer` suspend lambda. It runs inside the processing
+coroutine — before `onEnter` fires and before any queued actions are processed — so the restored
+state is always the first state the machine acts on:
+
+```kotlin
+val store = store(
+    stateMachine = loginMachineConfig,
+    scope = viewModelScope,
+    initializer = { dataStore.data.first().toLoginState() },
+) {
+    initialState(LoginState.Idle)   // used only if initializer is null or throws
+}
+```
+
+For synchronous sources (`SavedStateHandle`, `UserDefaults`) the existing `initialState`
+parameter is simpler and sufficient:
+
+```kotlin
+val store = store(
+    stateMachine = loginMachineConfig,
+    scope = viewModelScope,
+    initialState = savedStateHandle.get<LoginState>("state"),
+)
+```
+
+### Ordering guarantee
+
+Actions dispatched before the initializer completes are queued in the processing channel and run
+after `onEnter` has fired with the restored state. No actions are dropped and no action sees the
+un-restored placeholder state.
+
+### Error handling
+
+If the initializer throws, `Plugin.onError` is called with `HandlerType.Restore` and the store
+falls back to its configured `initialState`. `onEnter` always fires so the machine always
+reaches a usable state.
 
 ---
 

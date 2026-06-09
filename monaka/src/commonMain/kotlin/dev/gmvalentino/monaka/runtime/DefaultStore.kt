@@ -1,24 +1,10 @@
 package dev.gmvalentino.monaka.runtime
 
-import kotlin.reflect.KClass
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DisposableHandle
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
 import dev.gmvalentino.monaka.core.Action as ActionMarker
-import dev.gmvalentino.monaka.core.Effect as EffectMarker
-import dev.gmvalentino.monaka.core.LifecycleEvent
 import dev.gmvalentino.monaka.core.DEFAULT_BUFFER_CAPACITY
+import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.InternalMonakaApi
+import dev.gmvalentino.monaka.core.LifecycleEvent
 import dev.gmvalentino.monaka.core.State as StateMarker
 import dev.gmvalentino.monaka.core.StateHook
 import dev.gmvalentino.monaka.core.Store
@@ -37,6 +23,20 @@ import dev.gmvalentino.monaka.scopes.HandlerScope
 import dev.gmvalentino.monaka.scopes.LifecycleScope
 import dev.gmvalentino.monaka.scopes.StateChangeScope
 import dev.gmvalentino.monaka.scopes.StateUpdateScope
+import kotlin.reflect.KClass
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DisposableHandle
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 
 /**
  * Default runtime implementation of [Store].
@@ -83,6 +83,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     private val plugins: List<Plugin<State, Action, Effect>>,
     private val machineScope: CoroutineScope = defaultCoroutineScope(),
     private val extraBufferCapacity: Int = DEFAULT_BUFFER_CAPACITY,
+    private val initializer: (suspend () -> State)? = null,
 ) : Store<State, Action, Effect> {
     private enum class Phase { Idle, Running, Cancelled }
 
@@ -112,6 +113,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
                 is Trigger.Action -> processAction(action = trigger.action)
                 is Trigger.Lifecycle -> processLifecycleEvent(event = trigger.event)
                 is Trigger.Hook -> processStateHook(hook = trigger.hook)
+                is Trigger.Restore -> processRestore(initializer = trigger.initializer)
             }
         }
     }
@@ -130,7 +132,11 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     override fun start() {
         if (phase != Phase.Idle) return
         phase = Phase.Running
-        triggers.trySend(element = Trigger.Hook(hook = StateHook.OnEnter))
+        if (initializer != null) {
+            triggers.trySend(element = Trigger.Restore(initializer = initializer))
+        } else {
+            triggers.trySend(element = Trigger.Hook(hook = StateHook.OnEnter))
+        }
     }
 
     override fun dispatch(action: Action) = whenActive {
@@ -205,6 +211,22 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
                 )
             }
         }
+    }
+
+    /**
+     * Calls [initializer] to load persisted state, then fires `onEnter` for the resulting state.
+     *
+     * If [initializer] throws, [Plugin.onError] is called with [HandlerType.Restore] and the
+     * store continues with its configured `initialState`. `onEnter` always fires regardless of
+     * whether the initializer succeeded, so the machine always reaches a usable initial state.
+     */
+    private suspend fun processRestore(initializer: suspend () -> State) {
+        runCatching {
+            _state.value = initializer()
+        }.onFailure { error ->
+            plugins.forEach { it.onError(error = error, currentState = currentState, handlerType = HandlerType.Restore) }
+        }
+        processStateHook(hook = StateHook.OnEnter)
     }
 
     private suspend fun processEffects(effects: List<Effect>) = effects.forEach { effect ->

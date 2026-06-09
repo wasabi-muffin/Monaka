@@ -187,4 +187,4 @@ Idle ──▶ Running ──▶ Cancelled
   The initial state's `onEnter` fires once. All subsequent calls to `start()` are no-ops.
 - **Cancelled** — `cancel()` was called or the owning `CoroutineScope` was cancelled. The
   processing coroutine and all keyed jobs are cancelled. The channel is closed. Further calls to
-  `dispatch`, `onLifecycleEvent`, and `triggerStateHook` are silent no-ops.
+  `dispatch` and `onLifecycleEvent` are silent no-ops.

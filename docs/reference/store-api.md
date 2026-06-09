@@ -15,7 +15,7 @@ A unique identifier for this store instance. Auto-generated as a UUID by default
 
 ```kotlin
 // Target one specific CartStore instance out of several registered:
-dispatch<CartStore>(CartAction.Clear, id = specificCartId)
+dispatch(CartStore::class, CartAction.Clear, id = specificCartId)
 ```
 
 You can read the `id` to log or correlate store activity:
@@ -74,8 +74,8 @@ store.actions.collect { action -> logger.d("dispatched: $action") }
 ### `isActive: Boolean`
 
 `true` while the store is processing actions; `false` after `cancel()` is called or the owning
-`CoroutineScope` is cancelled. All write operations (`dispatch`, `onLifecycleEvent`,
-`triggerStateHook`) are silent no-ops when `isActive` is `false`.
+`CoroutineScope` is cancelled. All write operations (`dispatch`, `onLifecycleEvent`) are silent
+no-ops when `isActive` is `false`.
 
 ```kotlin
 if (store.isActive) {
@@ -101,6 +101,10 @@ button.setOnClickListener { store.dispatch(MyAction.Submit) }
 ### `start()`
 
 Fire the `onEnter` hook for the initial state, if one is registered.
+
+When an `initializer` was provided at store construction, `start()` enqueues the async restore
+first. The initializer runs inside the processing coroutine before `onEnter` and before any
+queued actions, so the machine always sees the restored state as its first state.
 
 `start()` is called automatically the first time a subscriber collects `state`, `actions`, or
 `effects`. Call it explicitly when you need `onEnter` to fire before any collector attaches —
@@ -128,8 +132,7 @@ Calling `start()` more than once is a safe no-op. Calling it after `cancel()` is
 ### `cancel()`
 
 Stop the store. Cancels the internal processing coroutine and all running keyed jobs. Closes the
-trigger channel. All subsequent calls to `dispatch`, `onLifecycleEvent`, and `triggerStateHook`
-become silent no-ops.
+trigger channel. All subsequent calls to `dispatch` and `onLifecycleEvent` become silent no-ops.
 
 On Android, prefer letting the owning `CoroutineScope` (e.g. `viewModelScope`) cancel the store
 automatically rather than calling this directly. Call it explicitly only when the store has a
@@ -150,7 +153,9 @@ and how to react to them in the DSL.
 ### `triggerStateHook(hook: StateHook<State>)`
 
 Fire a state lifecycle hook (`OnEnter`, `OnExit`, or `OnUpdate`) directly, without requiring a
-transition. Primarily used by the `monaka-test` DSL (`trigger(StateHook.OnEnter) { … }`). See
+transition. Annotated `@InternalMonakaApi` — calling it outside of test infrastructure requires
+`@OptIn(InternalMonakaApi::class)`. In practice this is handled automatically by `:monaka-test`,
+which calls it on your behalf via `trigger(StateHook.OnEnter) { … }`. See
 [Testing](../guide/testing.md#triggerstatehooke--) for usage.
 
 ---

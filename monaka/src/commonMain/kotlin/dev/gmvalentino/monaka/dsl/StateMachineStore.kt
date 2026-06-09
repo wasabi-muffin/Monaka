@@ -87,6 +87,9 @@ import dev.gmvalentino.monaka.runtime.DefaultStore
  * - [extraBufferCapacity]: `extraBufferCapacity` for the effects (and actions) [kotlinx.coroutines.flow.SharedFlow].
  *   Increase this if your machine emits effects in rapid bursts. Defaults to
  *   [dev.gmvalentino.monaka.core.DEFAULT_BUFFER_CAPACITY].
+ * - [initializer]: optional suspend function called once before the first action is processed.
+ *   Use this to restore persisted state from an async source (e.g. `DataStore`, a database).
+ *   See [dev.gmvalentino.monaka.dsl.store] for full documentation and error-handling behaviour.
  */
 public class StateMachineStore<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
     /** The immutable [StateMachine] configuration this store is backed by. */
@@ -95,6 +98,7 @@ public class StateMachineStore<State : StateMarker, Action : ActionMarker, Effec
     private val initialState: State? = null,
     private val plugins: List<Plugin<State, Action, Effect>> = emptyList(),
     private val extraBufferCapacity: Int = DEFAULT_BUFFER_CAPACITY,
+    private val initializer: (suspend () -> State)? = null,
 ) : Store<State, Action, Effect> by DefaultStore(
     machineScope = scope,
     id = stateMachine.id,
@@ -107,4 +111,5 @@ public class StateMachineStore<State : StateMarker, Action : ActionMarker, Effec
     errorHandlers = stateMachine.errorHandlers,
     plugins = stateMachine.plugins + plugins,
     extraBufferCapacity = extraBufferCapacity,
+    initializer = initializer,
 )
