@@ -175,7 +175,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
             handlerType = handlerType,
             scope = actionScope(state = currentState, action = action),
             state = currentState,
-        ) ?: plugins.forEach { it.onRejected(currentState = currentState, handlerType = handlerType) }
+        ) ?: plugins.forEach { it.onUnhandled(currentState = currentState, action = action) }
     }
 
     private suspend fun processLifecycleEvent(event: LifecycleEvent) {

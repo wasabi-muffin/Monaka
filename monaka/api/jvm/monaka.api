@@ -277,6 +277,7 @@ public final class dev/gmvalentino/monaka/plugin/LoggingPlugin : dev/gmvalentino
 	public fun onError (Ljava/lang/Throwable;Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/handler/HandlerType;)V
 	public fun onRejected (Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/handler/HandlerType;)V
 	public fun onTransition (Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/core/State;)V
+	public fun onUnhandled (Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/core/Action;)V
 }
 
 public abstract interface class dev/gmvalentino/monaka/plugin/Plugin {
@@ -285,6 +286,7 @@ public abstract interface class dev/gmvalentino/monaka/plugin/Plugin {
 	public fun onError (Ljava/lang/Throwable;Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/handler/HandlerType;)V
 	public fun onRejected (Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/handler/HandlerType;)V
 	public fun onTransition (Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/core/State;)V
+	public fun onUnhandled (Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/core/Action;)V
 }
 
 public final class dev/gmvalentino/monaka/plugin/Plugin$DefaultImpls {
@@ -293,6 +295,7 @@ public final class dev/gmvalentino/monaka/plugin/Plugin$DefaultImpls {
 	public static fun onError (Ldev/gmvalentino/monaka/plugin/Plugin;Ljava/lang/Throwable;Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/handler/HandlerType;)V
 	public static fun onRejected (Ldev/gmvalentino/monaka/plugin/Plugin;Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/handler/HandlerType;)V
 	public static fun onTransition (Ldev/gmvalentino/monaka/plugin/Plugin;Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/core/State;)V
+	public static fun onUnhandled (Ldev/gmvalentino/monaka/plugin/Plugin;Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/core/Action;)V
 }
 
 public abstract interface class dev/gmvalentino/monaka/relay/Relay {

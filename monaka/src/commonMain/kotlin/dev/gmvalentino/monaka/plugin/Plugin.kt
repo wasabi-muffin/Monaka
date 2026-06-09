@@ -46,9 +46,21 @@ public interface Plugin<State : StateMarker, Action : ActionMarker, Effect : Eff
     public fun onTransition(fromState: State, toState: State): Unit = Unit
 
     /**
-     * Called when no handler is registered for the [handlerType] in the current [currentState],
-     * or when a handler produces a [dev.gmvalentino.monaka.handler.HandlerResult.Rejected] result.
+     * Called when [action] arrives in [currentState] but no `on<>` handler is registered for it.
      *
+     * This fires **before** [onRejected] and only for the "missing handler" case — it is not
+     * called when a handler explicitly calls `reject()`. Use this hook to enforce action
+     * exhaustiveness (e.g. throw in tests) or to log missing coverage in production.
+     *
+     * This is informational; no state change occurs.
+     */
+    public fun onUnhandled(currentState: State, action: Action): Unit = Unit
+
+    /**
+     * Called when a handler produces a [dev.gmvalentino.monaka.handler.HandlerResult.Rejected] result
+     * (i.e. the handler explicitly called `reject()`).
+     *
+     * This is distinct from [onUnhandled], which fires when no handler is registered at all.
      * This is informational; no state change occurs.
      */
     public fun onRejected(currentState: State, handlerType: HandlerType<Action>): Unit = Unit

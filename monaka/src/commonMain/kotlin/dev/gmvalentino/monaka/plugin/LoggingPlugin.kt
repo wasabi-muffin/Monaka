@@ -50,8 +50,12 @@ public class LoggingPlugin<State : StateMarker, Action : ActionMarker, Effect : 
         logger.log(tag = tag, message = "[$tag]   EFFECT  : $effect")
     }
 
+    override fun onUnhandled(currentState: State, action: Action) {
+        logger.log(tag = tag, message = "[$tag] ⚠ UNHANDLED: $action  (state: ${currentState::class.simpleName})")
+    }
+
     override fun onRejected(currentState: State, handlerType: HandlerType<Action>) {
-        logger.log(tag = tag, message = "[$tag] ⚠ UNHANDLED: $handlerType  (state: ${currentState::class.simpleName})")
+        logger.log(tag = tag, message = "[$tag] ✗ REJECTED : $handlerType  (state: ${currentState::class.simpleName})")
     }
 
     override fun onError(error: Throwable, currentState: State, handlerType: HandlerType<Action>) {
