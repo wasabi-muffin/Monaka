@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.LifecycleEvent
+import dev.gmvalentino.monaka.core.DEFAULT_BUFFER_CAPACITY
 import dev.gmvalentino.monaka.core.InternalMonakaApi
 import dev.gmvalentino.monaka.core.State as StateMarker
 import dev.gmvalentino.monaka.core.StateHook
@@ -405,7 +406,4 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         jobRegistry = jobRegistry,
     )
 
-    companion object {
-        private const val DEFAULT_BUFFER_CAPACITY: Int = 64
-    }
 }

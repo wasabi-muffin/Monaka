@@ -1,6 +1,7 @@
 package dev.gmvalentino.monaka.dsl
 
 import kotlinx.coroutines.CoroutineScope
+import dev.gmvalentino.monaka.core.DEFAULT_BUFFER_CAPACITY
 import dev.gmvalentino.monaka.runtime.defaultCoroutineScope
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
@@ -51,7 +52,8 @@ import dev.gmvalentino.monaka.runtime.DefaultStore
  * @param extraBufferCapacity `extraBufferCapacity` for the effects (and actions) [kotlinx.coroutines.flow.SharedFlow].
  *                              Increase this if your machine emits effects in rapid bursts so that
  *                              [kotlinx.coroutines.flow.MutableSharedFlow.emit] does not suspend and
- *                              stall the processing loop. Defaults to [DEFAULT_BUFFER_CAPACITY].
+ *                              stall the processing loop. Defaults to
+ *                              [dev.gmvalentino.monaka.core.DEFAULT_BUFFER_CAPACITY].
  * @param builder               DSL configuration block. Must call [StateMachineBuilder.initialState]
  *                              unless [initialState] is provided.
  */
@@ -89,7 +91,7 @@ public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> s
  * @param initialState          When non-null, overrides [StateMachine.initialState].
  * @param plugins               Appended **after** any plugins in [stateMachine].
  * @param extraBufferCapacity `extraBufferCapacity` for the effects (and actions) [kotlinx.coroutines.flow.SharedFlow].
- *                              Defaults to [DEFAULT_BUFFER_CAPACITY].
+ *                              Defaults to [dev.gmvalentino.monaka.core.DEFAULT_BUFFER_CAPACITY].
  */
 public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
     stateMachine: StateMachine<State, Action, Effect>,
@@ -111,5 +113,3 @@ public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> s
     extraBufferCapacity = extraBufferCapacity,
 )
 
-/** Default [kotlinx.coroutines.flow.SharedFlow] `extraBufferCapacity` for effects and actions. */
-private const val DEFAULT_BUFFER_CAPACITY: Int = 64

@@ -4,6 +4,7 @@ package dev.gmvalentino.monaka.dsl
 
 import kotlin.uuid.ExperimentalUuidApi
 import kotlinx.coroutines.CoroutineScope
+import dev.gmvalentino.monaka.core.DEFAULT_BUFFER_CAPACITY
 import dev.gmvalentino.monaka.runtime.defaultCoroutineScope
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
@@ -84,7 +85,8 @@ import dev.gmvalentino.monaka.runtime.DefaultStore
  * - [initialState]: when non-null, replaces the state set by [dev.gmvalentino.monaka.dsl.StateMachineBuilder.initialState].
  * - [plugins]: appended **after** any plugins installed inside the `init` block.
  * - [extraBufferCapacity]: `extraBufferCapacity` for the effects (and actions) [kotlinx.coroutines.flow.SharedFlow].
- *   Increase this if your machine emits effects in rapid bursts. Defaults to [DEFAULT_BUFFER_CAPACITY].
+ *   Increase this if your machine emits effects in rapid bursts. Defaults to
+ *   [dev.gmvalentino.monaka.core.DEFAULT_BUFFER_CAPACITY].
  */
 public class StateMachineStore<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
     /** The immutable [StateMachine] configuration this store is backed by. */
@@ -105,8 +107,4 @@ public class StateMachineStore<State : StateMarker, Action : ActionMarker, Effec
     errorHandlers = stateMachine.errorHandlers,
     plugins = stateMachine.plugins + plugins,
     extraBufferCapacity = extraBufferCapacity,
-) {
-    public companion object {
-        private const val DEFAULT_BUFFER_CAPACITY: Int = 64
-    }
-}
+)

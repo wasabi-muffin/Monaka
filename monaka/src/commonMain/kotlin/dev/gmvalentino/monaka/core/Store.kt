@@ -56,8 +56,8 @@ public interface Store<State : StateMarker, Action : ActionMarker, out Effect : 
      * One-shot side effects, exposed as a [SharedFlow] with no replay.
      *
      * Late subscribers will not receive effects that were emitted before they
-     * started collecting. Buffer overflow is handled with extraBufferCapacity
-     * so that fast producers don't block state processing.
+     * started collecting. Both this flow and [actions] are created with
+     * [DEFAULT_BUFFER_CAPACITY] slots so that fast producers don't block state processing.
      */
     public val effects: SharedFlow<Effect>
 

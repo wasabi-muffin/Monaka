@@ -1,6 +1,10 @@
 public abstract interface class dev/gmvalentino/monaka/core/Action {
 }
 
+public final class dev/gmvalentino/monaka/core/DefaultsKt {
+	public static final field DEFAULT_BUFFER_CAPACITY I
+}
+
 public abstract interface class dev/gmvalentino/monaka/core/Effect {
 }
 
@@ -139,7 +143,6 @@ public final class dev/gmvalentino/monaka/dsl/StateMachineFactoryKt {
 }
 
 public final class dev/gmvalentino/monaka/dsl/StateMachineStore : dev/gmvalentino/monaka/core/Store {
-	public static final field Companion Ldev/gmvalentino/monaka/dsl/StateMachineStore$Companion;
 	public fun <init> (Ldev/gmvalentino/monaka/dsl/StateMachine;Lkotlinx/coroutines/CoroutineScope;Ldev/gmvalentino/monaka/core/State;Ljava/util/List;I)V
 	public synthetic fun <init> (Ldev/gmvalentino/monaka/dsl/StateMachine;Lkotlinx/coroutines/CoroutineScope;Ldev/gmvalentino/monaka/core/State;Ljava/util/List;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun cancel ()V
@@ -154,9 +157,6 @@ public final class dev/gmvalentino/monaka/dsl/StateMachineStore : dev/gmvalentin
 	public fun onLifecycleEvent (Ldev/gmvalentino/monaka/core/LifecycleEvent;)V
 	public fun start ()V
 	public fun triggerStateHook (Ldev/gmvalentino/monaka/core/StateHook;)V
-}
-
-public final class dev/gmvalentino/monaka/dsl/StateMachineStore$Companion {
 }
 
 public final class dev/gmvalentino/monaka/dsl/StoreFactoryKt {
