@@ -32,7 +32,7 @@ public class RelayBuilder<SourceState : StateMarker, SourceAction : ActionMarker
      * [RelayScope.event] is the matched state.
      *
      * ```kotlin
-     * state<AuthState.SignedIn> { dispatch<CartStore>(CartAction.LoadForUser(event.user.id)) }
+     * state<AuthState.SignedIn> { dispatch(CartStore::class, CartAction.LoadForUser(event.user.id)) }
      * ```
      */
     public inline fun <reified S : SourceState> state(crossinline block: RelayScope<S>.() -> Unit) {
@@ -44,7 +44,7 @@ public class RelayBuilder<SourceState : StateMarker, SourceAction : ActionMarker
      * [RelayScope.event] is the matched effect.
      *
      * ```kotlin
-     * effect<CartEffect.CartChanged> { dispatch<CheckoutStore>(CheckoutAction.SyncCart(event.items, event.total)) }
+     * effect<CartEffect.CartChanged> { dispatch(CheckoutStore::class, CheckoutAction.SyncCart(event.items, event.total)) }
      * ```
      */
     public inline fun <reified E : SourceEffect> effect(crossinline block: RelayScope<E>.() -> Unit) {
@@ -56,7 +56,7 @@ public class RelayBuilder<SourceState : StateMarker, SourceAction : ActionMarker
      * [RelayScope.event] is the matched action.
      *
      * ```kotlin
-     * action<AuthAction.SignOut> { dispatch<SessionStore>(SessionAction.Invalidate) }
+     * action<AuthAction.SignOut> { dispatch(SessionStore::class, SessionAction.Invalidate) }
      * ```
      */
     public inline fun <reified A : SourceAction> action(crossinline block: RelayScope<A>.() -> Unit) {

@@ -20,10 +20,10 @@ import dev.gmvalentino.monaka.runtime.StoreRegistry
  * Create instances with the [relay] factory:
  * ```kotlin
  * val authRelay = relay(from = AuthStore::class) {
- *     state<AuthState.SignedIn>  { dispatch<CartStore>(CartAction.LoadForUser(event.user.id)) }
+ *     state<AuthState.SignedIn>  { dispatch(CartStore::class, CartAction.LoadForUser(event.user.id)) }
  *     state<AuthState.SignedOut> {
- *         dispatch<CartStore>(CartAction.Clear)
- *         dispatch<CheckoutStore>(CheckoutAction.Cancel)
+ *         dispatch(CartStore::class, CartAction.Clear)
+ *         dispatch(CheckoutStore::class, CheckoutAction.Cancel)
  *     }
  * }
  *

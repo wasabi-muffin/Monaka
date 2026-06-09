@@ -1,11 +1,11 @@
 package dev.gmvalentino.monaka.relay
 
-import kotlin.reflect.KClass
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.State as StateMarker
 import dev.gmvalentino.monaka.core.Store
 import dev.gmvalentino.monaka.runtime.StoreRegistry
+import kotlin.reflect.KClass
 
 /**
  * Implicit receiver inside every `state`/`effect`/`action` relay block.
@@ -19,36 +19,10 @@ public class RelayScope<out Event> @PublishedApi internal constructor(
     @PublishedApi internal val registry: StoreRegistry,
 ) {
     /**
-     * Relay [action] to registered instances of store [S], identified by reified type argument.
-     *
-     * When [id] is `null` (default), the action is dispatched to **every** registered
-     * instance of [S]. When [id] is provided, it is dispatched only to the instance of
-     * [S] whose [Store.id] matches — a no-op if no such instance is registered.
-     *
-     * ```kotlin
-     * dispatch<CartStore>(CartAction.Clear)                 // all CartStore instances
-     * dispatch<CartStore>(CartAction.Clear, id = cartId)    // the one with this id
-     * ```
-     *
-     * Note: in this form [action] is typed as the [ActionMarker] base rather than [S]'s
-     * specific action type — Kotlin cannot infer the action type while [S] is given explicitly.
-     * An action the target store has no handler for is treated as unhandled (see
-     * [dev.gmvalentino.monaka.plugin.Plugin.onRejected]); it does not throw. Use the [KClass] overload
-     * below when you want the compiler to verify the action belongs to the target store.
-     */
-    public inline fun <reified S : Store<*, *, *>> dispatch(action: ActionMarker, id: String? = null) {
-        @Suppress("UNCHECKED_CAST")
-        val targets = registry.getAll(kClass = S::class as KClass<out Store<StateMarker, ActionMarker, EffectMarker>>)
-        targets.forEach { store ->
-            if (id == null || store.id == id) store.dispatch(action = action)
-        }
-    }
-
-    /**
      * Relay [action] to registered instances of the store class [target].
      *
-     * Equivalent to the reified overload, but the action type [A] is inferred from [target],
-     * so the compiler verifies [action] is an action the target store actually accepts.
+     * The action type [A] is inferred from [target], so the compiler verifies [action] is an
+     * action the target store actually accepts.
      *
      * When [id] is `null` (default), the action is dispatched to **every** registered instance
      * of [target]. When [id] is provided, only the instance whose [Store.id] matches receives it.

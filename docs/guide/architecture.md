@@ -110,15 +110,16 @@ automatically when the first collector subscribes to `state`, `actions`, or `eff
 
 ## Effects — `SharedFlow` with buffer
 
-Effects are emitted on a `MutableSharedFlow(extraBufferCapacity = 64)` with `replay = 0`.
+Effects are emitted on a `MutableSharedFlow(extraBufferCapacity = DEFAULT_BUFFER_CAPACITY)` with
+`replay = 0`. The same capacity is applied to the actions flow.
 
 - **No replay** — late subscribers miss effects emitted before they started collecting. This is
   intentional: effects are one-shot events (navigate, show toast). Wrap your collector in
   `handleEffects { }` (see [Compose integration](compose.md)) to ensure nothing is missed during
   configuration changes.
-- **Buffer** — the `extraBufferCapacity = 64` prevents the processing coroutine from suspending
-  when a collector is slow. Increase it via the `extraBufferCapacity` parameter on `store { }`
-  or `StateMachineStore` if your machine emits effects in rapid bursts.
+- **Buffer** — the default capacity (`DEFAULT_BUFFER_CAPACITY = 64`) prevents the processing
+  coroutine from suspending when a collector is slow. Increase it via the `extraBufferCapacity`
+  parameter on `store { }` or `StateMachineStore` if your machine emits effects in rapid bursts.
 
 ---
 

@@ -39,16 +39,16 @@ Create one with the `relay` factory:
 ```kotlin
 val authRelay = relay(from = AuthStore::class) {
     state<AuthState.SignedIn> {
-        dispatch<CartStore>(CartAction.LoadForUser(event.user.id))
+        dispatch(CartStore::class, CartAction.LoadForUser(event.user.id))
     }
     state<AuthState.SignedOut> {
-        dispatch<CartStore>(CartAction.Clear)
-        dispatch<CheckoutStore>(CheckoutAction.Cancel)
+        dispatch(CartStore::class, CartAction.Clear)
+        dispatch(CheckoutStore::class, CheckoutAction.Cancel)
     }
 }
 ```
 
-Inside each block, `event` holds the typed source event that matched. `dispatch<TargetStore>(action)`
+Inside each block, `event` holds the typed source event that matched. `dispatch(TargetStore::class, action)`
 looks up all registered instances of `TargetStore` in the registry and dispatches the action to
 each one.
 
@@ -66,17 +66,17 @@ A relay block can react to three kinds of source event:
 relay(from = CartStore::class) {
     // State-based relay
     state<CartState.Empty> {
-        dispatch<CheckoutStore>(CheckoutAction.Cancel)
+        dispatch(CheckoutStore::class, CheckoutAction.Cancel)
     }
 
     // Effect-based relay
     effect<CartEffect.CartChanged> {
-        dispatch<CheckoutStore>(CheckoutAction.SyncCart(event.items, event.total))
+        dispatch(CheckoutStore::class, CheckoutAction.SyncCart(event.items, event.total))
     }
 
     // Action-based relay (react to an action dispatched to the source)
     action<CartAction.Clear> {
-        dispatch<AnalyticsStore>(AnalyticsAction.TrackCartCleared)
+        dispatch(AnalyticsStore::class, AnalyticsAction.TrackCartCleared)
     }
 }
 ```
@@ -91,7 +91,7 @@ one by its `id`:
 
 ```kotlin
 state<ChatState.NewMessage> {
-    dispatch<NotificationStore>(NotificationAction.Show(event.message), id = event.roomId)
+    dispatch(NotificationStore::class, NotificationAction.Show(event.message), id = event.roomId)
 }
 ```
 
@@ -173,20 +173,20 @@ object AuthRelay : Relay<AuthState, AuthAction, AuthEffect> by relay(from = Auth
         dispatch(CartStore::class, CartAction.LoadForUser(event.user.id))
     }
     state<AuthState.SignedOut> {
-        dispatch<CartStore>(CartAction.Clear)
-        dispatch<CheckoutStore>(CheckoutAction.Cancel)
+        dispatch(CartStore::class, CartAction.Clear)
+        dispatch(CheckoutStore::class, CheckoutAction.Cancel)
     }
 })
 
 object CartRelay : Relay<CartState, CartAction, CartEffect> by relay(from = CartStore::class, builder = {
     effect<CartEffect.CartChanged> {
-        dispatch<CheckoutStore>(CheckoutAction.SyncCart(event.items, event.total))
+        dispatch(CheckoutStore::class, CheckoutAction.SyncCart(event.items, event.total))
     }
 })
 
 object CheckoutRelay : Relay<CheckoutState, CheckoutAction, CheckoutEffect> by relay(from = CheckoutStore::class, builder = {
     state<CheckoutState.Done> {
-        dispatch<CartStore>(CartAction.Clear)
+        dispatch(CartStore::class, CartAction.Clear)
     }
 })
 ```

@@ -12,6 +12,6 @@ import dev.gmvalentino.monaka.relay.relay
 // Cart → Checkout: keep the order summary in sync when the cart changes.
 object CartRelay : Relay<CartState, CartAction, CartEffect> by relay(from = CartStore::class, builder = {
     effect<CartEffect.CartChanged> {
-        dispatch<CheckoutStore>(CheckoutAction.SyncCart(event.items, event.total))
+        dispatch(CheckoutStore::class, CheckoutAction.SyncCart(event.items, event.total))
     }
 })

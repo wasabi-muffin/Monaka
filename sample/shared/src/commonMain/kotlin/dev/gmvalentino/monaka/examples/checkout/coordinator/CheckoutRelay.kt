@@ -10,7 +10,6 @@ import dev.gmvalentino.monaka.relay.Relay
 import dev.gmvalentino.monaka.relay.relay
 
 // Checkout → Cart: clear the cart once an order is placed.
-// Uses the KClass form of dispatch, which type-checks the action against the target store.
 object CheckoutRelay : Relay<CheckoutState, CheckoutAction, CheckoutEffect> by relay(from = CheckoutStore::class, builder = {
     state<CheckoutState.Done> {
         dispatch(CartStore::class, CartAction.Clear)

@@ -15,10 +15,10 @@ import dev.gmvalentino.monaka.relay.relay
 // any in-progress checkout on sign-out. One relay fans out to multiple targets.
 object AuthRelay : Relay<AuthState, AuthAction, AuthEffect> by relay(from = AuthStore::class, builder = {
     state<AuthState.SignedIn> {
-        dispatch<CartStore>(CartAction.LoadForUser(event.user.id))
+        dispatch(target = CartStore::class, CartAction.LoadForUser(event.user.id))
     }
     state<AuthState.SignedOut> {
-        dispatch<CartStore>(CartAction.Clear)
-        dispatch<CheckoutStore>(CheckoutAction.Cancel)
+        dispatch(CartStore::class, CartAction.Clear)
+        dispatch(CheckoutStore::class, CheckoutAction.Cancel)
     }
 })

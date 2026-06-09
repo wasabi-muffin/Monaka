@@ -48,15 +48,16 @@ object AuthRelay : Relay<AuthState, AuthAction, AuthEffect>
             dispatch(CartStore::class, CartAction.LoadForUser(event.user.id))
         }
         state<AuthState.SignedOut> {
-            dispatch<CartStore>(CartAction.Clear)
-            dispatch<CheckoutStore>(CheckoutAction.Cancel)
+            dispatch(CartStore::class, CartAction.Clear)
+            dispatch(CheckoutStore::class, CheckoutAction.Cancel)
         }
     })
 
 object CartRelay : Relay<CartState, CartAction, CartEffect>
     by relay(from = CartStore::class, builder = {
         effect<CartEffect.CartChanged> {
-            dispatch<CheckoutStore>(
+            dispatch(
+                CheckoutStore::class,
                 CheckoutAction.SyncCart(items = event.items, total = event.total)
             )
         }
@@ -65,14 +66,15 @@ object CartRelay : Relay<CartState, CartAction, CartEffect>
 object CheckoutRelay : Relay<CheckoutState, CheckoutAction, CheckoutEffect>
     by relay(from = CheckoutStore::class, builder = {
         state<CheckoutState.Done> {
-            dispatch<CartStore>(CartAction.Clear)
+            dispatch(CartStore::class, CartAction.Clear)
         }
     })
 ```
 
 The `event` property on `RelayScope` holds the typed source event (state, effect, or action)
-that triggered the block. `dispatch<TargetStore>(action)` resolves all registered instances of
-`TargetStore` from the registry and dispatches to each.
+that triggered the block. `dispatch(TargetStore::class, action)` resolves all registered instances of
+`TargetStore` from the registry and dispatches to each. The action type is verified by the
+compiler against the target store's action type.
 
 ---
 
