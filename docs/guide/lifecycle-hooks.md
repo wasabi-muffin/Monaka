@@ -38,9 +38,9 @@ state<MyState.Loading> {
 
 state<MyState.Active> {
     onUpdate {
-        // fromState and toState are available in the scope
-        if (fromState.query != toState.query) {
-            task { analytics.track(toState.query) }
+        // state = new value; fromState = previous value
+        if (fromState.query != state.query) {
+            task { analytics.track(state.query) }
         }
     }
 }

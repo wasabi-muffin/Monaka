@@ -77,6 +77,26 @@ on<LoginAction.Submit> {
 }
 ```
 
+### Custom `coroutineScope` for tasks
+
+By default, `task { }` launches inside `machineScope` — the coroutine scope tied to the
+store's lifetime. Pass a shorter-lived scope to automatically cancel the task when that scope
+is cancelled, independently of state-type changes or explicit `cancel()` calls:
+
+```kotlin
+// Keyed task scoped to the current request's scope — cancelled when the request completes
+on<DownloadAction.Start> {
+    task("download", coroutineScope = requestScope) {
+        val bytes = fileRepository.download(state.url)
+        dispatch(DownloadAction.Completed(bytes))
+    }
+    transition(DownloadState.Downloading)
+}
+```
+
+This is useful when a task's lifecycle is tied to an external resource (a network call, an
+open socket, a scoped DI component) that can be cancelled independently of the machine.
+
 ---
 
 ## Handler verbs

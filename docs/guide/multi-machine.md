@@ -120,6 +120,31 @@ To unregister manually:
 registry.unregister(store)
 ```
 
+### Querying the registry
+
+Retrieve stores by class or by instance ID:
+
+```kotlin
+// First registered instance of the class, or null
+val auth: Store<AuthState, AuthAction, AuthEffect>? = registry.get(AuthStore::class)
+
+// All registered instances of the class (snapshot at call time)
+val rooms: List<Store<RoomState, RoomAction, RoomEffect>> = registry.getAll(RoomStore::class)
+
+// A specific instance by its Store.id (e.g. a UUID assigned at construction)
+val room: Store<RoomState, RoomAction, RoomEffect>? = registry.getById(roomId)
+
+// Check whether any instance of the class is registered
+if (AuthStore::class in registry) { … }
+
+// The set of KClasses that have at least one registered instance
+val registered: Set<KClass<out Store<*, *, *>>> = registry.keys
+```
+
+`get` and `getAll` return a snapshot — mutating the registry afterwards does not affect the
+returned list. `getById` performs a linear scan across all registered instances; prefer class-keyed
+lookup unless you specifically need an instance by UUID.
+
 Relays and stores can be installed in any order. If a relay is installed after its source store
 is already registered, it starts observing immediately.
 
