@@ -96,15 +96,14 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     private val triggers = Channel<Trigger<State, Action>>(Channel.UNLIMITED)
     private val currentState: State get() = _state.value
 
-    private val ancestorCache = HashMap<KClass<out State>, List<KClass<out State>>>()
-    private val registeredStates: Set<KClass<out State>> = buildSet {
-        addAll(actionHandlers.keys)
-        addAll(enterHandlers.keys)
-        addAll(exitHandlers.keys)
-        addAll(updateHandlers.keys)
-        addAll(lifecycleHandlers.keys)
-        addAll(errorHandlers.keys)
-    }
+    private val resolver = HandlerResolver(
+        actionHandlers = actionHandlers,
+        enterHandlers = enterHandlers,
+        exitHandlers = exitHandlers,
+        updateHandlers = updateHandlers,
+        lifecycleHandlers = lifecycleHandlers,
+        errorHandlers = errorHandlers,
+    )
 
     private val jobRegistry = JobRegistry()
     private val processingJob = machineScope.launch {
@@ -171,7 +170,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         _actions.tryEmit(action)
         plugins.forEach { it.onAction(currentState = currentState, action = action) }
         val handlerType = HandlerType.Action(action = action)
-        resolveActionHandler(state = currentState, action = action)?.handle(
+        resolver.resolveActionHandler(state = currentState, action = action)?.handle(
             handlerType = handlerType,
             scope = actionScope(state = currentState, action = action),
             state = currentState,
@@ -179,7 +178,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     }
 
     private suspend fun processLifecycleEvent(event: LifecycleEvent) {
-        resolveHandler(handlerMap = lifecycleHandlers, state = currentState)?.get(key = event)?.handle(
+        resolver.resolveHandler(handlerMap = lifecycleHandlers, state = currentState)?.get(key = event)?.handle(
             handlerType = HandlerType.Lifecycle(event = event),
             scope = lifecycleScope(state = currentState),
             state = currentState,
@@ -188,13 +187,13 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
 
     private suspend fun processStateHook(hook: StateHook<State>) {
         when (hook) {
-            StateHook.OnEnter -> resolveHandler(handlerMap = enterHandlers, state = currentState)?.handle(
+            StateHook.OnEnter -> resolver.resolveHandler(handlerMap = enterHandlers, state = currentState)?.handle(
                 handlerType = HandlerType.Hook.Enter,
                 scope = stateChangeScope(state = currentState),
                 state = currentState,
             )
 
-            StateHook.OnExit -> resolveHandler(handlerMap = exitHandlers, state = currentState)?.handle(
+            StateHook.OnExit -> resolver.resolveHandler(handlerMap = exitHandlers, state = currentState)?.handle(
                 handlerType = HandlerType.Hook.Exit,
                 scope = stateChangeScope(state = currentState),
                 state = currentState,
@@ -204,7 +203,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
                 // Safe: hook is StateHook<State> so the only OnUpdate subtype it can be is OnUpdate<State>.
                 @Suppress("UNCHECKED_CAST")
                 val update = hook as StateHook.OnUpdate<State>
-                resolveHandler(handlerMap = updateHandlers, state = currentState)?.handle(
+                resolver.resolveHandler(handlerMap = updateHandlers, state = currentState)?.handle(
                     handlerType = HandlerType.Hook.Update,
                     scope = updateHandlerScope(fromState = update.previousState, toState = currentState),
                     state = currentState,
@@ -283,12 +282,12 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
      */
     private suspend fun processStateChange(fromState: State, toState: State) {
         jobRegistry.cancelAutoCancellable()
-        resolveHandler(handlerMap = exitHandlers, state = fromState)?.handle(
+        resolver.resolveHandler(handlerMap = exitHandlers, state = fromState)?.handle(
             handlerType = HandlerType.Hook.Exit,
             scope = stateChangeScope(state = fromState),
             state = fromState,
         )
-        resolveHandler(handlerMap = enterHandlers, state = toState)?.handle(
+        resolver.resolveHandler(handlerMap = enterHandlers, state = toState)?.handle(
             handlerType = HandlerType.Hook.Enter,
             scope = stateChangeScope(state = toState),
             state = toState,
@@ -296,59 +295,11 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     }
 
     private suspend fun processStateUpdate(fromState: State, toState: State) {
-        resolveHandler(handlerMap = updateHandlers, state = toState)?.handle(
+        resolver.resolveHandler(handlerMap = updateHandlers, state = toState)?.handle(
             handlerType = HandlerType.Hook.Update,
             scope = updateHandlerScope(fromState = fromState, toState = toState),
             state = toState,
         )
-    }
-
-    // ── Handler helpers ────────────────────────────────────────────────────
-
-    /**
-     * Returns all registered state classes that are supertypes of [state]'s class,
-     * in the order they were registered across all handler maps.
-     *
-     * The result is computed once per unique state class using [KClass.isInstance] and
-     * then cached in [ancestorCache], so every subsequent call for the same state class
-     * is an O(1) map lookup. [registeredStates] is built at construction time
-     * from the keys of all handler maps, bounding the scan to registered classes only.
-     *
-     * Safe to call without synchronization — [ancestorCache] is only ever written from
-     * the single sequential processing coroutine.
-     */
-    private fun ancestorsFor(state: State): List<KClass<out State>> = ancestorCache.getOrPut(state::class) {
-        registeredStates.filter { it != state::class && it.isInstance(state) }
-    }
-
-    /**
-     * Resolve the handler for the given [state] + [action] pair.
-     *
-     * Priority:
-     * 1. Exact state match — `actionHandlers[state::class][action::class]`
-     * 2. Registered ancestor classes in insertion order, via [ancestorsFor].
-     *    Register more-specific parent blocks after leaf blocks to control priority.
-     * 3. `null` → [Plugin.onRejected] is called and the action is dropped.
-     */
-    private fun resolveActionHandler(state: State, action: Action): ActionHandler<State, Action, Effect>? {
-        actionHandlers[state::class]?.get(key = action::class)?.let { return it }
-        for (ancestorClass in ancestorsFor(state)) {
-            actionHandlers[ancestorClass]?.get(action::class)?.let { return it }
-        }
-        return null
-    }
-
-    /**
-     * Generic exact-match + ancestor lookup used by all handler maps except [actionHandlers].
-     * Returns the first value whose registered [KClass] key matches [state] exactly,
-     * or is a registered ancestor of it via [ancestorsFor].
-     */
-    private fun <Handler> resolveHandler(handlerMap: Map<KClass<out State>, Handler>, state: State): Handler? {
-        handlerMap[state::class]?.let { return it }
-        for (ancestorClass in ancestorsFor(state)) {
-            handlerMap[ancestorClass]?.let { return it }
-        }
-        return null
     }
 
     /**
@@ -371,7 +322,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     }.onSuccess { result ->
         processResult(fromState = state, result = result, handlerType = handlerType)
     }.onFailure { throwable ->
-        val stateErrorHandler = resolveHandler(handlerMap = errorHandlers, state = state)
+        val stateErrorHandler = resolver.resolveHandler(handlerMap = errorHandlers, state = state)
         if (stateErrorHandler != null) {
             val recovery = errorScope(state = state, error = throwable, handlerType = handlerType)
             runCatching {

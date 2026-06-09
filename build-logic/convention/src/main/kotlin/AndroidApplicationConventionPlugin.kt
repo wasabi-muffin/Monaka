@@ -2,6 +2,7 @@ import com.android.build.api.dsl.ApplicationExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /**
  * Convention for Android application modules.
@@ -40,6 +41,10 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 buildFeatures {
                     compose = true
                 }
+            }
+
+            tasks.withType(KotlinCompile::class.java).configureEach {
+                compilerOptions.freeCompilerArgs.add("-Xskip-prerelease-check")
             }
         }
     }
