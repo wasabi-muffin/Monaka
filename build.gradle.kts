@@ -1,4 +1,3 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
@@ -18,4 +17,40 @@ apiValidation {
         "shared",
         "monaka-transitions",
     )
+}
+
+
+// ── MkDocs documentation tasks ───────────────────────────────────────────────
+
+val venvDir = layout.projectDirectory.dir(".venv")
+val mkdocsBin = layout.projectDirectory.file(".venv/bin/mkdocs")
+
+tasks.register<Exec>("mkdocsInstall") {
+    group = "documentation"
+    description = "Creates .venv and installs mkdocs-material from requirements.txt."
+    inputs.file(layout.projectDirectory.file("requirements.txt"))
+    outputs.file(mkdocsBin)
+    commandLine(
+        "sh", "-c",
+        "python3 -m venv ${venvDir.asFile.absolutePath} && " +
+                "${venvDir.file("bin/pip").asFile.absolutePath} install --quiet " +
+                "-r ${layout.projectDirectory.file("requirements.txt").asFile.absolutePath}",
+    )
+}
+
+tasks.register<Exec>("mkdocsBuild") {
+    group = "documentation"
+    description = "Builds the MkDocs static site into site/."
+    dependsOn("mkdocsInstall")
+    inputs.file(layout.projectDirectory.file("mkdocs.yml"))
+    inputs.dir(layout.projectDirectory.dir("docs"))
+    outputs.dir(layout.projectDirectory.dir("site"))
+    commandLine(mkdocsBin.asFile.absolutePath, "build", "--strict")
+}
+
+tasks.register<Exec>("mkdocsServe") {
+    group = "documentation"
+    description = "Starts the MkDocs dev server with live reload at http://127.0.0.1:8000."
+    dependsOn("mkdocsInstall")
+    commandLine(mkdocsBin.asFile.absolutePath, "serve")
 }
