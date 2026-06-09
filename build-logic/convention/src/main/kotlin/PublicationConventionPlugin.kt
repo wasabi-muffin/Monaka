@@ -22,8 +22,8 @@ class PublicationConventionPlugin : Plugin<Project> {
         with(target) {
             pluginManager.apply("com.vanniktech.maven.publish")
 
-            group = "dev.gmvalentino"
-            version = "0.1.0"
+            group = Config.GROUP
+            version = Config.VERSION
 
             extensions.configure<MavenPublishBaseExtension> {
                 publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
@@ -51,16 +51,16 @@ class PublicationConventionPlugin : Plugin<Project> {
 
                     developers {
                         developer {
-                            id.set("fika-tech")
-                            name.set("Fika Tech")
-                            url.set("https://github.com/fika-tech")
+                            id.set("wasabi-muffin")
+                            name.set("Marco Valentino")
+                            url.set("https://github.com/wasabi-muffin")
                         }
                     }
 
                     scm {
-                        url.set("https://github.com/fika-tech/Monaka")
-                        connection.set("scm:git:git://github.com/fika-tech/Monaka.git")
-                        developerConnection.set("scm:git:ssh://github.com/fika-tech/Monaka.git")
+                        url.set("https://github.com/wasabi-muffin/Monaka")
+                        connection.set("scm:git:git://github.com/wasabi-muffin/Monaka.git")
+                        developerConnection.set("scm:git:ssh://github.com/wasabi-muffin/Monaka.git")
                     }
                 }
             }

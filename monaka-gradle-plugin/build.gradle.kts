@@ -1,21 +1,19 @@
 plugins {
     `java-gradle-plugin`
-    kotlin("jvm") version "2.3.21"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.monaka.publication)
 }
-
-group = "dev.gmvalentino.monaka"
-version = "0.1.0"
 
 dependencies {
     compileOnly(gradleApi())
-    testImplementation(kotlin("test"))
     testImplementation(gradleApi())
+    testImplementation(kotlin("test"))
 }
 
 gradlePlugin {
     plugins {
-        register("monakaYamlExport") {
-            id = "dev.gmvalentino.monaka.yaml-export"
+        register("monakaGradlePlugin") {
+            id = "dev.gmvalentino.monaka.gradle-plugin"
             implementationClass = "dev.gmvalentino.monaka.gradle.MonakaPlugin"
         }
     }

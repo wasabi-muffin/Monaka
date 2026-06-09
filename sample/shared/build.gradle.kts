@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.monaka.compose)
     alias(libs.plugins.compiler.plugin)
     alias(libs.plugins.ksp)
-    id("dev.gmvalentino.monaka.yaml-export")
+    alias(libs.plugins.monaka.gradle.plugin)
 }
 
 kotlin {
@@ -18,9 +18,6 @@ kotlin {
 
     jvm()
 
-    // Compose Multiplatform 1.11+ no longer publishes iosX64 binaries (Intel Mac
-    // simulators). Apple-silicon Macs (M1+) use iosSimulatorArm64 for the simulator
-    // and iosArm64 for physical devices.
     listOf(
         iosArm64(),
         iosSimulatorArm64(),
@@ -58,7 +55,7 @@ kotlin {
 }
 
 dependencies {
-    add("kspCommonMainMetadata", project(":monaka-processor"))
+    add("kspCommonMainMetadata", project(":monaka-transitions"))
 }
 
 kotlin.sourceSets.commonMain {
