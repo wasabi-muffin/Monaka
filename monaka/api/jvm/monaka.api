@@ -1,0 +1,395 @@
+public abstract interface class dev/gmvalentino/monaka/core/Action {
+}
+
+public abstract interface class dev/gmvalentino/monaka/core/Effect {
+}
+
+public final class dev/gmvalentino/monaka/core/LifecycleEvent : java/lang/Enum {
+	public static final field OnCreate Ldev/gmvalentino/monaka/core/LifecycleEvent;
+	public static final field OnDestroy Ldev/gmvalentino/monaka/core/LifecycleEvent;
+	public static final field OnPause Ldev/gmvalentino/monaka/core/LifecycleEvent;
+	public static final field OnResume Ldev/gmvalentino/monaka/core/LifecycleEvent;
+	public static final field OnStart Ldev/gmvalentino/monaka/core/LifecycleEvent;
+	public static final field OnStop Ldev/gmvalentino/monaka/core/LifecycleEvent;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/gmvalentino/monaka/core/LifecycleEvent;
+	public static fun values ()[Ldev/gmvalentino/monaka/core/LifecycleEvent;
+}
+
+public abstract interface annotation class dev/gmvalentino/monaka/core/SelfTransition : java/lang/annotation/Annotation {
+}
+
+public abstract interface class dev/gmvalentino/monaka/core/State {
+}
+
+public abstract interface class dev/gmvalentino/monaka/core/StateHook {
+}
+
+public final class dev/gmvalentino/monaka/core/StateHook$OnEnter : dev/gmvalentino/monaka/core/StateHook {
+	public static final field INSTANCE Ldev/gmvalentino/monaka/core/StateHook$OnEnter;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/gmvalentino/monaka/core/StateHook$OnExit : dev/gmvalentino/monaka/core/StateHook {
+	public static final field INSTANCE Ldev/gmvalentino/monaka/core/StateHook$OnExit;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/gmvalentino/monaka/core/StateHook$OnUpdate : dev/gmvalentino/monaka/core/StateHook {
+	public fun <init> (Ljava/lang/Object;)V
+	public final fun component1 ()Ljava/lang/Object;
+	public final fun copy (Ljava/lang/Object;)Ldev/gmvalentino/monaka/core/StateHook$OnUpdate;
+	public static synthetic fun copy$default (Ldev/gmvalentino/monaka/core/StateHook$OnUpdate;Ljava/lang/Object;ILjava/lang/Object;)Ldev/gmvalentino/monaka/core/StateHook$OnUpdate;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPreviousState ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/gmvalentino/monaka/core/Store {
+	public abstract fun cancel ()V
+	public abstract fun dispatch (Ldev/gmvalentino/monaka/core/Action;)V
+	public abstract fun getActions ()Lkotlinx/coroutines/flow/SharedFlow;
+	public abstract fun getEffects ()Lkotlinx/coroutines/flow/SharedFlow;
+	public abstract fun getId ()Ljava/lang/String;
+	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun invokeOnCompletion (Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/DisposableHandle;
+	public fun isActive ()Z
+	public fun onLifecycleEvent (Ldev/gmvalentino/monaka/core/LifecycleEvent;)V
+	public fun start ()V
+	public fun triggerStateHook (Ldev/gmvalentino/monaka/core/StateHook;)V
+}
+
+public final class dev/gmvalentino/monaka/core/Store$DefaultImpls {
+	public static fun isActive (Ldev/gmvalentino/monaka/core/Store;)Z
+	public static fun onLifecycleEvent (Ldev/gmvalentino/monaka/core/Store;Ldev/gmvalentino/monaka/core/LifecycleEvent;)V
+	public static fun start (Ldev/gmvalentino/monaka/core/Store;)V
+	public static fun triggerStateHook (Ldev/gmvalentino/monaka/core/Store;Ldev/gmvalentino/monaka/core/StateHook;)V
+}
+
+public abstract interface annotation class dev/gmvalentino/monaka/core/Transition : java/lang/annotation/Annotation {
+	public abstract fun to ()[Ljava/lang/Class;
+}
+
+public abstract interface annotation class dev/gmvalentino/monaka/dsl/MonakaDsl : java/lang/annotation/Annotation {
+}
+
+public final class dev/gmvalentino/monaka/dsl/StateBuilder {
+	public fun <init> ()V
+	public final fun getEnterHandler ()Lkotlin/jvm/functions/Function2;
+	public final fun getErrorHandler ()Lkotlin/jvm/functions/Function2;
+	public final fun getExitHandler ()Lkotlin/jvm/functions/Function2;
+	public final fun getHandlers ()Ljava/util/LinkedHashMap;
+	public final fun getLifecycleHandlers ()Ljava/util/LinkedHashMap;
+	public final fun getUpdateHandler ()Lkotlin/jvm/functions/Function2;
+	public final fun onCreate (Lkotlin/jvm/functions/Function2;)V
+	public final fun onDestroy (Lkotlin/jvm/functions/Function2;)V
+	public final fun onEnter (Lkotlin/jvm/functions/Function2;)V
+	public final fun onError (Lkotlin/jvm/functions/Function2;)V
+	public final fun onExit (Lkotlin/jvm/functions/Function2;)V
+	public final fun onLifecycle (Ldev/gmvalentino/monaka/core/LifecycleEvent;Lkotlin/jvm/functions/Function2;)V
+	public final fun onPause (Lkotlin/jvm/functions/Function2;)V
+	public final fun onResume (Lkotlin/jvm/functions/Function2;)V
+	public final fun onStart (Lkotlin/jvm/functions/Function2;)V
+	public final fun onStop (Lkotlin/jvm/functions/Function2;)V
+	public final fun onUpdate (Lkotlin/jvm/functions/Function2;)V
+	public final fun setEnterHandler (Lkotlin/jvm/functions/Function2;)V
+	public final fun setErrorHandler (Lkotlin/jvm/functions/Function2;)V
+	public final fun setExitHandler (Lkotlin/jvm/functions/Function2;)V
+	public final fun setUpdateHandler (Lkotlin/jvm/functions/Function2;)V
+}
+
+public abstract interface class dev/gmvalentino/monaka/dsl/StateMachine {
+	public abstract fun getActionHandlers ()Ljava/util/Map;
+	public abstract fun getEnterHandlers ()Ljava/util/Map;
+	public abstract fun getErrorHandlers ()Ljava/util/Map;
+	public abstract fun getExitHandlers ()Ljava/util/Map;
+	public abstract fun getId ()Ljava/lang/String;
+	public abstract fun getInitialState ()Ldev/gmvalentino/monaka/core/State;
+	public abstract fun getLifecycleHandlers ()Ljava/util/Map;
+	public abstract fun getPlugins ()Ljava/util/List;
+	public abstract fun getUpdateHandlers ()Ljava/util/Map;
+}
+
+public final class dev/gmvalentino/monaka/dsl/StateMachineBuilder {
+	public fun <init> ()V
+	public final fun build (Ldev/gmvalentino/monaka/core/State;Ljava/util/List;)Ldev/gmvalentino/monaka/dsl/StateMachine;
+	public static synthetic fun build$default (Ldev/gmvalentino/monaka/dsl/StateMachineBuilder;Ldev/gmvalentino/monaka/core/State;Ljava/util/List;ILjava/lang/Object;)Ldev/gmvalentino/monaka/dsl/StateMachine;
+	public final fun getActionHandlers ()Ljava/util/LinkedHashMap;
+	public final fun getEnterHandlers ()Ljava/util/LinkedHashMap;
+	public final fun getErrorHandlers ()Ljava/util/LinkedHashMap;
+	public final fun getExitHandlers ()Ljava/util/LinkedHashMap;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getLifecycleHandlers ()Ljava/util/LinkedHashMap;
+	public final fun getUpdateHandlers ()Ljava/util/LinkedHashMap;
+	public final fun initialState (Ldev/gmvalentino/monaka/core/State;)V
+	public final fun install (Ldev/gmvalentino/monaka/plugin/Plugin;)V
+	public final fun install ([Ldev/gmvalentino/monaka/plugin/Plugin;)V
+}
+
+public final class dev/gmvalentino/monaka/dsl/StateMachineFactoryKt {
+	public static final fun stateMachine (Lkotlin/jvm/functions/Function1;)Ldev/gmvalentino/monaka/dsl/StateMachine;
+}
+
+public final class dev/gmvalentino/monaka/dsl/StateMachineStore : dev/gmvalentino/monaka/core/Store {
+	public static final field Companion Ldev/gmvalentino/monaka/dsl/StateMachineStore$Companion;
+	public fun <init> (Ldev/gmvalentino/monaka/dsl/StateMachine;Lkotlinx/coroutines/CoroutineScope;Ldev/gmvalentino/monaka/core/State;Ljava/util/List;I)V
+	public synthetic fun <init> (Ldev/gmvalentino/monaka/dsl/StateMachine;Lkotlinx/coroutines/CoroutineScope;Ldev/gmvalentino/monaka/core/State;Ljava/util/List;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun cancel ()V
+	public fun dispatch (Ldev/gmvalentino/monaka/core/Action;)V
+	public fun getActions ()Lkotlinx/coroutines/flow/SharedFlow;
+	public fun getEffects ()Lkotlinx/coroutines/flow/SharedFlow;
+	public fun getId ()Ljava/lang/String;
+	public fun getState ()Lkotlinx/coroutines/flow/StateFlow;
+	public final fun getStateMachine ()Ldev/gmvalentino/monaka/dsl/StateMachine;
+	public fun invokeOnCompletion (Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/DisposableHandle;
+	public fun isActive ()Z
+	public fun onLifecycleEvent (Ldev/gmvalentino/monaka/core/LifecycleEvent;)V
+	public fun start ()V
+	public fun triggerStateHook (Ldev/gmvalentino/monaka/core/StateHook;)V
+}
+
+public final class dev/gmvalentino/monaka/dsl/StateMachineStore$Companion {
+}
+
+public final class dev/gmvalentino/monaka/dsl/StoreFactoryKt {
+	public static final fun store (Ldev/gmvalentino/monaka/dsl/StateMachine;Lkotlinx/coroutines/CoroutineScope;Ldev/gmvalentino/monaka/core/State;Ljava/util/List;I)Ldev/gmvalentino/monaka/core/Store;
+	public static final fun store (Lkotlinx/coroutines/CoroutineScope;Ldev/gmvalentino/monaka/core/State;Ljava/util/List;ILkotlin/jvm/functions/Function1;)Ldev/gmvalentino/monaka/core/Store;
+	public static synthetic fun store$default (Ldev/gmvalentino/monaka/dsl/StateMachine;Lkotlinx/coroutines/CoroutineScope;Ldev/gmvalentino/monaka/core/State;Ljava/util/List;IILjava/lang/Object;)Ldev/gmvalentino/monaka/core/Store;
+	public static synthetic fun store$default (Lkotlinx/coroutines/CoroutineScope;Ldev/gmvalentino/monaka/core/State;Ljava/util/List;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/gmvalentino/monaka/core/Store;
+}
+
+public abstract interface class dev/gmvalentino/monaka/handler/HandlerResult {
+}
+
+public final class dev/gmvalentino/monaka/handler/HandlerResult$Done : dev/gmvalentino/monaka/handler/HandlerResult {
+	public static final field INSTANCE Ldev/gmvalentino/monaka/handler/HandlerResult$Done;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/gmvalentino/monaka/handler/HandlerResult$Rejected : dev/gmvalentino/monaka/handler/HandlerResult {
+	public static final field INSTANCE Ldev/gmvalentino/monaka/handler/HandlerResult$Rejected;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/gmvalentino/monaka/handler/HandlerResult$SideEffect : dev/gmvalentino/monaka/handler/HandlerResult {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Ldev/gmvalentino/monaka/handler/HandlerResult$SideEffect;
+	public static synthetic fun copy$default (Ldev/gmvalentino/monaka/handler/HandlerResult$SideEffect;Ljava/util/List;ILjava/lang/Object;)Ldev/gmvalentino/monaka/handler/HandlerResult$SideEffect;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEffects ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/gmvalentino/monaka/handler/HandlerResult$Transition : dev/gmvalentino/monaka/handler/HandlerResult {
+	public fun <init> (Ldev/gmvalentino/monaka/core/State;Ljava/util/List;)V
+	public synthetic fun <init> (Ldev/gmvalentino/monaka/core/State;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/gmvalentino/monaka/core/State;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ldev/gmvalentino/monaka/core/State;Ljava/util/List;)Ldev/gmvalentino/monaka/handler/HandlerResult$Transition;
+	public static synthetic fun copy$default (Ldev/gmvalentino/monaka/handler/HandlerResult$Transition;Ldev/gmvalentino/monaka/core/State;Ljava/util/List;ILjava/lang/Object;)Ldev/gmvalentino/monaka/handler/HandlerResult$Transition;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEffects ()Ljava/util/List;
+	public final fun getState ()Ldev/gmvalentino/monaka/core/State;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/gmvalentino/monaka/handler/HandlerType {
+}
+
+public final class dev/gmvalentino/monaka/handler/HandlerType$Action : dev/gmvalentino/monaka/handler/HandlerType {
+	public fun <init> (Ldev/gmvalentino/monaka/core/Action;)V
+	public final fun component1 ()Ldev/gmvalentino/monaka/core/Action;
+	public final fun copy (Ldev/gmvalentino/monaka/core/Action;)Ldev/gmvalentino/monaka/handler/HandlerType$Action;
+	public static synthetic fun copy$default (Ldev/gmvalentino/monaka/handler/HandlerType$Action;Ldev/gmvalentino/monaka/core/Action;ILjava/lang/Object;)Ldev/gmvalentino/monaka/handler/HandlerType$Action;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAction ()Ldev/gmvalentino/monaka/core/Action;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/gmvalentino/monaka/handler/HandlerType$Hook : dev/gmvalentino/monaka/handler/HandlerType {
+}
+
+public final class dev/gmvalentino/monaka/handler/HandlerType$Hook$Enter : dev/gmvalentino/monaka/handler/HandlerType$Hook {
+	public static final field INSTANCE Ldev/gmvalentino/monaka/handler/HandlerType$Hook$Enter;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/gmvalentino/monaka/handler/HandlerType$Hook$Exit : dev/gmvalentino/monaka/handler/HandlerType$Hook {
+	public static final field INSTANCE Ldev/gmvalentino/monaka/handler/HandlerType$Hook$Exit;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/gmvalentino/monaka/handler/HandlerType$Hook$Update : dev/gmvalentino/monaka/handler/HandlerType$Hook {
+	public static final field INSTANCE Ldev/gmvalentino/monaka/handler/HandlerType$Hook$Update;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/gmvalentino/monaka/handler/HandlerType$Lifecycle : dev/gmvalentino/monaka/handler/HandlerType {
+	public fun <init> (Ldev/gmvalentino/monaka/core/LifecycleEvent;)V
+	public final fun component1 ()Ldev/gmvalentino/monaka/core/LifecycleEvent;
+	public final fun copy (Ldev/gmvalentino/monaka/core/LifecycleEvent;)Ldev/gmvalentino/monaka/handler/HandlerType$Lifecycle;
+	public static synthetic fun copy$default (Ldev/gmvalentino/monaka/handler/HandlerType$Lifecycle;Ldev/gmvalentino/monaka/core/LifecycleEvent;ILjava/lang/Object;)Ldev/gmvalentino/monaka/handler/HandlerType$Lifecycle;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEvent ()Ldev/gmvalentino/monaka/core/LifecycleEvent;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/gmvalentino/monaka/plugin/Logger {
+	public abstract fun log (Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public final class dev/gmvalentino/monaka/plugin/LoggingPlugin : dev/gmvalentino/monaka/plugin/Plugin {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ldev/gmvalentino/monaka/plugin/Logger;)V
+	public synthetic fun <init> (Ljava/lang/String;Ldev/gmvalentino/monaka/plugin/Logger;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun onAction (Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/core/Action;)V
+	public fun onEffect (Ldev/gmvalentino/monaka/core/Effect;)V
+	public fun onError (Ljava/lang/Throwable;Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/handler/HandlerType;)V
+	public fun onRejected (Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/handler/HandlerType;)V
+	public fun onTransition (Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/core/State;)V
+}
+
+public abstract interface class dev/gmvalentino/monaka/plugin/Plugin {
+	public fun onAction (Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/core/Action;)V
+	public fun onEffect (Ldev/gmvalentino/monaka/core/Effect;)V
+	public fun onError (Ljava/lang/Throwable;Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/handler/HandlerType;)V
+	public fun onRejected (Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/handler/HandlerType;)V
+	public fun onTransition (Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/core/State;)V
+}
+
+public final class dev/gmvalentino/monaka/plugin/Plugin$DefaultImpls {
+	public static fun onAction (Ldev/gmvalentino/monaka/plugin/Plugin;Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/core/Action;)V
+	public static fun onEffect (Ldev/gmvalentino/monaka/plugin/Plugin;Ldev/gmvalentino/monaka/core/Effect;)V
+	public static fun onError (Ldev/gmvalentino/monaka/plugin/Plugin;Ljava/lang/Throwable;Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/handler/HandlerType;)V
+	public static fun onRejected (Ldev/gmvalentino/monaka/plugin/Plugin;Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/handler/HandlerType;)V
+	public static fun onTransition (Ldev/gmvalentino/monaka/plugin/Plugin;Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/core/State;)V
+}
+
+public abstract interface class dev/gmvalentino/monaka/relay/Relay {
+	public abstract fun apply (Ldev/gmvalentino/monaka/core/Store;Ldev/gmvalentino/monaka/runtime/StoreRegistry;Lkotlinx/coroutines/CoroutineScope;)Ljava/util/List;
+	public abstract fun getSource ()Lkotlin/reflect/KClass;
+}
+
+public final class dev/gmvalentino/monaka/relay/RelayBuilder {
+	public fun <init> ()V
+	public final fun build (Lkotlin/reflect/KClass;)Ldev/gmvalentino/monaka/relay/Relay;
+	public final fun getActionHandlers ()Ljava/util/List;
+	public final fun getEffectHandlers ()Ljava/util/List;
+	public final fun getStateHandlers ()Ljava/util/List;
+}
+
+public final class dev/gmvalentino/monaka/relay/RelayFactoryKt {
+	public static final fun relay (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)Ldev/gmvalentino/monaka/relay/Relay;
+}
+
+public final class dev/gmvalentino/monaka/relay/RelayScope {
+	public fun <init> (Ljava/lang/Object;Ldev/gmvalentino/monaka/runtime/StoreRegistry;)V
+	public final fun dispatch (Lkotlin/reflect/KClass;Ldev/gmvalentino/monaka/core/Action;Ljava/lang/String;)V
+	public static synthetic fun dispatch$default (Ldev/gmvalentino/monaka/relay/RelayScope;Lkotlin/reflect/KClass;Ldev/gmvalentino/monaka/core/Action;Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun getEvent ()Ljava/lang/Object;
+	public final fun getRegistry ()Ldev/gmvalentino/monaka/runtime/StoreRegistry;
+}
+
+public final class dev/gmvalentino/monaka/runtime/StoreRegistry {
+	public fun <init> (Lkotlinx/coroutines/CoroutineScope;)V
+	public final fun contains (Lkotlin/reflect/KClass;)Z
+	public final fun get (Lkotlin/reflect/KClass;)Ldev/gmvalentino/monaka/core/Store;
+	public final fun getAll (Lkotlin/reflect/KClass;)Ljava/util/List;
+	public final fun getById (Ljava/lang/String;)Ldev/gmvalentino/monaka/core/Store;
+	public final fun getKeys ()Ljava/util/Set;
+	public final fun install ([Ldev/gmvalentino/monaka/relay/Relay;)V
+	public final fun register (Ldev/gmvalentino/monaka/core/Store;)Ldev/gmvalentino/monaka/core/Store;
+	public final fun unregister (Ldev/gmvalentino/monaka/core/Store;)V
+}
+
+public final class dev/gmvalentino/monaka/runtime/StoreRegistryKt {
+	public static final fun register (Ldev/gmvalentino/monaka/core/Store;Ldev/gmvalentino/monaka/runtime/StoreRegistry;)Ldev/gmvalentino/monaka/core/Store;
+	public static final fun registerScoped (Ldev/gmvalentino/monaka/core/Store;Ldev/gmvalentino/monaka/runtime/StoreRegistry;)Ldev/gmvalentino/monaka/core/Store;
+}
+
+public final class dev/gmvalentino/monaka/scopes/ActionScope : dev/gmvalentino/monaka/scopes/HandlerScope {
+	public final fun getAction ()Ldev/gmvalentino/monaka/core/Action;
+	public fun getMachineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getState ()Ldev/gmvalentino/monaka/core/State;
+	public final fun task (Ljava/lang/String;ZLkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function2;)V
+	public final fun task (ZLkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function2;)V
+	public static synthetic fun task$default (Ldev/gmvalentino/monaka/scopes/ActionScope;Ljava/lang/String;ZLkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+	public static synthetic fun task$default (Ldev/gmvalentino/monaka/scopes/ActionScope;ZLkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+}
+
+public final class dev/gmvalentino/monaka/scopes/ActionTaskScope : dev/gmvalentino/monaka/scopes/TaskScope {
+	public final fun getAction ()Ldev/gmvalentino/monaka/core/Action;
+}
+
+public abstract class dev/gmvalentino/monaka/scopes/AsyncHandlerScope : dev/gmvalentino/monaka/scopes/HandlerScope {
+	public final fun task (Ljava/lang/String;ZLkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function2;)V
+	public final fun task (ZLkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function2;)V
+	public static synthetic fun task$default (Ldev/gmvalentino/monaka/scopes/AsyncHandlerScope;Ljava/lang/String;ZLkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+	public static synthetic fun task$default (Ldev/gmvalentino/monaka/scopes/AsyncHandlerScope;ZLkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+}
+
+public final class dev/gmvalentino/monaka/scopes/ErrorScope : dev/gmvalentino/monaka/scopes/AsyncHandlerScope {
+	public final fun getError ()Ljava/lang/Throwable;
+	public final fun getHandlerType ()Ldev/gmvalentino/monaka/handler/HandlerType;
+	public fun getMachineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getState ()Ldev/gmvalentino/monaka/core/State;
+}
+
+public abstract class dev/gmvalentino/monaka/scopes/HandlerScope {
+	public final fun cancel (Ljava/lang/String;)V
+	public final fun dispatch (Ldev/gmvalentino/monaka/core/Action;)V
+	public fun getMachineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public final fun getPendingEffects ()Ljava/util/List;
+	public final fun getPendingState ()Ldev/gmvalentino/monaka/core/State;
+	public final fun getRejected ()Z
+	public fun getState ()Ldev/gmvalentino/monaka/core/State;
+	public final fun guard (Lkotlin/jvm/functions/Function0;)V
+	public final fun reject ()V
+	public final fun setPendingState (Ldev/gmvalentino/monaka/core/State;)V
+	public final fun setRejected (Z)V
+	public final fun sideEffect ([Ldev/gmvalentino/monaka/core/Effect;)V
+	public final fun transition (Ldev/gmvalentino/monaka/core/State;)V
+}
+
+public final class dev/gmvalentino/monaka/scopes/LifecycleScope : dev/gmvalentino/monaka/scopes/AsyncHandlerScope {
+	public fun getMachineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getState ()Ldev/gmvalentino/monaka/core/State;
+}
+
+public final class dev/gmvalentino/monaka/scopes/StateChangeScope : dev/gmvalentino/monaka/scopes/AsyncHandlerScope {
+	public fun getMachineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getState ()Ldev/gmvalentino/monaka/core/State;
+}
+
+public final class dev/gmvalentino/monaka/scopes/StateUpdateScope : dev/gmvalentino/monaka/scopes/AsyncHandlerScope {
+	public final fun getFromState ()Ldev/gmvalentino/monaka/core/State;
+	public fun getMachineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getState ()Ldev/gmvalentino/monaka/core/State;
+}
+
+public class dev/gmvalentino/monaka/scopes/TaskScope : kotlinx/coroutines/CoroutineScope {
+	public final fun dispatch (Ldev/gmvalentino/monaka/core/Action;)V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getState ()Ldev/gmvalentino/monaka/core/State;
+}
+

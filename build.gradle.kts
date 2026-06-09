@@ -8,4 +8,14 @@ plugins {
     alias(libs.plugins.compose.multiplatform) apply false
     alias(libs.plugins.compiler.plugin) apply false
     alias(libs.plugins.ksp) apply false
+    alias(libs.plugins.binary.compatibility.validator)
+}
+
+apiValidation {
+    // Only validate the published library modules; exclude samples and internal tooling
+    ignoredProjects += listOf(
+        "androidApp",
+        "shared",
+        "monaka-transitions",
+    )
 }

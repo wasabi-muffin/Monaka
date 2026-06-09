@@ -29,7 +29,7 @@ public open class TaskScope<State : StateMarker, Action : ActionMarker, SubState
      * asynchronously after the handler has already returned, so the originating handler's
      * `guarded` / `rejected` state is no longer relevant.
      */
-    public fun dispatch(action: Action) = internalDispatch(action)
+    public fun dispatch(action: Action): Unit = internalDispatch(action)
 }
 
 /**

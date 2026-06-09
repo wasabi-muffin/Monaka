@@ -179,14 +179,14 @@ public class StateBuilder<State : StateMarker, SubState : State, Action : Action
      * Hook fired when [LifecycleEvent.OnCreate] is forwarded to the machine while
      * the machine is in [SubState].
      */
-    public fun onCreate(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
+    public fun onCreate(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit): Unit =
         onLifecycle(lifecycle = LifecycleEvent.OnCreate, block)
 
     /**
      * Hook fired when [LifecycleEvent.OnStart] is forwarded to the machine while
      * the machine is in [SubState].
      */
-    public fun onStart(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
+    public fun onStart(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit): Unit =
         onLifecycle(lifecycle = LifecycleEvent.OnStart, block = block)
 
     /**
@@ -202,28 +202,28 @@ public class StateBuilder<State : StateMarker, SubState : State, Action : Action
      * }
      * ```
      */
-    public fun onResume(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
+    public fun onResume(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit): Unit =
         onLifecycle(lifecycle = LifecycleEvent.OnResume, block = block)
 
     /**
      * Hook fired when [LifecycleEvent.OnPause] is forwarded to the machine while
      * the machine is in [SubState].
      */
-    public fun onPause(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
+    public fun onPause(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit): Unit =
         onLifecycle(lifecycle = LifecycleEvent.OnPause, block = block)
 
     /**
      * Hook fired when [LifecycleEvent.OnStop] is forwarded to the machine while
      * the machine is in [SubState].
      */
-    public fun onStop(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
+    public fun onStop(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit): Unit =
         onLifecycle(lifecycle = LifecycleEvent.OnStop, block = block)
 
     /**
      * Hook fired when [LifecycleEvent.OnDestroy] is forwarded to the machine while
      * the machine is in [SubState].
      */
-    public fun onDestroy(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
+    public fun onDestroy(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit): Unit =
         onLifecycle(lifecycle = LifecycleEvent.OnDestroy, block = block)
 
     // ── Error recovery hook ───────────────────────────────────────────────────

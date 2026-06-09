@@ -19,13 +19,13 @@ import dev.gmvalentino.monaka.runtime.StoreRegistry
 public class RelayBuilder<SourceState : StateMarker, SourceAction : ActionMarker, SourceEffect : EffectMarker> {
 
     @PublishedApi
-    internal val stateHandlers = mutableListOf<(SourceState, StoreRegistry) -> Unit>()
+    internal val stateHandlers: MutableList<(SourceState, StoreRegistry) -> Unit> = mutableListOf()
 
     @PublishedApi
-    internal val effectHandlers = mutableListOf<(SourceEffect, StoreRegistry) -> Unit>()
+    internal val effectHandlers: MutableList<(SourceEffect, StoreRegistry) -> Unit> = mutableListOf()
 
     @PublishedApi
-    internal val actionHandlers = mutableListOf<(SourceAction, StoreRegistry) -> Unit>()
+    internal val actionHandlers: MutableList<(SourceAction, StoreRegistry) -> Unit> = mutableListOf()
 
     /**
      * React to source states of type [S]. The block runs with a [RelayScope] whose

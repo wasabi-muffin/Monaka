@@ -25,6 +25,7 @@ kotlinpoet = "2.2.0"
 
 # Publishing
 vanniktech-publish = "0.31.0"
+binary-compatibility-validator = "0.17.0"
 
 [libraries]
 # Gradle plugin artifacts
@@ -76,6 +77,7 @@ compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose" 
 compiler-plugin = { id = "org.jetbrains.kotlin.compiler.plugin.template", version = "0.1.0" }
 
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binary-compatibility-validator" }
 
 # Convention Plugins
 monaka-kmp-targets = { id = "monaka.kmp.targets", version = "UNDEFINED" }

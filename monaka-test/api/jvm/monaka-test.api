@@ -1,0 +1,55 @@
+public final class dev/gmvalentino/monaka/test/AssertScope {
+	public final fun expectAction (Ldev/gmvalentino/monaka/core/Action;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun expectEffect (Ldev/gmvalentino/monaka/core/Effect;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun expectNoAction (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun expectNoEffects (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun expectState (Ldev/gmvalentino/monaka/core/State;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getActions ()Lapp/cash/turbine/ReceiveTurbine;
+	public final fun getEffects ()Lapp/cash/turbine/ReceiveTurbine;
+	public final fun getStates ()Lapp/cash/turbine/ReceiveTurbine;
+	public final fun skipAction (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun skipEffect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun skipState (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/gmvalentino/monaka/test/AssertScope$ActionScope {
+	public fun <init> (Ldev/gmvalentino/monaka/test/AssertScope;Ldev/gmvalentino/monaka/core/Action;)V
+	public final fun getAction ()Ldev/gmvalentino/monaka/core/Action;
+}
+
+public final class dev/gmvalentino/monaka/test/AssertScope$EffectScope {
+	public fun <init> (Ldev/gmvalentino/monaka/test/AssertScope;Ldev/gmvalentino/monaka/core/Effect;)V
+	public final fun getEffect ()Ldev/gmvalentino/monaka/core/Effect;
+}
+
+public final class dev/gmvalentino/monaka/test/AssertScope$StateScope {
+	public fun <init> (Ldev/gmvalentino/monaka/test/AssertScope;Ldev/gmvalentino/monaka/core/State;)V
+	public final fun getState ()Ldev/gmvalentino/monaka/core/State;
+}
+
+public abstract interface annotation class dev/gmvalentino/monaka/test/MonakaTestDsl : java/lang/annotation/Annotation {
+}
+
+public final class dev/gmvalentino/monaka/test/TestCaseBuilder {
+	public final fun advanceTime-KLykuaI (JLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun advanceTime-KLykuaI$default (Ldev/gmvalentino/monaka/test/TestCaseBuilder;JLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun expectIdle (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun finish ()V
+	public final fun given (Ldev/gmvalentino/monaka/core/State;)V
+	public final fun trigger (Ldev/gmvalentino/monaka/core/Action;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun trigger (Ldev/gmvalentino/monaka/core/LifecycleEvent;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun trigger (Ldev/gmvalentino/monaka/core/StateHook;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun trigger$default (Ldev/gmvalentino/monaka/test/TestCaseBuilder;Ldev/gmvalentino/monaka/core/Action;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun trigger$default (Ldev/gmvalentino/monaka/test/TestCaseBuilder;Ldev/gmvalentino/monaka/core/LifecycleEvent;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun trigger$default (Ldev/gmvalentino/monaka/test/TestCaseBuilder;Ldev/gmvalentino/monaka/core/StateHook;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/gmvalentino/monaka/test/TestStoreKt {
+	public static final fun testStore (Ldev/gmvalentino/monaka/dsl/StateMachine;Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class dev/gmvalentino/monaka/test/TestStoreScope {
+	public final fun testCase (Ljava/lang/String;ZLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun testCase$default (Ldev/gmvalentino/monaka/test/TestStoreScope;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
