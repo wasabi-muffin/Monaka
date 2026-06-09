@@ -3,7 +3,7 @@ plugins {
     kotlin("jvm") version "2.3.21"
 }
 
-group = "tech.fika.monaka"
+group = "dev.gmvalentino.monaka"
 version = "0.1.0"
 
 dependencies {
@@ -15,8 +15,8 @@ dependencies {
 gradlePlugin {
     plugins {
         register("monakaYamlExport") {
-            id = "tech.fika.monaka.yaml-export"
-            implementationClass = "tech.fika.monaka.gradle.MonakaPlugin"
+            id = "dev.gmvalentino.monaka.yaml-export"
+            implementationClass = "dev.gmvalentino.monaka.gradle.MonakaPlugin"
         }
     }
 }

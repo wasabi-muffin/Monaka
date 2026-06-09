@@ -4,10 +4,10 @@ plugins {
 }
 
 android {
-    namespace = "tech.fika.monaka"
+    namespace = "dev.gmvalentino.monaka"
 
     defaultConfig {
-        applicationId = "tech.fika.monaka"
+        applicationId = "dev.gmvalentino.monaka"
         versionCode = 1
         versionName = "1.0"
     }

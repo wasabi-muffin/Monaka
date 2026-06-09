@@ -2,7 +2,7 @@ plugins {
     kotlin("jvm")
 }
 
-group = "tech.fika.monaka"
+group = "dev.gmvalentino.monaka"
 version = "unspecified"
 
 kotlin {

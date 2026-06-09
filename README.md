@@ -23,7 +23,7 @@ Effects are one-shot: they are emitted on a `SharedFlow` with no replay, so late
 
 ```kotlin
 // build.gradle.kts (commonMain or Android)
-implementation("tech.fika:monaka:<version>")
+implementation("dev.gmvalentino:monaka:<version>")
 ```
 
 ---
@@ -50,7 +50,7 @@ sample/
 2. Edit `sample/iosApp/Configuration/Config.xcconfig` and set `TEAM_ID=` to your Apple developer team ID (only needed for physical-device runs).
 3. Pick a simulator and run. Xcode will invoke `./gradlew :sample:shared:embedAndSignAppleFrameworkForXcode` as part of the build and link `shared.framework` automatically.
 
-The same `App()` composable in `sample/shared/src/commonMain/kotlin/tech/fika/monaka/sample/App.kt` powers both platforms. Platform-specific lifecycle observation goes through an `expect`/`actual` `BindLifecycle()` composable.
+The same `App()` composable in `sample/shared/src/commonMain/kotlin/dev/gmvalentino/monaka/sample/App.kt` powers both platforms. Platform-specific lifecycle observation goes through an `expect`/`actual` `BindLifecycle()` composable.
 
 ---
 

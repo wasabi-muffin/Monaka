@@ -3,12 +3,12 @@ plugins {
     alias(libs.plugins.monaka.compose)
     alias(libs.plugins.compiler.plugin)
     alias(libs.plugins.ksp)
-    id("tech.fika.monaka.yaml-export")
+    id("dev.gmvalentino.monaka.yaml-export")
 }
 
 kotlin {
     android {
-        namespace = "tech.fika.monaka.sample"
+        namespace = "dev.gmvalentino.monaka.sample"
         compileSdk = 37
         minSdk = 24
         compilerOptions {
@@ -28,7 +28,7 @@ kotlin {
         target.binaries.framework {
             baseName = "shared"
             isStatic = true
-            binaryOption("bundleId", "tech.fika.monaka.shared")
+            binaryOption("bundleId", "dev.gmvalentino.monaka.shared")
         }
     }
 

@@ -5,7 +5,7 @@ plugins {
 
 kotlin {
     android {
-        namespace = "tech.fika.monaka.library"
+        namespace = "dev.gmvalentino.monaka.library"
         compileSdk = 37
         minSdk = 24
         compilerOptions {
