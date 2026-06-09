@@ -22,7 +22,7 @@ import dev.gmvalentino.monaka.core.State as StateMarker
  * Plugin methods are always called from the single sequential processing coroutine,
  * so no additional synchronisation is needed for plugin-internal mutable state.
  */
-interface Plugin<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> {
+public interface Plugin<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> {
 
     /**
      * Called just before an action is processed, on the sequential processing coroutine.
@@ -33,16 +33,16 @@ interface Plugin<State : StateMarker, Action : ActionMarker, Effect : EffectMark
      *
      * Use this hook for logging or analytics that need to capture the pre-transition snapshot.
      */
-    fun onAction(currentState: State, action: Action): Unit = Unit
+    public fun onAction(currentState: State, action: Action): Unit = Unit
 
-    fun onEffect(effect: Effect): Unit = Unit
+    public fun onEffect(effect: Effect): Unit = Unit
 
     /**
      * Called after a handler produces a [dev.gmvalentino.monaka.handler.HandlerResult.Transition] result.
      * Not called for [dev.gmvalentino.monaka.handler.HandlerResult.SideEffect], [dev.gmvalentino.monaka.handler.HandlerResult.Rejected],
      * or [dev.gmvalentino.monaka.handler.HandlerResult.Done].
      */
-    fun onTransition(fromState: State, toState: State): Unit = Unit
+    public fun onTransition(fromState: State, toState: State): Unit = Unit
 
     /**
      * Called when no handler is registered for the [handlerType] in the current [currentState],
@@ -50,7 +50,7 @@ interface Plugin<State : StateMarker, Action : ActionMarker, Effect : EffectMark
      *
      * This is informational; no state change occurs.
      */
-    fun onRejected(currentState: State, handlerType: HandlerType<Action>): Unit = Unit
+    public fun onRejected(currentState: State, handlerType: HandlerType<Action>): Unit = Unit
 
     /**
      * Called when a handler throws an exception.
@@ -61,5 +61,5 @@ interface Plugin<State : StateMarker, Action : ActionMarker, Effect : EffectMark
      * The state is **not** changed when an error occurs. Implement this hook to log
      * or report errors. The processing loop continues after this call.
      */
-    fun onError(error: Throwable, currentState: State, handlerType: HandlerType<Action>): Unit = Unit
+    public fun onError(error: Throwable, currentState: State, handlerType: HandlerType<Action>): Unit = Unit
 }

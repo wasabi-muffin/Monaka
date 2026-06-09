@@ -27,7 +27,7 @@ package dev.gmvalentino.monaka.core
  * Observe `UIApplication.willResignActiveNotification` and
  * `UIApplication.didBecomeActiveNotification`, then call the Kotlin machine from Swift.
  */
-enum class LifecycleEvent {
+public enum class LifecycleEvent {
     OnCreate,
     OnStart,
     OnResume,

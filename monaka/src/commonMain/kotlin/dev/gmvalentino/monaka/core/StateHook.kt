@@ -12,9 +12,9 @@ package dev.gmvalentino.monaka.core
  *
  * Primarily intended for testing via `:monaka-test`'s `trigger(StateHook)` DSL.
  */
-sealed interface StateHook<out S> {
-    data object OnEnter : StateHook<Nothing>
-    data object OnExit : StateHook<Nothing>
+public sealed interface StateHook<out S> {
+    public data object OnEnter : StateHook<Nothing>
+    public data object OnExit : StateHook<Nothing>
 
     /**
      * Trigger the `onUpdate { }` handler for the current state, using [previousState] as the
@@ -23,5 +23,5 @@ sealed interface StateHook<out S> {
      * Pass the state value that should represent the "before" snapshot — typically the value
      * the state held before the most recent same-type transition.
      */
-    data class OnUpdate<out S>(val previousState: S) : StateHook<S>
+    public data class OnUpdate<out S>(public val previousState: S) : StateHook<S>
 }

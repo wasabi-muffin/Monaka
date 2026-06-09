@@ -1,4 +1,4 @@
 package dev.gmvalentino.monaka.test
 
 @DslMarker
-annotation class MonakaTestDsl
+public annotation class MonakaTestDsl

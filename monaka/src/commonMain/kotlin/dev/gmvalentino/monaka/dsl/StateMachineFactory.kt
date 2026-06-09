@@ -21,6 +21,6 @@ import dev.gmvalentino.monaka.core.State as StateMarker
  * val store2 = store(loginMachine, scope2, initialState = LoginState.Typing("bob"))
  * ```
  */
-fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> stateMachine(
+public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> stateMachine(
     builder: StateMachineBuilder<State, Action, Effect>.() -> Unit,
 ): StateMachine<State, Action, Effect> = StateMachineBuilder<State, Action, Effect>().apply(builder).build()

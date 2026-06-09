@@ -22,10 +22,10 @@ import dev.gmvalentino.monaka.runtime.JobRegistry
  * @param jobRegistry  The machine's [JobRegistry] for keyed job management.
  */
 @MonakaDsl
-class ActionScope<State : StateMarker, Action : ActionMarker, Effect : EffectMarker, SubState : State, ActionType : Action> internal constructor(
+public class ActionScope<State : StateMarker, Action : ActionMarker, Effect : EffectMarker, SubState : State, ActionType : Action> internal constructor(
     override val machineScope: CoroutineScope,
     override val state: SubState,
-    val action: ActionType,
+    public val action: ActionType,
     private val dispatch: (Action) -> Unit,
     jobRegistry: JobRegistry,
 ) : HandlerScope<State, Action, Effect, SubState>(
@@ -44,7 +44,7 @@ class ActionScope<State : StateMarker, Action : ActionMarker, Effect : EffectMar
      * Because [HandlerScope] declares no `task`, this is the only `task` signature
      * visible here. No overload ambiguity; Kotlin resolves it unconditionally.
      */
-    fun task(
+    public fun task(
         autoCancel: Boolean = false,
         coroutineScope: CoroutineScope = machineScope,
         block: suspend ActionTaskScope<State, Action, SubState, ActionType>.() -> Unit,
@@ -59,7 +59,7 @@ class ActionScope<State : StateMarker, Action : ActionMarker, Effect : EffectMar
     }
 
     /** @see task */
-    fun task(
+    public fun task(
         key: String,
         autoCancel: Boolean = false,
         coroutineScope: CoroutineScope = machineScope,

@@ -67,7 +67,7 @@ import dev.gmvalentino.monaka.relay.Relay
  *                    thread used to call [register] and [unregister] (typically `Dispatchers.Main`).
  *                    Pass the same scope that owns the stores so all relay work is canceled together.
  */
-class StoreRegistry(private val bridgeScope: CoroutineScope) {
+public class StoreRegistry(private val bridgeScope: CoroutineScope) {
 
     private val stores = LinkedHashMap<KClass<out Store<*, *, *>>, MutableList<Store<*, *, *>>>()
     private val relays = mutableListOf<Relay<*, *, *>>()
@@ -93,7 +93,7 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
      * )
      * ```
      */
-    fun install(vararg relays: Relay<*, *, *>) {
+    public fun install(vararg relays: Relay<*, *, *>) {
         for (relay in relays) {
             this.relays.add(element = relay)
             stores[relay.source]?.forEach { source ->
@@ -115,7 +115,7 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
      * Only relays whose source matches [store] launch collectors here; relays that merely
      * target [store]'s class need no wiring, since they resolve targets lazily at emission time.
      */
-    fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> register(
+    public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> register(
         store: Store<State, Action, Effect>,
     ): Store<State, Action, Effect> {
         val storeList = stores.getOrPut(key = store::class) { mutableListOf() }
@@ -138,7 +138,7 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
      * Identified by [Store.id], so the exact instance must be passed.
      * Does nothing if the store is not currently registered.
      */
-    fun unregister(store: Store<*, *, *>) {
+    public fun unregister(store: Store<*, *, *>) {
         val list = stores[store::class] ?: return
         list.removeAll { it.id == store.id }
         if (list.isEmpty()) stores.remove(key = store::class)
@@ -146,11 +146,11 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
     }
 
     /** Returns `true` if at least one instance of [kClass] is registered. */
-    operator fun contains(kClass: KClass<out Store<*, *, *>>): Boolean =
+    public operator fun contains(kClass: KClass<out Store<*, *, *>>): Boolean =
         stores[kClass]?.isNotEmpty() == true
 
     /** The set of classes that have at least one registered instance, in insertion order. */
-    val keys: Set<KClass<out Store<*, *, *>>> get() = stores.keys.toSet()
+    public val keys: Set<KClass<out Store<*, *, *>>> get() = stores.keys.toSet()
 
     /**
      * Retrieve a snapshot of all registered instances of [kClass].
@@ -160,7 +160,7 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
      * Returns an empty list if none are registered.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> getAll(
+    public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> getAll(
         kClass: KClass<out Store<State, Action, Effect>>,
     ): List<Store<State, Action, Effect>> =
         (stores[kClass] as? List<Store<State, Action, Effect>>)?.toList() ?: emptyList()
@@ -169,7 +169,7 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
      * Retrieve the first registered instance of [kClass], or `null` if none are registered.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> get(
+    public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> get(
         kClass: KClass<out Store<State, Action, Effect>>,
     ): Store<State, Action, Effect>? =
         stores[kClass]?.firstOrNull() as? Store<State, Action, Effect>
@@ -178,7 +178,7 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
      * Retrieve the registered instance with the given [id], or `null` if not found.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> getById(
+    public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> getById(
         id: String,
     ): Store<State, Action, Effect>? =
         stores.values.flatten().firstOrNull { it.id == id } as? Store<State, Action, Effect>
@@ -194,7 +194,7 @@ class StoreRegistry(private val bridgeScope: CoroutineScope) {
  * val cart = CartStore(cartMachine, scope).register(registry)
  * ```
  */
-fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> Store<State, Action, Effect>.register(
+public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> Store<State, Action, Effect>.register(
     registry: StoreRegistry,
 ): Store<State, Action, Effect> = also(registry::register)
 
@@ -211,7 +211,7 @@ fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> Store<St
  *     .registerScoped(registry)
  * ```
  */
-fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> Store<State, Action, Effect>.registerScoped(
+public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> Store<State, Action, Effect>.registerScoped(
     registry: StoreRegistry,
 ): Store<State, Action, Effect> {
     val store = this

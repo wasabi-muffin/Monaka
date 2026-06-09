@@ -29,14 +29,14 @@ import dev.gmvalentino.monaka.plugin.Plugin
  * @param errorHandlers  Recovery hooks fired when a handler or hook throws, keyed by state class.
  * @param plugins        Observers installed in the machine, invoked in registration order.
  */
-interface StateMachine<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> {
-    val id: String
-    val initialState: State
-    val actionHandlers: Map<KClass<out State>, Map<KClass<out Action>, ActionHandler<State, Action, Effect>>>
-    val enterHandlers: Map<KClass<out State>, StateChangeHandler<State, Action, Effect>>
-    val exitHandlers: Map<KClass<out State>, StateChangeHandler<State, Action, Effect>>
-    val updateHandlers: Map<KClass<out State>, StateUpdateHandler<State, Action, Effect>>
-    val lifecycleHandlers: Map<KClass<out State>, Map<LifecycleEvent, LifecycleHandler<State, Action, Effect>>>
-    val errorHandlers: Map<KClass<out State>, StateErrorHandler<State, Action, Effect>>
-    val plugins: List<Plugin<State, Action, Effect>>
+public interface StateMachine<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> {
+    public val id: String
+    public val initialState: State
+    public val actionHandlers: Map<KClass<out State>, Map<KClass<out Action>, ActionHandler<State, Action, Effect>>>
+    public val enterHandlers: Map<KClass<out State>, StateChangeHandler<State, Action, Effect>>
+    public val exitHandlers: Map<KClass<out State>, StateChangeHandler<State, Action, Effect>>
+    public val updateHandlers: Map<KClass<out State>, StateUpdateHandler<State, Action, Effect>>
+    public val lifecycleHandlers: Map<KClass<out State>, Map<LifecycleEvent, LifecycleHandler<State, Action, Effect>>>
+    public val errorHandlers: Map<KClass<out State>, StateErrorHandler<State, Action, Effect>>
+    public val plugins: List<Plugin<State, Action, Effect>>
 }

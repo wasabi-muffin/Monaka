@@ -17,12 +17,12 @@ import dev.gmvalentino.monaka.core.LifecycleEvent
  * - [Hook.Exit]   — the `onExit` block for a state.
  * - [Hook.Update] — the `onUpdate` block for a state.
  */
-sealed interface HandlerType<out Action : ActionMarker> {
-    data class Action<out Action : ActionMarker>(val action: Action) : HandlerType<Action>
-    data class Lifecycle(val event: LifecycleEvent) : HandlerType<Nothing>
-    sealed interface Hook : HandlerType<Nothing>{
-        data object Enter : Hook
-        data object Exit : Hook
-        data object Update : Hook
+public sealed interface HandlerType<out Action : ActionMarker> {
+    public data class Action<out Action : ActionMarker>(public val action: Action) : HandlerType<Action>
+    public data class Lifecycle(public val event: LifecycleEvent) : HandlerType<Nothing>
+    public sealed interface Hook : HandlerType<Nothing>{
+        public data object Enter : Hook
+        public data object Exit : Hook
+        public data object Update : Hook
     }
 }

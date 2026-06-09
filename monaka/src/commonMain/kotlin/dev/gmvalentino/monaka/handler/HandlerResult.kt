@@ -23,14 +23,14 @@ import dev.gmvalentino.monaka.core.State as StateMarker
  * a `HandlerResult.Transition<SubState, SpecificEffect>` is assignable where a
  * `HandlerResult<ParentState, ParentEffect>` is expected.
  */
-sealed interface HandlerResult<out State : StateMarker, out Effect : EffectMarker> {
+public sealed interface HandlerResult<out State : StateMarker, out Effect : EffectMarker> {
 
     /**
      * A successful transition: move to [state] and emit [effects].
      */
-    data class Transition<out State : StateMarker, out Effect : EffectMarker>(
-        val state: State,
-        val effects: List<Effect> = emptyList(),
+    public data class Transition<out State : StateMarker, out Effect : EffectMarker>(
+        public val state: State,
+        public val effects: List<Effect> = emptyList(),
     ) : HandlerResult<State, Effect>
 
     /**
@@ -39,8 +39,8 @@ sealed interface HandlerResult<out State : StateMarker, out Effect : EffectMarke
      * Use this when the action is valid and the machine should stay in the current state,
      * but still needs to notify the UI (e.g. show a toast, trigger navigation).
      */
-    data class SideEffect<out Effect : EffectMarker>(
-        val effects: List<Effect>,
+    public data class SideEffect<out Effect : EffectMarker>(
+        public val effects: List<Effect>,
     ) : HandlerResult<Nothing, Effect>
 
     /**
@@ -49,10 +49,10 @@ sealed interface HandlerResult<out State : StateMarker, out Effect : EffectMarke
      * Notifies plugins via [dev.gmvalentino.monaka.plugin.Plugin.onRejected].
      * Use when the action is not applicable in the current state.
      */
-    data object Rejected : HandlerResult<Nothing, Nothing>
+    public data object Rejected : HandlerResult<Nothing, Nothing>
 
     /**
      * Terminal no-op — state unchanged, no effects emitted, plugins not notified.
      */
-    data object Done : HandlerResult<Nothing, Nothing>
+    public data object Done : HandlerResult<Nothing, Nothing>
 }

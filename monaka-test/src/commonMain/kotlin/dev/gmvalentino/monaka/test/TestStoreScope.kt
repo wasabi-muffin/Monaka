@@ -9,7 +9,7 @@ import dev.gmvalentino.monaka.core.State as StateMarker
 import dev.gmvalentino.monaka.dsl.StateMachine
 
 @MonakaTestDsl
-class TestStoreScope<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> internal constructor(
+public class TestStoreScope<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> internal constructor(
     private val machine: StateMachine<State, Action, Effect>,
     private val testScope: TestScope,
 ) {
@@ -19,7 +19,7 @@ class TestStoreScope<State : StateMarker, Action : ActionMarker, Effect : Effect
      * Each test case is isolated: it builds its own store from the shared [StateMachine]
      * configuration, sets up its own Turbines, and tears them down on completion.
      */
-    suspend fun testCase(
+    public suspend fun testCase(
         name: String,
         exhaustive: Boolean = true,
         body: suspend TestCaseBuilder<State, Action, Effect>.() -> Unit,

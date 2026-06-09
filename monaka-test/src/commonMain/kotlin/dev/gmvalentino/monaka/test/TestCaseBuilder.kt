@@ -19,7 +19,7 @@ import dev.gmvalentino.monaka.dsl.store
 import dev.gmvalentino.monaka.plugin.Plugin
 
 @MonakaTestDsl
-class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> internal constructor(
+public class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> internal constructor(
     @Suppress("unused") private val name: String,
     private val machine: StateMachine<State, Action, Effect>,
     private val testScope: TestScope,
@@ -60,7 +60,7 @@ class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : Effec
      * that the test case will leave residue; reach for `finish()` when the decision is
      * runtime-conditional.
      */
-    fun finish() {
+    public fun finish() {
         isFinished = true
     }
 
@@ -69,7 +69,7 @@ class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : Effec
      *
      * Must be called before the first [trigger] or [expectIdle].
      */
-    fun given(state: State) {
+    public fun given(state: State) {
         check(store == null) { "given(...) must be called before the store starts" }
         initialState = state
     }
@@ -77,7 +77,7 @@ class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : Effec
     /**
      * Dispatch [action] to the store and run [block] to assert on subsequent emissions.
      */
-    suspend fun trigger(
+    public suspend fun trigger(
         action: Action,
         block: suspend AssertScope<State, Action, Effect>.() -> Unit = {},
     ) {
@@ -91,7 +91,7 @@ class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : Effec
     /**
      * Forward a lifecycle [event] to the store and run [block] to assert on subsequent emissions.
      */
-    suspend fun trigger(
+    public suspend fun trigger(
         event: LifecycleEvent,
         block: suspend AssertScope<State, Action, Effect>.() -> Unit = {},
     ) {
@@ -110,7 +110,7 @@ class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : Effec
      * - [StateHook.OnUpdate] fires the `onUpdate { }` handler, with [StateHook.OnUpdate.previousState]
      *   supplied as the baseline for [dev.gmvalentino.monaka.scopes.StateUpdateScope.fromState].
      */
-    suspend fun trigger(
+    public suspend fun trigger(
         hook: StateHook<State>,
         block: suspend AssertScope<State, Action, Effect>.() -> Unit = {},
     ) {
@@ -132,7 +132,7 @@ class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : Effec
      * tasks that were launched by other tasks reaching their deadline at the same instant —
      * run before the assertion [block] executes.
      */
-    suspend fun advanceTime(
+    public suspend fun advanceTime(
         duration: Duration,
         block: suspend AssertScope<State, Action, Effect>.() -> Unit = {},
     ) {
@@ -145,7 +145,7 @@ class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : Effec
     /**
      * Assert no further emissions are pending on any stream.
      */
-    suspend fun expectIdle() {
+    public suspend fun expectIdle() {
         ensureStartedAndSubscribed()
         testScope.testScheduler.runCurrent()
         stateTurbine!!.expectNoEvents()

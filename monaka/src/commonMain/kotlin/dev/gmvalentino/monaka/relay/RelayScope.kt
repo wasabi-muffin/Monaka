@@ -13,8 +13,8 @@ import dev.gmvalentino.monaka.runtime.StoreRegistry
  * Exposes the matched [event] (typed to the bound subtype) and [dispatch] for relaying
  * actions into target stores resolved from the enclosing [StoreRegistry].
  */
-class RelayScope<out Event> @PublishedApi internal constructor(
-    val event: Event,
+public class RelayScope<out Event> @PublishedApi internal constructor(
+    public val event: Event,
     @PublishedApi internal val registry: StoreRegistry,
 ) {
     /**
@@ -35,7 +35,7 @@ class RelayScope<out Event> @PublishedApi internal constructor(
      * [dev.gmvalentino.monaka.plugin.Plugin.onRejected]); it does not throw. Use the [KClass] overload
      * below when you want the compiler to verify the action belongs to the target store.
      */
-    inline fun <reified S : Store<*, *, *>> dispatch(action: ActionMarker, id: String? = null) {
+    public inline fun <reified S : Store<*, *, *>> dispatch(action: ActionMarker, id: String? = null) {
         @Suppress("UNCHECKED_CAST")
         val targets = registry.getAll(kClass = S::class as KClass<out Store<StateMarker, ActionMarker, EffectMarker>>)
         targets.forEach { store ->
@@ -57,7 +57,7 @@ class RelayScope<out Event> @PublishedApi internal constructor(
      * dispatch(CartStore::class, CartAction.Clear, id = cartId) // the one with this id
      * ```
      */
-    fun <A : ActionMarker> dispatch(target: KClass<out Store<*, A, *>>, action: A, id: String? = null) {
+    public fun <A : ActionMarker> dispatch(target: KClass<out Store<*, A, *>>, action: A, id: String? = null) {
         @Suppress("UNCHECKED_CAST")
         val targets = registry.getAll(kClass = target as KClass<out Store<StateMarker, A, EffectMarker>>)
         targets.forEach { store ->

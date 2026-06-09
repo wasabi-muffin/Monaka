@@ -86,8 +86,8 @@ import dev.gmvalentino.monaka.runtime.DefaultStore
  * - [extraBufferCapacity]: `extraBufferCapacity` for the effects (and actions) [kotlinx.coroutines.flow.SharedFlow].
  *   Increase this if your machine emits effects in rapid bursts. Defaults to [DEFAULT_BUFFER_CAPACITY].
  */
-class StateMachineStore<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
-    val stateMachine: StateMachine<State, Action, Effect>,
+public class StateMachineStore<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
+    public val stateMachine: StateMachine<State, Action, Effect>,
     private val scope: CoroutineScope = defaultCoroutineScope(),
     private val initialState: State? = null,
     private val plugins: List<Plugin<State, Action, Effect>> = emptyList(),
@@ -105,7 +105,7 @@ class StateMachineStore<State : StateMarker, Action : ActionMarker, Effect : Eff
     plugins = stateMachine.plugins + plugins,
     extraBufferCapacity = extraBufferCapacity,
 ) {
-    companion object {
+    public companion object {
         private const val DEFAULT_BUFFER_CAPACITY: Int = 64
     }
 }

@@ -23,6 +23,7 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
             pluginManager.apply("com.android.kotlin.multiplatform.library")
 
             extensions.configure<KotlinMultiplatformExtension> {
+                explicitApi()
                 applyDefaultHierarchyTemplate()
             }
         }

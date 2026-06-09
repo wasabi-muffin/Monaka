@@ -39,9 +39,9 @@ import dev.gmvalentino.monaka.runtime.JobRegistry
  * rejected result regardless of what was recorded before.
  */
 @MonakaDsl
-abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect : EffectMarker, SubState : State> internal constructor(
-    open val machineScope: CoroutineScope,
-    open val state: SubState,
+public abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect : EffectMarker, SubState : State> internal constructor(
+    public open val machineScope: CoroutineScope,
+    public open val state: SubState,
     internal val internalDispatch: (Action) -> Unit,
     internal val jobRegistry: JobRegistry,
 ) {
@@ -63,7 +63,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
      * handler returns (and any other queued actions ahead of it). Safe to call from any
      * coroutine; does not suspend. No-op if [reject] has already been called.
      */
-    fun dispatch(action: Action) {
+    public fun dispatch(action: Action) {
         if (guarded || rejected) return
         internalDispatch(action)
     }
@@ -92,7 +92,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
      * }
      * ```
      */
-    fun guard(predicate: () -> Boolean) {
+    public fun guard(predicate: () -> Boolean) {
         if (rejected || guarded) return
         if (!predicate()) guarded = true
     }
@@ -107,7 +107,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
      * }
      * ```
      */
-    fun <S : State> transition(nextState: S) {
+    public fun <S : State> transition(nextState: S) {
         if (guarded || rejected || pendingState != null) return
         pendingState = nextState
     }
@@ -125,7 +125,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
      * }
      * ```
      */
-    fun sideEffect(vararg effects: Effect) {
+    public fun sideEffect(vararg effects: Effect) {
         if (guarded || rejected) return
         pendingEffects += effects
     }
@@ -144,7 +144,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
      * }
      * ```
      */
-    fun reject() {
+    public fun reject() {
         if (guarded) return
         rejected = true
     }
@@ -153,7 +153,7 @@ abstract class HandlerScope<State : StateMarker, Action : ActionMarker, Effect :
      * Cancel the job registered under [key], if any, and remove it from the registry.
      * No-op if [reject] or [guard] has already been called.
      */
-    fun cancel(key: String) {
+    public fun cancel(key: String) {
         if (guarded || rejected) return
         jobRegistry.cancel(key)
     }

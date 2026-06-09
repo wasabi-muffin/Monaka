@@ -13,7 +13,7 @@ import dev.gmvalentino.monaka.scopes.StateUpdateScope
  * verbs on [Scope]. The runtime snapshots that state via
  * [dev.gmvalentino.monaka.dsl.consumeResult] after the lambda returns.
  */
-typealias Handler<Scope> = suspend Scope.() -> Unit
+public typealias Handler<Scope> = suspend Scope.() -> Unit
 
 /**
  * Type-erased action handler stored in the handler registry.

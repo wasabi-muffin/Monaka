@@ -12,4 +12,4 @@ package dev.gmvalentino.monaka.core
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.SOURCE)
-annotation class SelfTransition
+public annotation class SelfTransition

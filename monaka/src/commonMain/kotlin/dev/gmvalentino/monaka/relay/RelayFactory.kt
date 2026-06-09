@@ -25,7 +25,7 @@ import dev.gmvalentino.monaka.core.Store
  * @param from    KClass of the source store type.
  * @param builder DSL block to configure state, effect, and action relays.
  */
-fun <SourceState : StateMarker, SourceAction : ActionMarker, SourceEffect : EffectMarker> relay(
+public fun <SourceState : StateMarker, SourceAction : ActionMarker, SourceEffect : EffectMarker> relay(
     from: KClass<out Store<SourceState, SourceAction, SourceEffect>>,
     builder: RelayBuilder<SourceState, SourceAction, SourceEffect>.() -> Unit,
 ): Relay<SourceState, SourceAction, SourceEffect> =
@@ -49,7 +49,7 @@ fun <SourceState : StateMarker, SourceAction : ActionMarker, SourceEffect : Effe
  * Use the [KClass] overload when you want those blocks type-checked against the source store, or
  * when you need the precisely-typed [Relay] for `by`-delegation.
  */
-inline fun <reified S : Store<*, *, *>> relay(
+public inline fun <reified S : Store<*, *, *>> relay(
     builder: RelayBuilder<StateMarker, ActionMarker, EffectMarker>.() -> Unit,
 ): Relay<StateMarker, ActionMarker, EffectMarker> {
     @Suppress("UNCHECKED_CAST")

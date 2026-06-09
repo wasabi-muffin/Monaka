@@ -30,7 +30,7 @@ import dev.gmvalentino.monaka.core.State as StateMarker
  * [Auth]   EFFECT  : LoginEffect.NavigateToHome
  * ```
  */
-class LoggingPlugin<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
+public class LoggingPlugin<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
     private val tag: String = "Monaka",
     private val logger: Logger = Logger { _, message -> println(message) },
 ) : Plugin<State, Action, Effect> {
@@ -59,6 +59,6 @@ class LoggingPlugin<State : StateMarker, Action : ActionMarker, Effect : EffectM
     }
 }
 
-fun interface Logger {
-    fun log(tag: String, message: String)
+public fun interface Logger {
+    public fun log(tag: String, message: String)
 }

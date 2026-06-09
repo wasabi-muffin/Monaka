@@ -1,10 +1,10 @@
 package dev.gmvalentino.monaka.core
 
 /** Marker interface for all state types used in a Monaka state machine. */
-interface State
+public interface State
 
 /** Marker interface for all action types used in a Monaka state machine. */
-interface Action
+public interface Action
 
 /** Marker interface for all effect types used in a Monaka state machine. */
-interface Effect
+public interface Effect

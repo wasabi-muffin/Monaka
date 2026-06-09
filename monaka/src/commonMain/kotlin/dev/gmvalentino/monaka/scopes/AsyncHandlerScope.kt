@@ -21,7 +21,7 @@ import dev.gmvalentino.monaka.runtime.JobRegistry
  * signatures lived in the same class.
  */
 @MonakaDsl
-abstract class AsyncHandlerScope<State : StateMarker, Action : ActionMarker, Effect : EffectMarker, SubState : State> internal constructor(
+public abstract class AsyncHandlerScope<State : StateMarker, Action : ActionMarker, Effect : EffectMarker, SubState : State> internal constructor(
     machineScope: CoroutineScope,
     state: SubState,
     internalDispatch: (Action) -> Unit,
@@ -43,7 +43,7 @@ abstract class AsyncHandlerScope<State : StateMarker, Action : ActionMarker, Eff
      * When [autoCancel] is true, the job is canceled on the next state-type change
      * (before the corresponding `onExit` hook fires). No-op if [reject] has already been called.
      */
-    fun task(
+    public fun task(
         autoCancel: Boolean = false,
         coroutineScope: CoroutineScope = machineScope,
         block: suspend TaskScope<State, Action, SubState>.() -> Unit,
@@ -64,7 +64,7 @@ abstract class AsyncHandlerScope<State : StateMarker, Action : ActionMarker, Eff
      * additionally canceled (and its key unregistered) on the next state-type change.
      * No-op if [reject] or [guard] has already been called.
      */
-    fun task(
+    public fun task(
         key: String,
         autoCancel: Boolean = false,
         coroutineScope: CoroutineScope = machineScope,

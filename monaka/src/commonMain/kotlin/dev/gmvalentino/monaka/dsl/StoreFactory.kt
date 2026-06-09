@@ -55,7 +55,7 @@ import dev.gmvalentino.monaka.runtime.DefaultStore
  * @param builder               DSL configuration block. Must call [StateMachineBuilder.initialState]
  *                              unless [initialState] is provided.
  */
-fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
+public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
     scope: CoroutineScope = defaultCoroutineScope(),
     initialState: State? = null,
     plugins: List<Plugin<State, Action, Effect>> = emptyList(),
@@ -91,7 +91,7 @@ fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
  * @param extraBufferCapacity `extraBufferCapacity` for the effects (and actions) [kotlinx.coroutines.flow.SharedFlow].
  *                              Defaults to [DEFAULT_BUFFER_CAPACITY].
  */
-fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
+public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
     stateMachine: StateMachine<State, Action, Effect>,
     scope: CoroutineScope = defaultCoroutineScope(),
     initialState: State? = null,

@@ -13,4 +13,4 @@ package dev.gmvalentino.monaka.dsl
  *   carries this marker and blocks the outer handler scope's implicit receiver.
  */
 @DslMarker
-annotation class MonakaDsl
+public annotation class MonakaDsl

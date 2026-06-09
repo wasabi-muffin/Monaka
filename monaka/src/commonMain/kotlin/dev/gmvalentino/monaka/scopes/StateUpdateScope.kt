@@ -18,10 +18,10 @@ import dev.gmvalentino.monaka.runtime.JobRegistry
  * @param jobRegistry  The machine's [JobRegistry] for keyed job management.
  */
 @MonakaDsl
-class StateUpdateScope<State : StateMarker, Action : ActionMarker, Effect : EffectMarker, SubState : State> internal constructor(
+public class StateUpdateScope<State : StateMarker, Action : ActionMarker, Effect : EffectMarker, SubState : State> internal constructor(
     override val machineScope: CoroutineScope,
     override val state: SubState,
-    val fromState: SubState,
+    public val fromState: SubState,
     private val dispatch: (Action) -> Unit,
     jobRegistry: JobRegistry,
 ) : AsyncHandlerScope<State, Action, Effect, SubState>(

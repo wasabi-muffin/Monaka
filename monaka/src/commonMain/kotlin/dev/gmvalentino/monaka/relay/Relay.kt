@@ -33,8 +33,8 @@ import dev.gmvalentino.monaka.runtime.StoreRegistry
  * Implement this interface directly when the [relay] DSL is insufficient, such as when
  * relaying logic requires injected dependencies or more complex coordination.
  */
-interface Relay<SourceState : StateMarker, SourceAction : ActionMarker, SourceEffect : EffectMarker> {
-    val source: KClass<out Store<SourceState, SourceAction, SourceEffect>>
+public interface Relay<SourceState : StateMarker, SourceAction : ActionMarker, SourceEffect : EffectMarker> {
+    public val source: KClass<out Store<SourceState, SourceAction, SourceEffect>>
 
     /**
      * Wire [source] to [registry] by launching collector coroutines in [scope].
@@ -42,5 +42,5 @@ interface Relay<SourceState : StateMarker, SourceAction : ActionMarker, SourceEf
      * Returns the launched [Job]s so the registry can cancel them when the source
      * store is unregistered.
      */
-    fun apply(source: Store<*, *, *>, registry: StoreRegistry, scope: CoroutineScope): List<Job>
+    public fun apply(source: Store<*, *, *>, registry: StoreRegistry, scope: CoroutineScope): List<Job>
 }

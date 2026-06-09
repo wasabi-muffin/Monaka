@@ -16,9 +16,9 @@ import dev.gmvalentino.monaka.dsl.MonakaDsl
  *      exposes a typed [ActionTaskScope.action] property.
  */
 @MonakaDsl
-open class TaskScope<State : StateMarker, Action : ActionMarker, SubState : State> internal constructor(
+public open class TaskScope<State : StateMarker, Action : ActionMarker, SubState : State> internal constructor(
     scope: CoroutineScope,
-    open val state: SubState,
+    public open val state: SubState,
     private val internalDispatch: (Action) -> Unit,
 ) : CoroutineScope by scope {
 
@@ -29,7 +29,7 @@ open class TaskScope<State : StateMarker, Action : ActionMarker, SubState : Stat
      * asynchronously after the handler has already returned, so the originating handler's
      * `guarded` / `rejected` state is no longer relevant.
      */
-    fun dispatch(action: Action) = internalDispatch(action)
+    public fun dispatch(action: Action) = internalDispatch(action)
 }
 
 /**
@@ -49,9 +49,9 @@ open class TaskScope<State : StateMarker, Action : ActionMarker, SubState : Stat
  * ```
  */
 @MonakaDsl
-class ActionTaskScope<State : StateMarker, Action : ActionMarker, SubState : State, ActionType : Action> internal constructor(
+public class ActionTaskScope<State : StateMarker, Action : ActionMarker, SubState : State, ActionType : Action> internal constructor(
     scope: CoroutineScope,
     state: SubState,
-    val action: ActionType,
+    public val action: ActionType,
     internalDispatch: (Action) -> Unit,
 ) : TaskScope<State, Action, SubState>(scope, state, internalDispatch)

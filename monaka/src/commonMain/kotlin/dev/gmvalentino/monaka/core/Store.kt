@@ -33,15 +33,15 @@ import kotlinx.coroutines.flow.StateFlow
  * machine.dispatch(MyAction.Start)
  * ```
  */
-interface Store<State : StateMarker, Action : ActionMarker, out Effect : EffectMarker> {
+public interface Store<State : StateMarker, Action : ActionMarker, out Effect : EffectMarker> {
 
-    val id: String
+    public val id: String
 
     /**
      * The current state, exposed as a [StateFlow].
      * Always has a value; the initial emission is the configured initialState.
      */
-    val state: StateFlow<State>
+    public val state: StateFlow<State>
 
     /**
      * Every action dispatched to this machine, exposed as a [SharedFlow] with no replay.
@@ -49,7 +49,7 @@ interface Store<State : StateMarker, Action : ActionMarker, out Effect : EffectM
      * Emits in [dispatch] order, before the action is processed. Use this to observe
      * or relay actions to another machine via [dev.gmvalentino.monaka.relay.RelayBuilder.action].
      */
-    val actions: SharedFlow<Action>
+    public val actions: SharedFlow<Action>
 
     /**
      * One-shot side effects, exposed as a [SharedFlow] with no replay.
@@ -58,7 +58,7 @@ interface Store<State : StateMarker, Action : ActionMarker, out Effect : EffectM
      * started collecting. Buffer overflow is handled with extraBufferCapacity
      * so that fast producers don't block state processing.
      */
-    val effects: SharedFlow<Effect>
+    public val effects: SharedFlow<Effect>
 
     /**
      * Enqueue an [action] for processing.
@@ -67,7 +67,7 @@ interface Store<State : StateMarker, Action : ActionMarker, out Effect : EffectM
      * This function is non-suspending and safe to call from any context,
      * including the main thread.
      */
-    fun dispatch(action: Action)
+    public fun dispatch(action: Action)
 
     /**
      * Cancel the internal processing coroutine.
@@ -77,7 +77,7 @@ interface Store<State : StateMarker, Action : ActionMarker, out Effect : EffectM
      * state machine's [kotlinx.coroutines.CoroutineScope] to the ViewModel lifecycle instead
      * of calling this manually.
      */
-    fun cancel()
+    public fun cancel()
 
     /**
      * Whether this store is still active and processing actions.
@@ -86,7 +86,7 @@ interface Store<State : StateMarker, Action : ActionMarker, out Effect : EffectM
      * [kotlinx.coroutines.CoroutineScope] is cancelled externally (e.g. a cleared ViewModel scope).
      * Once inactive, [dispatch], [start], [onLifecycleEvent], and [triggerStateHook] are all silent no-ops.
      */
-    val isActive: Boolean get() = true
+    public val isActive: Boolean get() = true
 
     /**
      * Start the store by firing the `onEnter` hook for the initial state, if one is registered.
@@ -100,7 +100,7 @@ interface Store<State : StateMarker, Action : ActionMarker, out Effect : EffectM
      * The default implementation is a no-op, so stores that do not use `onEnter` on the
      * initial state do not need to call this.
      */
-    fun start(): Unit = Unit
+    public fun start(): Unit = Unit
 
     /**
      * Forward an application [LifecycleEvent] into the machine.
@@ -113,7 +113,7 @@ interface Store<State : StateMarker, Action : ActionMarker, out Effect : EffectM
      * The default implementation is a no-op, so stores that do not use lifecycle hooks
      * do not need to override this.
      */
-    fun onLifecycleEvent(event: LifecycleEvent): Unit = Unit
+    public fun onLifecycleEvent(event: LifecycleEvent): Unit = Unit
 
     /**
      * Fire a state-lifecycle [hook] for the current state directly, without requiring a transition.
@@ -124,7 +124,7 @@ interface Store<State : StateMarker, Action : ActionMarker, out Effect : EffectM
      *
      * Primarily intended for testing via `:monaka-test`'s `trigger(StateHook)` DSL.
      */
-    fun triggerStateHook(hook: StateHook<State>): Unit = Unit
+    public fun triggerStateHook(hook: StateHook<State>): Unit = Unit
 
     /**
      * Register a [handler] to be invoked when this store's scope completes (including cancellation).
@@ -132,5 +132,5 @@ interface Store<State : StateMarker, Action : ActionMarker, out Effect : EffectM
      * The handler receives the cancellation cause, or `null` if the scope completed normally.
      * Use this to observe store lifetime without needing to hold a reference to the underlying scope.
      */
-    fun invokeOnCompletion(handler: (cause: Throwable?) -> Unit): DisposableHandle
+    public fun invokeOnCompletion(handler: (cause: Throwable?) -> Unit): DisposableHandle
 }

@@ -16,7 +16,7 @@ import dev.gmvalentino.monaka.runtime.StoreRegistry
  * given event, so a single relay can drive several dispatches per emission.
  */
 @MonakaDsl
-class RelayBuilder<SourceState : StateMarker, SourceAction : ActionMarker, SourceEffect : EffectMarker> {
+public class RelayBuilder<SourceState : StateMarker, SourceAction : ActionMarker, SourceEffect : EffectMarker> {
 
     @PublishedApi
     internal val stateHandlers = mutableListOf<(SourceState, StoreRegistry) -> Unit>()
@@ -35,7 +35,7 @@ class RelayBuilder<SourceState : StateMarker, SourceAction : ActionMarker, Sourc
      * state<AuthState.SignedIn> { dispatch<CartStore>(CartAction.LoadForUser(event.user.id)) }
      * ```
      */
-    inline fun <reified S : SourceState> state(crossinline block: RelayScope<S>.() -> Unit) {
+    public inline fun <reified S : SourceState> state(crossinline block: RelayScope<S>.() -> Unit) {
         stateHandlers.add { state, registry -> (state as? S)?.let { RelayScope(event = it, registry = registry).block() } }
     }
 
@@ -47,7 +47,7 @@ class RelayBuilder<SourceState : StateMarker, SourceAction : ActionMarker, Sourc
      * effect<CartEffect.CartChanged> { dispatch<CheckoutStore>(CheckoutAction.SyncCart(event.items, event.total)) }
      * ```
      */
-    inline fun <reified E : SourceEffect> effect(crossinline block: RelayScope<E>.() -> Unit) {
+    public inline fun <reified E : SourceEffect> effect(crossinline block: RelayScope<E>.() -> Unit) {
         effectHandlers.add { effect, registry -> (effect as? E)?.let { RelayScope(event = it, registry = registry).block() } }
     }
 
@@ -59,7 +59,7 @@ class RelayBuilder<SourceState : StateMarker, SourceAction : ActionMarker, Sourc
      * action<AuthAction.SignOut> { dispatch<SessionStore>(SessionAction.Invalidate) }
      * ```
      */
-    inline fun <reified A : SourceAction> action(crossinline block: RelayScope<A>.() -> Unit) {
+    public inline fun <reified A : SourceAction> action(crossinline block: RelayScope<A>.() -> Unit) {
         actionHandlers.add { action, registry -> (action as? A)?.let { RelayScope(event = it, registry = registry).block() } }
     }
 

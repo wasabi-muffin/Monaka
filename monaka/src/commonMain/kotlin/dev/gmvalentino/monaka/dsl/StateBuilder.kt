@@ -48,7 +48,7 @@ import dev.gmvalentino.monaka.handler.StateUpdateHandler
  *   and the machine is currently in [SubState].
  */
 @MonakaDsl
-class StateBuilder<State : StateMarker, SubState : State, Action : ActionMarker, Effect : EffectMarker> {
+public class StateBuilder<State : StateMarker, SubState : State, Action : ActionMarker, Effect : EffectMarker> {
 
     @PublishedApi
     internal val handlers: LinkedHashMap<KClass<out Action>, ActionHandler<State, Action, Effect>> = LinkedHashMap()
@@ -79,7 +79,7 @@ class StateBuilder<State : StateMarker, SubState : State, Action : ActionMarker,
      *
      * If [ActionType] is registered more than once, the last registration wins.
      */
-    inline fun <reified ActionType : Action> on(
+    public inline fun <reified ActionType : Action> on(
         noinline handler: suspend ActionScope<State, Action, Effect, SubState, ActionType>.() -> Unit,
     ) {
         handlers[ActionType::class] = {
@@ -111,7 +111,7 @@ class StateBuilder<State : StateMarker, SubState : State, Action : ActionMarker,
      *
      * Note: [onEnter] does **not** fire for the initial state — only on transitions.
      */
-    fun onEnter(block: suspend StateChangeScope<State, Action, Effect, SubState>.() -> Unit) {
+    public fun onEnter(block: suspend StateChangeScope<State, Action, Effect, SubState>.() -> Unit) {
         enterHandler = {
             @Suppress("UNCHECKED_CAST")
             (this as StateChangeScope<State, Action, Effect, SubState>).block()
@@ -132,7 +132,7 @@ class StateBuilder<State : StateMarker, SubState : State, Action : ActionMarker,
      * }
      * ```
      */
-    fun onExit(block: suspend StateChangeScope<State, Action, Effect, SubState>.() -> Unit) {
+    public fun onExit(block: suspend StateChangeScope<State, Action, Effect, SubState>.() -> Unit) {
         exitHandler = {
             @Suppress("UNCHECKED_CAST")
             (this as StateChangeScope<State, Action, Effect, SubState>).block()
@@ -151,7 +151,7 @@ class StateBuilder<State : StateMarker, SubState : State, Action : ActionMarker,
      * }
      * ```
      */
-    fun onUpdate(block: suspend StateUpdateScope<State, Action, Effect, SubState>.() -> Unit) {
+    public fun onUpdate(block: suspend StateUpdateScope<State, Action, Effect, SubState>.() -> Unit) {
         updateHandler = {
             @Suppress("UNCHECKED_CAST")
             (this as StateUpdateScope<State, Action, Effect, SubState>).block()
@@ -165,7 +165,7 @@ class StateBuilder<State : StateMarker, SubState : State, Action : ActionMarker,
      *
      * Prefer the named convenience functions ([onResume], [onPause], etc.) when possible.
      */
-    fun onLifecycle(
+    public fun onLifecycle(
         lifecycle: LifecycleEvent,
         block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit,
     ) {
@@ -179,14 +179,14 @@ class StateBuilder<State : StateMarker, SubState : State, Action : ActionMarker,
      * Hook fired when [LifecycleEvent.OnCreate] is forwarded to the machine while
      * the machine is in [SubState].
      */
-    fun onCreate(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
+    public fun onCreate(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
         onLifecycle(lifecycle = LifecycleEvent.OnCreate, block)
 
     /**
      * Hook fired when [LifecycleEvent.OnStart] is forwarded to the machine while
      * the machine is in [SubState].
      */
-    fun onStart(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
+    public fun onStart(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
         onLifecycle(lifecycle = LifecycleEvent.OnStart, block = block)
 
     /**
@@ -202,28 +202,28 @@ class StateBuilder<State : StateMarker, SubState : State, Action : ActionMarker,
      * }
      * ```
      */
-    fun onResume(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
+    public fun onResume(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
         onLifecycle(lifecycle = LifecycleEvent.OnResume, block = block)
 
     /**
      * Hook fired when [LifecycleEvent.OnPause] is forwarded to the machine while
      * the machine is in [SubState].
      */
-    fun onPause(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
+    public fun onPause(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
         onLifecycle(lifecycle = LifecycleEvent.OnPause, block = block)
 
     /**
      * Hook fired when [LifecycleEvent.OnStop] is forwarded to the machine while
      * the machine is in [SubState].
      */
-    fun onStop(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
+    public fun onStop(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
         onLifecycle(lifecycle = LifecycleEvent.OnStop, block = block)
 
     /**
      * Hook fired when [LifecycleEvent.OnDestroy] is forwarded to the machine while
      * the machine is in [SubState].
      */
-    fun onDestroy(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
+    public fun onDestroy(block: suspend LifecycleScope<State, Action, Effect, SubState>.() -> Unit) =
         onLifecycle(lifecycle = LifecycleEvent.OnDestroy, block = block)
 
     // ── Error recovery hook ───────────────────────────────────────────────────
@@ -254,7 +254,7 @@ class StateBuilder<State : StateMarker, SubState : State, Action : ActionMarker,
      * }
      * ```
      */
-    fun onError(block: suspend ErrorScope<State, Action, Effect, SubState>.() -> Unit) {
+    public fun onError(block: suspend ErrorScope<State, Action, Effect, SubState>.() -> Unit) {
         errorHandler = {
             @Suppress("UNCHECKED_CAST")
             (this as ErrorScope<State, Action, Effect, SubState>).block()

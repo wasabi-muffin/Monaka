@@ -49,10 +49,10 @@ import dev.gmvalentino.monaka.plugin.Plugin
  * ```
  */
 @MonakaDsl
-class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> {
+public class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> {
 
     /** Unique identifier for the machine being built. */
-    val id: String = Uuid.random().toString()
+    public val id: String = Uuid.random().toString()
 
     internal var initialState: State? = null
 
@@ -89,7 +89,7 @@ class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Effect : E
      *
      * Must be called exactly once before the builder block returns.
      */
-    fun initialState(state: State) {
+    public fun initialState(state: State) {
         check(initialState == null) { "initialState has already been set." }
         initialState = state
     }
@@ -106,7 +106,7 @@ class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Effect : E
      * Multiple `state<SubState>` calls for the same [SubState] are merged; later registrations
      * overwrite earlier ones for the same action class or hook type.
      */
-    inline fun <reified SubState : State> state(
+    public inline fun <reified SubState : State> state(
         block: StateBuilder<State, SubState, Action, Effect>.() -> Unit,
     ) {
         val builder = StateBuilder<State, SubState, Action, Effect>()
@@ -134,12 +134,12 @@ class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Effect : E
     // ── Plugin installation ───────────────────────────────────────────────────
 
     /** Install a single [plugin]. Plugins are invoked in installation order. */
-    fun install(plugin: Plugin<State, Action, Effect>) {
+    public fun install(plugin: Plugin<State, Action, Effect>) {
         plugins.add(plugin)
     }
 
     /** Install multiple [plugins] at once. */
-    fun install(vararg plugins: Plugin<State, Action, Effect>) {
+    public fun install(vararg plugins: Plugin<State, Action, Effect>) {
         this.plugins.addAll(plugins)
     }
 
@@ -151,7 +151,7 @@ class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Effect : E
      * @param initialState When non-null, replaces any state set via [StateMachineBuilder.initialState].
      * @param extraPlugins Appended **after** any plugins already installed in this builder.
      */
-    fun build(
+    public fun build(
         initialState: State? = null,
         extraPlugins: List<Plugin<State, Action, Effect>> = emptyList(),
     ): StateMachine<State, Action, Effect> {

@@ -13,4 +13,4 @@ import kotlin.reflect.KClass
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.SOURCE)
-annotation class Transition(vararg val to: KClass<out State> = [])
+public annotation class Transition(vararg val to: KClass<out State> = [])

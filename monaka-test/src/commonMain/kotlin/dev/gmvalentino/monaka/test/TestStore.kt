@@ -31,7 +31,7 @@ import dev.gmvalentino.monaka.dsl.StateMachine
  * }
  * ```
  */
-fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> testStore(
+public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> testStore(
     machine: StateMachine<State, Action, Effect>,
     body: suspend TestStoreScope<State, Action, Effect>.() -> Unit,
 ): TestResult = runTest {
