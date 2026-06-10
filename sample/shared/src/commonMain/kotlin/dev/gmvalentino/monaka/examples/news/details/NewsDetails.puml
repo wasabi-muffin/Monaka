@@ -1,0 +1,26 @@
+@startuml NewsDetails
+hide empty description
+title NewsDetails
+
+[*] --> Initial
+
+state "NewsDetails" as NewsDetails {
+  NewsDetails : ClickBack ◆ NavigateBack
+
+  state "Initial" as Initial
+  Initial : onEnter → InitialLoading
+  Initial -[dashed]-> InitialLoading : onEnter
+
+  state "InitialLoading" as InitialLoading
+  InitialLoading : onEnter → [Stable | Error]
+  InitialLoading -[dashed]-> Stable : onEnter
+  InitialLoading -[dashed]-> Error : onEnter
+
+  state "Error" as Error
+  Error : Error.ClickRetry → InitialLoading
+  Error --> InitialLoading : Error.ClickRetry
+
+  state "Stable" as Stable
+}
+
+@enduml

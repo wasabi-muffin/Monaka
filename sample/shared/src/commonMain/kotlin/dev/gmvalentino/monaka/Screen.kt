@@ -9,4 +9,6 @@ internal sealed interface Screen : NavKey {
     data object Checkout : Screen
     data object LiveFeed : Screen
     data object Timer : Screen
+    data object NewsList : Screen
+    data class NewsDetails(val id: Int) : Screen
 }

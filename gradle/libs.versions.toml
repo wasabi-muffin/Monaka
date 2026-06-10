@@ -4,6 +4,7 @@ kotlin = "2.3.21"
 coroutines = "1.11.0"
 
 # Kotlin Multiplatform
+metro = "1.1.1"
 compose = "1.11.1"
 compose-material3 = "1.11.0-alpha07"
 compose-material-icons = "1.7.3"
@@ -42,10 +43,14 @@ kotlinx-coroutines-core = { module =  "org.jetbrains.kotlinx:kotlinx-coroutines-
 kotlinx-coroutines-android = { module =  "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module =  "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
+# Metro
+metro-viewmodel-compose = { module = "dev.zacsweers.metro:metrox-viewmodel-compose", version.ref = "metro" }
+
 # Multiplatform
 kotlinx-datetime = { module =  "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
 lifecycle-runtime-compose = { module =  "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
-lifecycle-viewmodel = { module =  "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+lifecycle-viewmodel-compose = { module =  "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+lifecycle-viewmodel-navigation = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycle" }
 navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 
 # Compose Multiplatform
@@ -85,6 +90,7 @@ compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose" 
 compiler-plugin = { id = "org.jetbrains.kotlin.compiler.plugin.template", version = "0.1.0" }
 
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+metro = { id = "dev.zacsweers.metro", version.ref = "metro" }
 binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binary-compatibility-validator" }
 
 # Convention Plugins

@@ -60,6 +60,12 @@ internal fun HomeScreen(onSelect: (Screen) -> Unit) {
                 description = "Lifecycle-aware timer using onEnter/onExit for tick management and onPause/onResume for auto-pause.",
                 onSelect = onSelect
             )
+            ExampleCard(
+                screen = Screen.NewsList,
+                title = "News (Metro DI)",
+                description = "News list and details wired with Metro DI — ViewModels injected via metroViewModel() and assistedMetroViewModel().",
+                onSelect = onSelect
+            )
         }
     }
 }

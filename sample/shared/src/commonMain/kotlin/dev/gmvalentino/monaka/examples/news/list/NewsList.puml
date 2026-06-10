@@ -1,0 +1,38 @@
+@startuml NewsList
+hide empty description
+title NewsList
+
+[*] --> Initial
+
+state "Initial" as Initial
+Initial : LoadInitial → InitialLoading
+Initial --> InitialLoading : LoadInitial
+
+state "InitialLoading" as InitialLoading
+InitialLoading : onEnter → [Stable.Initial | InitialError]
+InitialLoading -[dashed]-> Stable.Initial : onEnter
+InitialLoading -[dashed]-> InitialError : onEnter
+
+state "InitialError" as InitialError
+InitialError : Error.ClickRetry → InitialLoading
+InitialError --> InitialLoading : Error.ClickRetry
+
+state "Stable" as Stable {
+
+  state "Initial" as Stable.Initial
+  Stable.Initial : ClickNews ◆ NavigateNewsDetails
+  Stable.Initial : ClickReadAll → Stable.Loading
+  Stable.Initial --> Stable.Loading : ClickReadAll
+
+  state "Loading" as Stable.Loading
+  Stable.Loading : onEnter → [Stable.Initial | Stable.Error]
+  Stable.Loading -[dashed]-> Stable.Initial : onEnter
+  Stable.Loading -[dashed]-> Stable.Error : onEnter
+
+  state "Error" as Stable.Error
+  Stable.Error : Error.ClickOk → Stable.Initial
+  Stable.Error --> Stable.Initial : Error.ClickOk
+}
+
+
+@enduml

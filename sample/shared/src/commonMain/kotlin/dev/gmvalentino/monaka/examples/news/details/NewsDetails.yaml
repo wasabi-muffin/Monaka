@@ -1,0 +1,16 @@
+name: NewsDetails
+initial: Initial
+states:
+  NewsDetails:
+    ClickBack:
+      effect: [NavigateBack]
+  Initial:
+    onEnter:
+      transition: [InitialLoading]
+  InitialLoading:
+    onEnter:
+      transition: [Stable, Error]
+  Error:
+    Error.ClickRetry:
+      transition: [InitialLoading]
+  Stable:

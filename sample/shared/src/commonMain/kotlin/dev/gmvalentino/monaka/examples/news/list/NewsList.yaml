@@ -1,0 +1,23 @@
+name: NewsList
+initial: Initial
+states:
+  Initial:
+    LoadInitial:
+      transition: [InitialLoading]
+  InitialLoading:
+    onEnter:
+      transition: [Stable.Initial, InitialError]
+  InitialError:
+    Error.ClickRetry:
+      transition: [InitialLoading]
+  Stable.Initial:
+    ClickNews:
+      effect: [NavigateNewsDetails]
+    ClickReadAll:
+      transition: [Stable.Loading]
+  Stable.Loading:
+    onEnter:
+      transition: [Stable.Initial, Stable.Error]
+  Stable.Error:
+    Error.ClickOk:
+      transition: [Stable.Initial]

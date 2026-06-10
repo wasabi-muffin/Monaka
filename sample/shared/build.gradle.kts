@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.compiler.plugin)
     alias(libs.plugins.ksp)
     alias(libs.plugins.monaka.gradle.plugin)
+    alias(libs.plugins.metro)
 }
 
 kotlin {
@@ -32,7 +33,8 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.datetime)
             implementation(libs.lifecycle.runtime.compose)
-            implementation(libs.lifecycle.viewmodel)
+            implementation(libs.lifecycle.viewmodel.compose)
+            implementation(libs.lifecycle.viewmodel.navigation)
             implementation(libs.navigation3.ui)
 
             implementation(libs.compose.runtime)
@@ -41,6 +43,8 @@ kotlin {
             implementation(libs.compose.material.icons.core)
             implementation(libs.compose.components.resources)
             implementation(libs.compose.components.ui.tooling.preview)
+
+            implementation(libs.metro.viewmodel.compose)
         }
         commonTest.dependencies {
             implementation(project(":monaka-test"))
