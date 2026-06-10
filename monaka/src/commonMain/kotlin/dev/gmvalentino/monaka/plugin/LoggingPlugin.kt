@@ -2,8 +2,9 @@ package dev.gmvalentino.monaka.plugin
 
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
-import dev.gmvalentino.monaka.handler.HandlerType
 import dev.gmvalentino.monaka.core.State as StateMarker
+import dev.gmvalentino.monaka.handler.HandlerType
+import co.touchlab.kermit.Logger as Kermit
 
 /**
  * A [Plugin] that logs every state machine event to a configurable output.
@@ -32,7 +33,7 @@ import dev.gmvalentino.monaka.core.State as StateMarker
  */
 public class LoggingPlugin<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
     private val tag: String = "Monaka",
-    private val logger: Logger = Logger { _, message -> println(message) },
+    private val logger: Logger = Logger { tag, message -> Kermit.d(tag) { message } },
 ) : Plugin<State, Action, Effect> {
 
     override fun onAction(currentState: State, action: Action) {

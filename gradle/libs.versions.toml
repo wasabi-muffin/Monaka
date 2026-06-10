@@ -20,6 +20,9 @@ activity-compose = "1.13.0"
 turbine = "1.2.1"
 kotest = "6.1.11"
 
+# Logging
+kermit = "2.0.4"
+
 # Annotation processing
 ksp        = "2.3.9"
 kotlinpoet = "2.2.0"
@@ -56,6 +59,9 @@ compose-material-icons-core = { module = "org.jetbrains.compose.material:materia
 # AndroidX
 androidx-core-ktx = { module =  "androidx.core:core-ktx", version.ref = "android-core" }
 androidx-activity-compose = { module =  "androidx.activity:activity-compose", version.ref = "activity-compose" }
+
+# Logger
+log-kermit = { module = "co.touchlab:kermit", version.ref = "kermit"}
 
 # Testing
 turbine = { module =  "app.cash.turbine:turbine", version.ref = "turbine" }

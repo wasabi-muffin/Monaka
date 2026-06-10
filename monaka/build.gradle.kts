@@ -14,6 +14,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.log.kermit)
         }
         androidMain.dependencies {
             implementation(libs.kotlinx.coroutines.android)

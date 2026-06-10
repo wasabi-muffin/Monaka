@@ -70,9 +70,6 @@ class KmpTargetsConventionPlugin : Plugin<Project> {
                     browser()
                     nodejs()
                 }
-                wasmWasi {
-                    nodejs()
-                }
             }
         }
     }
