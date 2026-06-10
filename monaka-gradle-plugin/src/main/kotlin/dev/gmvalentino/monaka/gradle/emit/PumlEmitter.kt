@@ -23,48 +23,105 @@ class PumlEmitter {
         appendLine("hide empty description")
         appendLine("title ${model.name}")
         appendLine()
-        appendLine("[*] --> ${model.initial}")
+        if (model.initial.isNotBlank()) appendLine("[*] --> ${model.initial}")
 
         val allTargets = collectAllTargets(model.states)
-        val parentNames = model.states.keys.filter { it !in allTargets }.toSet()
-        val leafStates = model.states.filterKeys { it !in parentNames }
         val phantomNames = allTargets - model.states.keys
 
-        if (parentNames.isEmpty()) {
-            // ── Flat layout ────────────────────────────────────────────────
+        // Catch-all: state whose key matches the machine name convention.
+        val catchAllKey = model.states.keys.firstOrNull { it == model.name || it == "${model.name}State" }
+
+        // Namespace grouping: states with dots are grouped under their prefix.
+        // e.g. "Stable.Initial" → prefix "Stable"
+        val nestedByPrefix = model.states.keys
+            .filter { it.contains(".") }
+            .groupBy { it.substringBeforeLast(".") }
+        val nestedKeys = nestedByPrefix.values.flatten().toSet()
+
+        // Top-level keys: not the catch-all and not dot-nested inside a namespace.
+        val topLevelKeys = model.states.keys.filter { it != catchAllKey && it !in nestedKeys }
+
+        val catchAllHasSubstates = catchAllKey != null && model.states.keys.any { it != catchAllKey }
+
+        if (catchAllHasSubstates) {
+            // ── Composite layout: catch-all wraps all other states ─────────
+            val catchAllNode = model.states[catchAllKey]!!
             appendLine()
-            for ((name, node) in model.states) {
-                appendLine("state \"$name\" as $name")
-                emitStateLines(name, node, indent = "")
+            appendLine("state \"$catchAllKey\" as $catchAllKey {")
+            emitStateLines(catchAllKey, catchAllNode, indent = "  ")
+            for (key in topLevelKeys) {
                 appendLine()
+                if (key in nestedByPrefix) {
+                    emitNamespaceComposite(key, model.states[key], nestedByPrefix[key]!!, model.states, phantomNames, "  ")
+                } else {
+                    appendLine("  state \"$key\" as $key")
+                    emitStateLines(key, model.states[key]!!, indent = "  ")
+                }
             }
-            for (name in phantomNames) {
-                appendLine("state \"$name\" as $name")
+            for ((prefix, children) in nestedByPrefix.filter { it.key !in model.states }) {
                 appendLine()
+                emitNamespaceComposite(prefix, null, children, model.states, phantomNames, "  ")
             }
+            for (phantom in phantomNames.filter { !it.contains(".") }) {
+                appendLine()
+                appendLine("  state \"$phantom\" as $phantom")
+            }
+            appendLine("}")
         } else {
-            // ── Composite layout ───────────────────────────────────────────
-            // Each catch-all state wraps all leaf + phantom states.
-            for (parentName in parentNames) {
-                val parentNode = model.states[parentName] ?: continue
+            // ── Flat / mixed layout ────────────────────────────────────────
+            appendLine()
+            // Single catch-all with no substates (e.g. flat Counter machine).
+            if (catchAllKey != null) {
+                val node = model.states[catchAllKey]!!
+                appendLine("state \"$catchAllKey\" as $catchAllKey")
+                emitStateLines(catchAllKey, node, indent = "")
                 appendLine()
-                appendLine("state \"$parentName\" as $parentName {")
-                emitStateLines(parentName, parentNode, indent = "  ")
-                for ((childName, childNode) in leafStates) {
-                    appendLine()
-                    appendLine("  state \"$childName\" as $childName")
-                    emitStateLines(childName, childNode, indent = "  ")
+            }
+            for (key in topLevelKeys) {
+                if (key in nestedByPrefix) {
+                    emitNamespaceComposite(key, model.states[key], nestedByPrefix[key]!!, model.states, phantomNames, "")
+                } else {
+                    appendLine("state \"$key\" as $key")
+                    emitStateLines(key, model.states[key]!!, indent = "")
                 }
-                for (phantomName in phantomNames) {
-                    appendLine()
-                    appendLine("  state \"$phantomName\" as $phantomName")
-                }
-                appendLine("}")
+                appendLine()
+            }
+            // Implicit namespace prefixes not directly in model.states.
+            for ((prefix, children) in nestedByPrefix.filter { it.key !in model.states }) {
+                emitNamespaceComposite(prefix, null, children, model.states, phantomNames, "")
+                appendLine()
+            }
+            for (phantom in phantomNames.filter { !it.contains(".") }) {
+                appendLine("state \"$phantom\" as $phantom")
+                appendLine()
             }
         }
 
         appendLine()
         append("@enduml")
+    }
+
+    private fun StringBuilder.emitNamespaceComposite(
+        prefix: String,
+        prefixNode: StateNode?,
+        childKeys: List<String>,
+        allStates: Map<String, StateNode>,
+        phantomNames: Set<String>,
+        indent: String,
+    ) {
+        appendLine("${indent}state \"$prefix\" as $prefix {")
+        prefixNode?.let { emitStateLines(prefix, it, indent = "$indent  ") }
+        for (childKey in childKeys) {
+            val childNode = allStates[childKey] ?: continue
+            appendLine()
+            appendLine("$indent  state \"${childKey.substringAfterLast(".")}\" as $childKey")
+            emitStateLines(childKey, childNode, indent = "$indent  ")
+        }
+        for (phantom in phantomNames.filter { it.startsWith("$prefix.") }) {
+            appendLine()
+            appendLine("$indent  state \"${phantom.substringAfterLast(".")}\" as $phantom")
+        }
+        appendLine("${indent}}")
     }
 
     // ── Per-state lines ───────────────────────────────────────────────────────

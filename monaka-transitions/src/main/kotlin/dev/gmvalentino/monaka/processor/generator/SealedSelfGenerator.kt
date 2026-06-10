@@ -82,12 +82,9 @@ internal object SealedSelfGenerator {
             }
 
             Modifier.SEALED in sub.modifiers -> {
-                logger.warn(
-                    "Nested sealed subclass ${sub.qualifiedName?.asString()} in toSelf() when-branch — " +
-                        "annotate it separately for full coverage",
-                    sub,
-                )
-                buildBranch(builder, sub, sharedProps, sharedPropNames, useConstructor = true)
+                for (nested in sub.getSealedSubclasses()) {
+                    addWhenBranch(builder, nested, sharedProps, sharedPropNames, logger)
+                }
             }
 
             Modifier.DATA in sub.modifiers -> {

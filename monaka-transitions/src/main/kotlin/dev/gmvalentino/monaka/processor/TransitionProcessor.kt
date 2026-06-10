@@ -82,7 +82,9 @@ class TransitionProcessor(
         if (funSpecs.isEmpty()) return
 
         val packageName = declaration.packageName.asString()
-        val fileName = "${declaration.simpleName.asString()}Transitions"
+        val fileName = (declaration.qualifiedName!!.asString())
+            .removePrefix("$packageName.")
+            .replace(".", "") + "Transitions"
         val sourceFile = declaration.containingFile
 
         val fileSpec = FileSpec.builder(packageName, fileName)

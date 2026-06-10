@@ -43,11 +43,20 @@ abstract class GenerateStateMachinePumlTask : DefaultTask() {
         for ((sourceFile, model) in pairs) {
             val out = fixedOutputDir ?: sourceFile.parentFile
             val genYaml = out.resolve("${model.name}.gen.yaml")
-            val resolvedModel = if (genYaml.exists()) {
-                logger.lifecycle("Monaka: using ${genYaml.name} as source for puml")
-                yamlParser.parse(genYaml.readText())
-            } else {
-                model
+            val handYaml = out.resolve("${model.name}.yaml")
+            val resolvedModel = when {
+                genYaml.exists() -> {
+                    logger.lifecycle("Monaka: using ${genYaml.name} as source for puml")
+                    yamlParser.parse(genYaml.readText())
+                }
+                handYaml.exists() -> {
+                    val parsed = yamlParser.parse(handYaml.readText())
+                    if (parsed.name.isNotBlank()) {
+                        logger.lifecycle("Monaka: using ${handYaml.name} as source for puml")
+                        parsed
+                    } else model
+                }
+                else -> model
             }
             val puml = emitter.emit(resolvedModel)
             val primary = out.resolve("${model.name}.puml")

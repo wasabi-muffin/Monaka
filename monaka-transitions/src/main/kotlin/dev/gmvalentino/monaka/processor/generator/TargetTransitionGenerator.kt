@@ -25,6 +25,38 @@ internal object TargetTransitionGenerator {
     ): FunSpec? {
         val functionName = buildFunctionName(source, target)
 
+        // Self-referential transition: target is the same class as source.
+        if (source.qualifiedName?.asString() == target.qualifiedName?.asString()) {
+            return if (source.classKind == ClassKind.OBJECT) {
+                FunSpec.builder(functionName)
+                    .receiver(source.toClassName())
+                    .returns(source.toClassName())
+                    .addStatement("return this")
+                    .build()
+            } else {
+                val constructor = source.primaryConstructor ?: run {
+                    logger.error(
+                        "@Transition self-target ${source.qualifiedName?.asString()} has no primary constructor",
+                        source,
+                    )
+                    return null
+                }
+                val params = constructor.parameters.map { param ->
+                    val name = param.name!!.asString()
+                    ParameterSpec.builder(name, param.type.toTypeName())
+                        .defaultValue("this.%N", name)
+                        .build()
+                }
+                val argList = params.joinToString(",\n    ") { "${it.name} = ${it.name}" }
+                FunSpec.builder(functionName)
+                    .receiver(source.toClassName())
+                    .returns(source.toClassName())
+                    .apply { params.forEach { addParameter(it) } }
+                    .addStatement("return this.copy(\n    $argList\n)")
+                    .build()
+            }
+        }
+
         // Objects have no constructor — just return the singleton.
         if (target.classKind == ClassKind.OBJECT) {
             return FunSpec.builder(functionName)

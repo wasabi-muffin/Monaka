@@ -82,7 +82,9 @@ abstract class GenerateStubsFromYamlTask @Inject constructor(
         val yamlFiles: List<File> = when {
             resolvedInput.isFile && resolvedInput.extension == "yaml" -> listOf(resolvedInput)
             resolvedInput.isDirectory ->
-                resolvedInput.walkTopDown().filter { it.isFile && it.extension == "yaml" }.toList()
+                resolvedInput.walkTopDown()
+                    .filter { it.isFile && it.extension == "yaml" && !it.name.endsWith(".gen.yaml") }
+                    .toList()
             else -> {
                 logger.warn("Monaka: input does not exist or is not a YAML file/directory: $inputPath")
                 return
@@ -106,6 +108,10 @@ abstract class GenerateStubsFromYamlTask @Inject constructor(
 
         for (yamlFile in yamlFiles) {
             val model = parser.parse(yamlFile.readText())
+            if (model.name.isBlank()) {
+                logger.lifecycle("Monaka: skipped ${yamlFile.name} (no name defined)")
+                continue
+            }
             val outDir = fixedOutputDir ?: yamlFile.parentFile
             outDir.mkdirs()
 

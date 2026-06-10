@@ -34,27 +34,28 @@ class KotlinStubEmitter {
 
     // ── Transition map ────────────────────────────────────────────────────────
 
-    /**
-     * Computes a map of state simple-name → list of distinct non-self transition targets
-     * by walking every handler and hook in the model.
-     */
     private fun computeTransitions(model: MachineModel): Map<String, List<String>> {
         val result = linkedMapOf<String, LinkedHashSet<String>>()
 
-        fun addTarget(stateName: String, target: String?) {
-            if (target != null && target != stateName) {
-                result.getOrPut(stateName) { linkedSetOf() }.add(target.substringAfterLast("."))
+        fun addTarget(statePath: String, target: String?) {
+            if (target != null) {
+                val parentPath = statePath.substringBeforeLast(".", "")
+                val reference = if (parentPath.isNotEmpty() && target.startsWith("$parentPath.")) {
+                    target.removePrefix("$parentPath.")
+                } else {
+                    target
+                }
+                result.getOrPut(statePath) { linkedSetOf() }.add(reference)
             }
         }
 
         fun walk(states: Map<String, dev.gmvalentino.monaka.gradle.model.StateNode>) {
             for ((key, node) in states) {
-                val name = key.substringAfterLast(".")
-                node.on.values.forEach { handler -> handler.transitions.forEach { addTarget(name, it) } }
-                node.onEnter?.transitions?.forEach { addTarget(name, it) }
-                node.onExit?.transitions?.forEach { addTarget(name, it) }
-                node.onUpdate?.transitions?.forEach { addTarget(name, it) }
-                node.lifecycleHooks.values.forEach { h -> h.transitions.forEach { addTarget(name, it) } }
+                node.on.values.forEach { handler -> handler.transitions.forEach { addTarget(key, it) } }
+                node.onEnter?.transitions?.forEach { addTarget(key, it) }
+                node.onExit?.transitions?.forEach { addTarget(key, it) }
+                node.onUpdate?.transitions?.forEach { addTarget(key, it) }
+                node.lifecycleHooks.values.forEach { h -> h.transitions.forEach { addTarget(key, it) } }
                 walk(node.states)
             }
         }
@@ -87,12 +88,12 @@ class KotlinStubEmitter {
     private fun collectStatePaths(model: MachineModel, rootName: String): LinkedHashSet<String> {
         val paths = LinkedHashSet<String>()
         for ((key, node) in model.states) {
-            if (key != rootName) paths.add(key)
-            node.onEnter?.transitions?.forEach { if (it != rootName) paths.add(it) }
-            node.onExit?.transitions?.forEach { if (it != rootName) paths.add(it) }
-            node.onUpdate?.transitions?.forEach { if (it != rootName) paths.add(it) }
-            node.lifecycleHooks.values.forEach { h -> h.transitions.forEach { if (it != rootName) paths.add(it) } }
-            node.on.values.forEach { h -> h.transitions.forEach { if (it != rootName) paths.add(it) } }
+            if (!isCatchAll(key, rootName, model.name)) paths.add(key)
+            node.onEnter?.transitions?.forEach { if (!isCatchAll(it, rootName, model.name)) paths.add(it) }
+            node.onExit?.transitions?.forEach { if (!isCatchAll(it, rootName, model.name)) paths.add(it) }
+            node.onUpdate?.transitions?.forEach { if (!isCatchAll(it, rootName, model.name)) paths.add(it) }
+            node.lifecycleHooks.values.forEach { h -> h.transitions.forEach { if (!isCatchAll(it, rootName, model.name)) paths.add(it) } }
+            node.on.values.forEach { h -> h.transitions.forEach { if (!isCatchAll(it, rootName, model.name)) paths.add(it) } }
         }
         return paths
     }
@@ -115,11 +116,12 @@ class KotlinStubEmitter {
         appendLine("import dev.gmvalentino.monaka.core.State\n")
         if (transitions.isNotEmpty()) appendLine("@SelfTransition")
         appendLine("sealed interface $rootName : State {")
-        if (isSingle) {
+        if (isSingle && model.states.isNotEmpty()) {
             appendLine("    data object ${model.name} : $rootName")
         } else {
-            for ((_, child) in tree.children) {
-                append(emitStateNode(child, rootName, "    ", transitions))
+            tree.children.entries.forEachIndexed { index, (_, child) ->
+                if (index > 0) appendLine()
+                append(emitStateNode(child, rootName, "    ", transitions, child.name))
             }
         }
         appendLine("}")
@@ -130,8 +132,9 @@ class KotlinStubEmitter {
         parentType: String,
         indent: String,
         transitions: Map<String, List<String>>,
+        fullPath: String,
     ): String = buildString {
-        val targets = transitions[node.name]
+        val targets = transitions[fullPath]
         if (!targets.isNullOrEmpty()) {
             val args = targets.joinToString(", ") { "${it}::class" }
             appendLine("${indent}@Transition($args)")
@@ -140,14 +143,34 @@ class KotlinStubEmitter {
             appendLine("${indent}data object ${node.name} : $parentType")
         } else {
             appendLine("${indent}sealed interface ${node.name} : $parentType {")
-            for ((_, child) in node.children) {
-                append(emitStateNode(child, node.name, "$indent    ", transitions))
+            node.children.entries.forEachIndexed { index, (_, child) ->
+                if (index > 0) appendLine()
+                append(emitStateNode(child, node.name, "$indent    ", transitions, "$fullPath.${child.name}"))
             }
             appendLine("${indent}}")
         }
     }
 
     // ── Action / Effect files ─────────────────────────────────────────────────
+
+    private data class SealedNode(
+        val name: String,
+        val children: LinkedHashMap<String, SealedNode> = LinkedHashMap(),
+    ) {
+        val isLeaf get() = children.isEmpty()
+    }
+
+    private fun buildSealedTree(entries: Set<String>): LinkedHashMap<String, SealedNode> {
+        val roots = LinkedHashMap<String, SealedNode>()
+        for (entry in entries) {
+            var map = roots
+            for (part in entry.split(".")) {
+                val node = map.getOrPut(part) { SealedNode(part) }
+                map = node.children
+            }
+        }
+        return roots
+    }
 
     private fun emitSealedFile(
         typeName: String,
@@ -157,14 +180,23 @@ class KotlinStubEmitter {
     ): String = buildString {
         pkg?.let { appendLine("package $it\n") }
         appendLine("import dev.gmvalentino.monaka.core.$marker\n")
-        if (entries.isEmpty()) {
-            appendLine("sealed interface $typeName : $marker")
+        val tree = buildSealedTree(entries)
+        appendLine("sealed interface $typeName : $marker {")
+        for ((_, node) in tree) {
+            append(emitSealedNode(node, typeName, "    "))
+        }
+        appendLine("}")
+    }
+
+    private fun emitSealedNode(node: SealedNode, parentType: String, indent: String): String = buildString {
+        if (node.isLeaf) {
+            appendLine("${indent}data object ${node.name} : $parentType")
         } else {
-            appendLine("sealed interface $typeName : $marker {")
-            for (entry in entries) {
-                appendLine("    data object $entry : $typeName")
+            appendLine("${indent}sealed interface ${node.name} : $parentType {")
+            for ((_, child) in node.children) {
+                append(emitSealedNode(child, node.name, "$indent    "))
             }
-            appendLine("}")
+            appendLine("${indent}}")
         }
     }
 
@@ -188,8 +220,8 @@ class KotlinStubEmitter {
             ?.let { transitionRef(it, rootName, isSingle, model.name) }
 
         // Catch-all (root key) first, then other states in yaml order
-        val catchAll = model.states.entries.filter { (k, _) -> k == rootName }
-        val rest = model.states.entries.filter { (k, _) -> k != rootName }
+        val catchAll = model.states.entries.filter { (k, _) -> isCatchAll(k, rootName, model.name) }
+        val rest = model.states.entries.filter { (k, _) -> !isCatchAll(k, rootName, model.name) }
         val orderedStates = catchAll + rest
 
         when (style) {
@@ -227,7 +259,7 @@ class KotlinStubEmitter {
         machineName: String,
         pad: String,
     ): String = buildString {
-        val typeRef = stateTypeRef(key, rootName)
+        val typeRef = stateTypeRef(key, rootName, machineName)
         appendLine("${pad}state<$typeRef> {")
         node.onEnter?.let { append(emitHookBlock("onEnter", it, rootName, actionName, effectName, isSingle, machineName, key, "$pad    ")) }
         node.onExit?.let { append(emitHookBlock("onExit", it, rootName, actionName, effectName, isSingle, machineName, key, "$pad    ")) }
@@ -300,8 +332,8 @@ class KotlinStubEmitter {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /** Reference to use in `state<...>` — catch-all uses bare root, leaf uses qualified path. */
-    private fun stateTypeRef(key: String, rootName: String): String =
-        if (key == rootName) rootName else "$rootName.$key"
+    private fun stateTypeRef(key: String, rootName: String, machineName: String): String =
+        if (isCatchAll(key, rootName, machineName)) rootName else "$rootName.$key"
 
     /** Reference to use in `transition(}` and `initialState()`. */
     private fun transitionRef(target: String, rootName: String, isSingle: Boolean, machineName: String): String =
@@ -327,7 +359,7 @@ class KotlinStubEmitter {
         isSingle: Boolean,
         machineName: String,
     ): String {
-        if (sourcePath == rootName) return transitionRef(target, rootName, isSingle, machineName)
+        if (isCatchAll(sourcePath, rootName, machineName)) return transitionRef(target, rootName, isSingle, machineName)
         if (target == sourcePath) return "state.toSelf()"
         return "state.${toStateFunctionName(sourcePath, target)}()"
     }
@@ -371,6 +403,9 @@ class KotlinStubEmitter {
         }
         return effects
     }
+
+    private fun isCatchAll(key: String, rootName: String, machineName: String) =
+        key == rootName || key == machineName
 
     companion object {
         private val HOOKS = setOf(
