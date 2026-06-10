@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 object Config {
-    const val GROUP = "dev.gmvalentino"
+    const val GROUP = "dev.gmvalentino.monaka"
     const val NAME = "Monaka"
     const val VERSION = "0.1.0"
     const val COMPILE_SDK = 37

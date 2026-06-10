@@ -7,8 +7,8 @@ class MonakaPlugin : Plugin<Project> {
 
     override fun apply(target: Project) {
         val yamlExtension = target.extensions.create(
-            "monakaYamlExport",
-            MonakaExtension::class.java,
+            "monakaYamlGenerator",
+            MonakaYamlExtension::class.java,
         )
 
         target.tasks.register(
@@ -18,21 +18,33 @@ class MonakaPlugin : Plugin<Project> {
             task.group = "monaka"
             task.description = "Generates YAML documentation from stateMachine { } DSL blocks."
             task.sources.setFrom(yamlExtension.sources)
-            task.outputDir.set(yamlExtension.outputDir)
+            task.outputDir.set(yamlExtension.yamlOutputDir)
         }
+
+        val pumlExtension = target.extensions.create(
+            "monakaPumlGenerator",
+            MonakaPumlExtension::class.java,
+        )
 
         target.tasks.register(
             "generateMonakaPuml",
             GenerateStateMachinePumlTask::class.java,
         ) { task ->
             task.group = "monaka"
-            task.description = "Generates PlantUML state diagrams from stateMachine { } DSL blocks."
-            task.sources.setFrom(yamlExtension.sources)
-            task.outputDir.set(yamlExtension.pumlOutputDir)
+            task.description = "Generates PlantUML state diagrams from YAML state machine definitions."
+            task.sources.from(
+                target.provider {
+                    if (yamlExtension.yamlOutputDir.isPresent)
+                        target.fileTree(yamlExtension.yamlOutputDir) { spec -> spec.include("**/*.yaml") }
+                    else
+                        yamlExtension.sources.asFileTree.matching { spec -> spec.include("**/*.yaml") }
+                }
+            )
+            task.outputDir.set(pumlExtension.pumlOutputDir)
         }
 
         val stubsExtension = target.extensions.create(
-            "monakaStubs",
+            "monakaStubGenerator",
             MonakaStubsExtension::class.java,
         )
 

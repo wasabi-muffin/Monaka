@@ -3,7 +3,7 @@ package dev.gmvalentino.monaka.gradle.parser
 import dev.gmvalentino.monaka.gradle.model.*
 
 /**
- * Parses the fixed-indentation YAML format produced by [dev.gmvalentino.monaka.gradle.emit.YamlEmitter]
+ * Parses the fixed-indentation YAML format produced by [dev.gmvalentino.monaka.gradle.emit.YamlWriter]
  * back into a [MachineModel].
  *
  * Indent contract (all two-space steps):

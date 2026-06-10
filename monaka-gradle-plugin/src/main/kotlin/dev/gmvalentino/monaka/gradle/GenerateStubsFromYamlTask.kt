@@ -7,7 +7,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.options.Option
 import org.gradle.work.DisableCachingByDefault
-import dev.gmvalentino.monaka.gradle.emit.KotlinStubEmitter
+import dev.gmvalentino.monaka.gradle.write.KotlinStubWriter
 import dev.gmvalentino.monaka.gradle.parser.YamlParser
 import java.io.File
 import javax.inject.Inject
@@ -76,7 +76,7 @@ abstract class GenerateStubsFromYamlTask @Inject constructor(
     @TaskAction
     fun generate() {
         val inputPath = cliInput.orNull ?: extensionInput.orNull
-            ?: error("Monaka: no input specified. Use --input=<path> or configure monakaStubs { input.set(...) }")
+            ?: error("Monaka: no input specified. Use --input=<path> or configure monakaStubGenerator { input.set(...) }")
 
         val resolvedInput = project.file(inputPath)
         val yamlFiles: List<File> = when {
@@ -104,7 +104,7 @@ abstract class GenerateStubsFromYamlTask @Inject constructor(
         val useTransitionAnnotation = cliUseTransitionAnnotation.orNull
             ?: extensionUseTransitionAnnotation.orNull ?: true
         val parser = YamlParser()
-        val emitter = KotlinStubEmitter()
+        val emitter = KotlinStubWriter()
 
         for (yamlFile in yamlFiles) {
             val model = parser.parse(yamlFile.readText())
@@ -116,7 +116,7 @@ abstract class GenerateStubsFromYamlTask @Inject constructor(
             outDir.mkdirs()
 
             val pkg = inferPackage(yamlFile)
-            val files = emitter.emit(model, style, pkg, useTransitionAnnotation)
+            val files = emitter.write(model, style, pkg, useTransitionAnnotation)
 
             for (file in files) {
                 val out = outDir.resolve(file.name)

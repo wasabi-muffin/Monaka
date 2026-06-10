@@ -1,7 +1,7 @@
 package dev.gmvalentino.monaka.gradle
 
 import org.junit.Test
-import dev.gmvalentino.monaka.gradle.emit.YamlEmitter
+import dev.gmvalentino.monaka.gradle.write.YamlWriter
 import dev.gmvalentino.monaka.gradle.parser.KtSourceParser
 import java.io.File
 import kotlin.test.assertEquals
@@ -11,7 +11,7 @@ import kotlin.test.assertTrue
 class KtSourceParserTest {
 
     private val parser = KtSourceParser()
-    private val emitter = YamlEmitter()
+    private val emitter = YamlWriter()
 
     // ── Form 1: explicit type args on stateMachine<S,A,E> { } ────────────────
 
@@ -130,7 +130,7 @@ class KtSourceParserTest {
 
         assertEquals(listOf("ShowError"), submitting.on["LoginFailed"]?.effects)
         // No `on:` wrapper in YAML
-        val yaml = emitter.emit(m)
+        val yaml = emitter.write(m)
         assertTrue(yaml.contains("LoginFailed:"))
         assertTrue(!yaml.lines().any { it.trim() == "on:" })
     }
@@ -355,12 +355,12 @@ class KtSourceParserTest {
         """.trimIndent()
 
         val model = parser.parseFiles(listOf(writeTempFile("Toggle.kt", src))).first().second
-        val yaml = emitter.emit(model)
+        val yaml = emitter.write(model)
 
         assertTrue(yaml.contains("name: Toggle"))
         assertTrue(yaml.contains("initial: Off"))
-        assertTrue(yaml.contains("transition: [On]"))
-        assertTrue(yaml.contains("effect: [Flash]"))
+        assertTrue(yaml.contains("transition: [ On ]"))
+        assertTrue(yaml.contains("effect: [ Flash ]"))
         assertTrue(yaml.contains("TurnOff:"))
         assertTrue(!yaml.contains("package:"))
         assertTrue(!yaml.lines().any { it.trim() == "on:" })    // no `on:` wrapper
@@ -389,11 +389,11 @@ class KtSourceParserTest {
         """.trimIndent()
 
         val model = parser.parseFiles(listOf(writeTempFile("App.kt", src))).first().second
-        val yaml = emitter.emit(model)
+        val yaml = emitter.write(model)
         println(yaml)
 
-        assertTrue(yaml.contains("dispatch: [Validate]"), "Expected dispatch: [Validate] in:\n$yaml")
-        assertTrue(yaml.contains("transition: [Loading]"))
+        assertTrue(yaml.contains("dispatch: [ Validate ]"), "Expected dispatch: [ Validate ] in:\n$yaml")
+        assertTrue(yaml.contains("transition: [ Loading ]"))
     }
 
     // ── Real sample files ─────────────────────────────────────────────────────
@@ -408,7 +408,7 @@ class KtSourceParserTest {
 
         val models = parser.parseFiles(listOf(loginFile)).map { it.second }
         assertTrue(models.isNotEmpty())
-        val yaml = emitter.emit(models[0])
+        val yaml = emitter.write(models[0])
         println("=== LoginStateMachine YAML ===\n$yaml")
         assertTrue(yaml.contains("name: Login"))
         assertTrue(yaml.contains("initial: Idle"))
@@ -425,7 +425,7 @@ class KtSourceParserTest {
 
         val models = parser.parseFiles(listOf(counterFile)).map { it.second }
         assertTrue(models.isNotEmpty())
-        val yaml = emitter.emit(models[0])
+        val yaml = emitter.write(models[0])
         println("=== CounterStateMachine YAML ===\n$yaml")
         assertTrue(yaml.contains("name: Counter"))
     }

@@ -66,7 +66,7 @@ Because state types are in `commonMain`, you need to:
 // build.gradle.kts
 dependencies {
     // Run the processor against the commonMain metadata compilation
-    add("kspCommonMainMetadata", "dev.gmvalentino:monaka-transitions:<version>")
+    add("kspCommonMainMetadata", "dev.gmvalentino.monaka:monaka-transitions:<version>")
 }
 
 kotlin {
@@ -102,14 +102,14 @@ processor for those targets:
 
 ```kotlin
 dependencies {
-    add("kspCommonMainMetadata", "dev.gmvalentino:monaka-transitions:<version>")
+    add("kspCommonMainMetadata", "dev.gmvalentino.monaka:monaka-transitions:<version>")
 
     // Only needed for platform-specific annotated types:
-    add("kspAndroid",              "dev.gmvalentino:monaka-transitions:<version>")
-    add("kspIosArm64",             "dev.gmvalentino:monaka-transitions:<version>")
-    add("kspIosSimulatorArm64",    "dev.gmvalentino:monaka-transitions:<version>")
-    add("kspIosX64",               "dev.gmvalentino:monaka-transitions:<version>")
-    add("kspJvm",                  "dev.gmvalentino:monaka-transitions:<version>")
+    add("kspAndroid",              "dev.gmvalentino.monaka:monaka-transitions:<version>")
+    add("kspIosArm64",             "dev.gmvalentino.monaka:monaka-transitions:<version>")
+    add("kspIosSimulatorArm64",    "dev.gmvalentino.monaka:monaka-transitions:<version>")
+    add("kspIosX64",               "dev.gmvalentino.monaka:monaka-transitions:<version>")
+    add("kspJvm",                  "dev.gmvalentino.monaka:monaka-transitions:<version>")
 }
 ```
 
@@ -137,21 +137,21 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("dev.gmvalentino:monaka:<version>")
+                implementation("dev.gmvalentino.monaka:monaka:<version>")
             }
             // KSP-generated extensions live here
             kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
         }
         commonTest {
             dependencies {
-                implementation("dev.gmvalentino:monaka-test:<version>")
+                implementation("dev.gmvalentino.monaka:monaka-test:<version>")
             }
         }
     }
 }
 
 dependencies {
-    add("kspCommonMainMetadata", "dev.gmvalentino:monaka-transitions:<version>")
+    add("kspCommonMainMetadata", "dev.gmvalentino.monaka:monaka-transitions:<version>")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
@@ -173,9 +173,9 @@ ksp              = "2.1.0-1.0.29"
 monaka           = "<version>"
 
 [libraries]
-monaka                = { module = "dev.gmvalentino:monaka",              version.ref = "monaka" }
-monaka-test           = { module = "dev.gmvalentino:monaka-test",         version.ref = "monaka" }
-monaka-transitions    = { module = "dev.gmvalentino:monaka-transitions",  version.ref = "monaka" }
+monaka                = { module = "dev.gmvalentino.monaka:monaka",              version.ref = "monaka" }
+monaka-test           = { module = "dev.gmvalentino.monaka:monaka-test",         version.ref = "monaka" }
+monaka-transitions    = { module = "dev.gmvalentino.monaka:monaka-transitions",  version.ref = "monaka" }
 
 [plugins]
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

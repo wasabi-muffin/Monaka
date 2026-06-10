@@ -5,7 +5,7 @@ Add the Monaka dependencies to your module's `build.gradle.kts`.
 ## Core library
 
 ```kotlin
-implementation("dev.gmvalentino:monaka:<version>")
+implementation("dev.gmvalentino.monaka:monaka:<version>")
 ```
 
 Required for all targets. Provides `State`, `Action`, `Effect`, `Store`, the `store { }` DSL,
@@ -14,7 +14,7 @@ Required for all targets. Provides `State`, `Action`, `Effect`, `Store`, the `st
 ## Compose integration
 
 ```kotlin
-implementation("dev.gmvalentino:monaka-compose:<version>")
+implementation("dev.gmvalentino.monaka:monaka-compose:<version>")
 ```
 
 Provides the Compose Multiplatform helpers: `rememberStore`, `toViewStore`, `handleEffects`,
@@ -25,7 +25,7 @@ Brings in `:monaka` transitively. See the [Compose integration guide](../guide/c
 
 ```kotlin
 // In your commonTest source set
-testImplementation("dev.gmvalentino:monaka-test:<version>")
+testImplementation("dev.gmvalentino.monaka:monaka-test:<version>")
 ```
 
 Provides `testStore { }` and the assertion DSL (`expectState`, `expectEffect`, `trigger`, …).
@@ -44,7 +44,7 @@ plugins {
 }
 
 dependencies {
-    ksp("dev.gmvalentino:monaka-transitions:<version>")
+    ksp("dev.gmvalentino.monaka:monaka-transitions:<version>")
 }
 ```
 

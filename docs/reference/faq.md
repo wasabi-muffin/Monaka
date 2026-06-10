@@ -49,7 +49,7 @@ To overwrite, pass `--replace=true` on the command line or set it in the extensi
 ```
 
 ```kotlin
-monakaStubs {
+monakaStubGenerator {
     replace.set(true)
 }
 ```

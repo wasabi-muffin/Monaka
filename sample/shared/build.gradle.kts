@@ -71,7 +71,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().con
     }
 }
 
-monakaYamlExport {
+monakaYamlGenerator {
     sources.from(
         kotlin.sourceSets["commonMain"].kotlin.srcDirs
     )

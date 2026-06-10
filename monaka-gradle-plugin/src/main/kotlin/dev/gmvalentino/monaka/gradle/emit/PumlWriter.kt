@@ -1,9 +1,9 @@
-package dev.gmvalentino.monaka.gradle.emit
+package dev.gmvalentino.monaka.gradle.write
 
 import dev.gmvalentino.monaka.gradle.model.*
 
 /**
- * Emits a PlantUML state diagram from a [MachineModel].
+ * Writes a PlantUML state diagram from a [MachineModel].
  *
  * Format conventions:
  *  - Description lines (`State : trigger → target ◆ effects`) carry all behaviour detail.
@@ -16,9 +16,9 @@ import dev.gmvalentino.monaka.gradle.model.*
  *  - Transition targets that have no handlers in the model (phantom states) are declared as
  *    empty states inside the composite block, or at the top level for flat machines.
  */
-class PumlEmitter {
+class PumlWriter {
 
-    fun emit(model: MachineModel): String = buildString {
+    fun write(model: MachineModel): String = buildString {
         appendLine("@startuml ${model.name}")
         appendLine("hide empty description")
         appendLine("title ${model.name}")
@@ -48,19 +48,19 @@ class PumlEmitter {
             val catchAllNode = model.states[catchAllKey]!!
             appendLine()
             appendLine("state \"$catchAllKey\" as $catchAllKey {")
-            emitStateLines(catchAllKey, catchAllNode, indent = "  ")
+            writeStateLines(catchAllKey, catchAllNode, indent = "  ")
             for (key in topLevelKeys) {
                 appendLine()
                 if (key in nestedByPrefix) {
-                    emitNamespaceComposite(key, model.states[key], nestedByPrefix[key]!!, model.states, phantomNames, "  ")
+                    writeNamespaceComposite(key, model.states[key], nestedByPrefix[key]!!, model.states, phantomNames, "  ")
                 } else {
                     appendLine("  state \"$key\" as $key")
-                    emitStateLines(key, model.states[key]!!, indent = "  ")
+                    writeStateLines(key, model.states[key]!!, indent = "  ")
                 }
             }
             for ((prefix, children) in nestedByPrefix.filter { it.key !in model.states }) {
                 appendLine()
-                emitNamespaceComposite(prefix, null, children, model.states, phantomNames, "  ")
+                writeNamespaceComposite(prefix, null, children, model.states, phantomNames, "  ")
             }
             for (phantom in phantomNames.filter { !it.contains(".") }) {
                 appendLine()
@@ -74,21 +74,21 @@ class PumlEmitter {
             if (catchAllKey != null) {
                 val node = model.states[catchAllKey]!!
                 appendLine("state \"$catchAllKey\" as $catchAllKey")
-                emitStateLines(catchAllKey, node, indent = "")
+                writeStateLines(catchAllKey, node, indent = "")
                 appendLine()
             }
             for (key in topLevelKeys) {
                 if (key in nestedByPrefix) {
-                    emitNamespaceComposite(key, model.states[key], nestedByPrefix[key]!!, model.states, phantomNames, "")
+                    writeNamespaceComposite(key, model.states[key], nestedByPrefix[key]!!, model.states, phantomNames, "")
                 } else {
                     appendLine("state \"$key\" as $key")
-                    emitStateLines(key, model.states[key]!!, indent = "")
+                    writeStateLines(key, model.states[key]!!, indent = "")
                 }
                 appendLine()
             }
             // Implicit namespace prefixes not directly in model.states.
             for ((prefix, children) in nestedByPrefix.filter { it.key !in model.states }) {
-                emitNamespaceComposite(prefix, null, children, model.states, phantomNames, "")
+                writeNamespaceComposite(prefix, null, children, model.states, phantomNames, "")
                 appendLine()
             }
             for (phantom in phantomNames.filter { !it.contains(".") }) {
@@ -101,7 +101,7 @@ class PumlEmitter {
         append("@enduml")
     }
 
-    private fun StringBuilder.emitNamespaceComposite(
+    private fun StringBuilder.writeNamespaceComposite(
         prefix: String,
         prefixNode: StateNode?,
         childKeys: List<String>,
@@ -110,12 +110,12 @@ class PumlEmitter {
         indent: String,
     ) {
         appendLine("${indent}state \"$prefix\" as $prefix {")
-        prefixNode?.let { emitStateLines(prefix, it, indent = "$indent  ") }
+        prefixNode?.let { writeStateLines(prefix, it, indent = "$indent  ") }
         for (childKey in childKeys) {
             val childNode = allStates[childKey] ?: continue
             appendLine()
             appendLine("$indent  state \"${childKey.substringAfterLast(".")}\" as $childKey")
-            emitStateLines(childKey, childNode, indent = "$indent  ")
+            writeStateLines(childKey, childNode, indent = "$indent  ")
         }
         for (phantom in phantomNames.filter { it.startsWith("$prefix.") }) {
             appendLine()
@@ -126,7 +126,7 @@ class PumlEmitter {
 
     // ── Per-state lines ───────────────────────────────────────────────────────
 
-    private fun StringBuilder.emitStateLines(name: String, node: StateNode, indent: String) {
+    private fun StringBuilder.writeStateLines(name: String, node: StateNode, indent: String) {
         val descLines = mutableListOf<String>()
         val arrowLines = mutableListOf<String>()
 
@@ -139,7 +139,7 @@ class PumlEmitter {
                 }
                 else -> {
                     // Resolve direct transitions first; fall back to following dispatch chains
-                    // (mirrors YamlEmitter.reachableTransitions so output is consistent).
+                    // (mirrors YamlWriter.reachableTransitions so output is consistent).
                     val targets = reachableTransitions(hook)
                     if (targets.isNotEmpty()) {
                         val targetStr = if (targets.size == 1) targets.first()
@@ -182,8 +182,7 @@ class PumlEmitter {
                 else -> {
                     val targets = reachableTransitions(hook).filter { it != name }
                     if (targets.isNotEmpty()) {
-                        val targetStr = if (targets.size == 1) targets.first()
-                                        else targets.joinToString(" | ", "[", "]")
+                        val targetStr = if (targets.size == 1) targets.first() else targets.joinToString(" | ", "[", "]")
                         descLines += "$indent$name : onUpdate → $targetStr${formatEffects(hook.effects)}"
                         targets.forEach { arrowLines += "$indent$name --> $it : onUpdate" }
                     }
@@ -195,8 +194,7 @@ class PumlEmitter {
         for ((event, hook) in node.lifecycleHooks) {
             val targets = reachableTransitions(hook)
             if (targets.isEmpty()) continue
-            val targetStr = if (targets.size == 1) targets.first()
-                            else targets.joinToString(" | ", "[", "]")
+            val targetStr = if (targets.size == 1) targets.first() else targets.joinToString(" | ", "[", "]")
             descLines += "$indent$name : $event → $targetStr"
             targets.forEach { arrowLines += "$indent$name --> $it : $event" }
         }
@@ -229,17 +227,17 @@ class PumlEmitter {
     /**
      * States reachable from a hook: only explicit `transition(Target)` calls recorded
      * directly in the hook body. Dispatch-based inference is excluded for the same reason
-     * as in YamlEmitter — dispatches are async side-effects, not direct hook outcomes.
+     * as in YamlWriteter — dispatches are async side-effects, not direct hook outcomes.
      */
     private fun reachableTransitions(hook: HookModel): List<String> = hook.transitions.distinct()
 
     private fun collectAllTargets(states: Map<String, StateNode>): Set<String> = buildSet {
         for (node in states.values) {
-            node.on.values.flatMap { it.transitions }.forEach { add(it) }
-            node.onEnter?.transitions?.forEach { add(it) }
-            node.onExit?.transitions?.forEach { add(it) }
-            node.onUpdate?.transitions?.forEach { add(it) }
-            node.lifecycleHooks.values.flatMap { it.transitions }.forEach { add(it) }
+            node.on.values.flatMap { it.transitions }.forEach(::add)
+            node.onEnter?.transitions?.forEach(::add)
+            node.onExit?.transitions?.forEach(::add)
+            node.onUpdate?.transitions?.forEach(::add)
+            node.lifecycleHooks.values.flatMap { it.transitions }.forEach(::add)
         }
     }
 

@@ -11,7 +11,7 @@ run under virtual time with no real delays.
 ```kotlin
 // build.gradle.kts — add to your test source set
 commonTest.dependencies {
-    implementation("dev.gmvalentino:monaka-test:<version>")
+    implementation("dev.gmvalentino.monaka:monaka-test:<version>")
     implementation(kotlin("test"))
 }
 ```

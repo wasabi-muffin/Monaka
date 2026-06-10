@@ -17,15 +17,15 @@ plugins {
 }
 ```
 
-Configure the `monakaYamlExport` extension to point at your source files:
+Configure the `monakaYamlGenerator` extension to point at your source files:
 
 ```kotlin
-monakaYamlExport {
+monakaYamlGenerator {
     // Files to scan — adjust the glob to match your source sets.
     sources.setFrom(fileTree("src/commonMain/kotlin") { include("**/*.kt") })
 
-    // Where .yaml files are written. Default: build/monaka-yaml
-    outputDir.set(layout.buildDirectory.dir("monaka-yaml"))
+    // Where .yaml files are written. Default: alongside each source file.
+    yamlOutputDir.set(layout.buildDirectory.dir("monaka-yaml"))
 }
 ```
 
@@ -37,7 +37,7 @@ monakaYamlExport {
 ./gradlew generateMonakaYaml
 ```
 
-One `.yaml` file is written to `outputDir` for every `stateMachine { }` block found in the
+One `.yaml` file is written to `yamlOutputDir` for every `stateMachine { }` block found in the
 configured sources. The task is cacheable — it re-runs only when input sources change.
 
 ---

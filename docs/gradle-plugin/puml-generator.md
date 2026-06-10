@@ -1,15 +1,17 @@
 # PlantUML Generator
 
-The PlantUML generator scans Kotlin source files for `stateMachine { }` DSL blocks and emits one
-`.puml` state diagram per machine. The diagrams can be rendered by any PlantUML-compatible tool
-(IntelliJ plugin, VS Code extension, `plantuml` CLI, or the online server).
+The PlantUML generator reads `.yaml` state machine definitions and emits one `.puml` state
+diagram per machine. The diagrams can be rendered by any PlantUML-compatible tool (IntelliJ
+plugin, VS Code extension, `plantuml` CLI, or the online server).
+
+The recommended workflow is to run `generateMonakaYaml` first (to produce `.yaml` files from
+your DSL), optionally edit those files, then run `generateMonakaPuml` to produce the diagrams.
 
 ---
 
 ## Setup
 
-Apply the Monaka Gradle plugin and configure the same `monakaYamlExport` extension used by the
-[YAML generator](yaml-generator.md):
+Apply the Monaka Gradle plugin and configure the two generator extensions:
 
 ```kotlin
 // build.gradle.kts
@@ -17,51 +19,67 @@ plugins {
     id("dev.gmvalentino.monaka")
 }
 
-monakaYamlExport {
-    // Files to scan — adjust the glob to match your source sets.
+monakaYamlGenerator {
+    // Kotlin source files to scan for stateMachine { } blocks (used by generateMonakaYaml).
     sources.setFrom(fileTree("src/commonMain/kotlin") { include("**/*.kt") })
 
-    // Where .yaml files are written. Default: build/monaka-yaml
-    outputDir.set(layout.buildDirectory.dir("monaka-yaml"))
+    // Where .yaml files are written. Default: alongside each source file.
+    yamlOutputDir.set(layout.buildDirectory.dir("monaka-yaml"))
+}
 
-    // Where .puml files are written. Defaults to outputDir if not set.
+monakaPumlGenerator {
+    // Where .puml files are written. Defaults to the same directory as each .yaml file.
     pumlOutputDir.set(layout.buildDirectory.dir("monaka-puml"))
 }
 ```
 
-`pumlOutputDir` is independent of `outputDir` — you can write diagrams to a `docs/diagrams`
-folder while keeping the YAML files in `build/`.
+When `yamlOutputDir` is set, `generateMonakaPuml` reads YAML files from that directory.
+When it is not set, `generateMonakaPuml` scans the same directories configured in `sources`
+for `.yaml` files that co-locate with your Kotlin sources.
 
 ---
 
 ## Running
 
 ```bash
+# Step 1 — generate .yaml files from your DSL (or write them by hand)
+./gradlew generateMonakaYaml
+
+# Step 2 — generate .puml diagrams from the .yaml files
 ./gradlew generateMonakaPuml
 ```
 
-One `.puml` file is written to `pumlOutputDir` for every `stateMachine { }` block found in the
-configured sources. The task is cacheable — it re-runs only when input sources change.
+You can also run `generateMonakaPuml` standalone if you already have `.yaml` files in the
+configured location.
+
+---
+
+## Hand-edited vs. auto-generated YAML
+
+When both a hand-edited `Machine.yaml` and an auto-generated `Machine.gen.yaml` exist for the
+same machine, `generateMonakaPuml` uses the hand-edited `.yaml` file. This lets you enrich the
+YAML (add descriptions, rename actions) and have those edits reflected in the diagrams without
+being overwritten by the generator.
 
 ---
 
 ## Output format
 
-The emitter writes standard PlantUML state diagram syntax. For the state machine below:
+The emitter writes standard PlantUML state diagram syntax. For the YAML below:
 
-```kotlin
-val machine = stateMachine<TrafficState, TrafficAction, TrafficEffect> {
-    initialState(TrafficState.Red)
-    state<TrafficState.Red> {
-        on<TrafficAction.Next> { transition(TrafficState.Green) }
-    }
-    state<TrafficState.Green> {
-        on<TrafficAction.Next> { transition(TrafficState.Yellow) }
-    }
-    state<TrafficState.Yellow> {
-        on<TrafficAction.Next> { transition(TrafficState.Red) }
-    }
-}
+```yaml
+name: Traffic
+initial: Red
+states:
+  Red:
+    Next:
+      transition: Green
+  Green:
+    Next:
+      transition: Yellow
+  Yellow:
+    Next:
+      transition: Red
 ```
 
 The generator produces `Traffic.puml`:

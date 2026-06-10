@@ -4,7 +4,7 @@ The helpers described on this page are provided by the `monaka-compose` artifact
 module's `build.gradle.kts`:
 
 ```kotlin
-implementation("dev.gmvalentino:monaka-compose:<version>")
+implementation("dev.gmvalentino.monaka:monaka-compose:<version>")
 ```
 
 `monaka-compose` brings in `:monaka` transitively and requires

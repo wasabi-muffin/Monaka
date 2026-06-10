@@ -5,7 +5,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.*
 import org.gradle.work.DisableCachingByDefault
-import dev.gmvalentino.monaka.gradle.emit.YamlEmitter
+import dev.gmvalentino.monaka.gradle.write.YamlWriter
 import dev.gmvalentino.monaka.gradle.parser.KtSourceParser
 
 @DisableCachingByDefault(because = "outputs may be written to source directories")
@@ -30,7 +30,7 @@ abstract class GenerateStateMachineYamlTask : DefaultTask() {
     @TaskAction
     fun generate() {
         val fixedOutputDir = if (outputDir.isPresent) outputDir.get().asFile.also { it.mkdirs() } else null
-        val emitter = YamlEmitter()
+        val emitter = YamlWriter()
         val pairs = KtSourceParser().parseFiles(sources.asFileTree.files)
 
         if (pairs.isEmpty()) {
@@ -40,7 +40,7 @@ abstract class GenerateStateMachineYamlTask : DefaultTask() {
 
         for ((sourceFile, model) in pairs) {
             val out = fixedOutputDir ?: sourceFile.parentFile
-            val yaml = emitter.emit(model)
+            val yaml = emitter.write(model)
             val primary = out.resolve("${model.name}.yaml")
             val target = if (primary.exists()) out.resolve("${model.name}.gen.yaml") else primary
             target.writeText(yaml)

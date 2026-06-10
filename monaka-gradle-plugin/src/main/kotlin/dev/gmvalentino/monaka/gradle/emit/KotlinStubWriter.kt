@@ -1,13 +1,13 @@
-package dev.gmvalentino.monaka.gradle.emit
+package dev.gmvalentino.monaka.gradle.write
 
 import dev.gmvalentino.monaka.gradle.StubStyle
 import dev.gmvalentino.monaka.gradle.model.*
 
-class KotlinStubEmitter {
+class KotlinStubWriter {
 
     data class GeneratedFile(val name: String, val content: String)
 
-    fun emit(
+    fun write(
         model: MachineModel,
         style: StubStyle,
         pkg: String?,
@@ -24,11 +24,11 @@ class KotlinStubEmitter {
         val transitions = if (useTransitionAnnotation) computeTransitions(model) else emptyMap()
 
         return listOf(
-            GeneratedFile("$rootName.kt", emitStateFile(model, rootName, stateTree, isSingle, pkg, transitions)),
-            GeneratedFile("$actionName.kt", emitSealedFile(actionName, "Action", actions, pkg)),
-            GeneratedFile("$effectName.kt", emitSealedFile(effectName, "Effect", effects, pkg)),
+            GeneratedFile("$rootName.kt", writeStateFile(model, rootName, stateTree, isSingle, pkg, transitions)),
+            GeneratedFile("$actionName.kt", writeSealedFile(actionName, "Action", actions, pkg)),
+            GeneratedFile("$effectName.kt", writeSealedFile(effectName, "Effect", effects, pkg)),
             GeneratedFile("${model.name}StateMachine.kt",
-                emitStateMachineFile(model, rootName, actionName, effectName, isSingle, style, pkg)),
+                writeStateMachineFile(model, rootName, actionName, effectName, isSingle, style, pkg)),
         )
     }
 
@@ -100,7 +100,7 @@ class KotlinStubEmitter {
 
     // ── State file ────────────────────────────────────────────────────────────
 
-    private fun emitStateFile(
+    private fun writeStateFile(
         model: MachineModel,
         rootName: String,
         tree: StateNode,
@@ -121,13 +121,13 @@ class KotlinStubEmitter {
         } else {
             tree.children.entries.forEachIndexed { index, (_, child) ->
                 if (index > 0) appendLine()
-                append(emitStateNode(child, rootName, "    ", transitions, child.name))
+                append(writeStateNode(child, rootName, "    ", transitions, child.name))
             }
         }
         appendLine("}")
     }
 
-    private fun emitStateNode(
+    private fun writeStateNode(
         node: StateNode,
         parentType: String,
         indent: String,
@@ -145,7 +145,7 @@ class KotlinStubEmitter {
             appendLine("${indent}sealed interface ${node.name} : $parentType {")
             node.children.entries.forEachIndexed { index, (_, child) ->
                 if (index > 0) appendLine()
-                append(emitStateNode(child, node.name, "$indent    ", transitions, "$fullPath.${child.name}"))
+                append(writeStateNode(child, node.name, "$indent    ", transitions, "$fullPath.${child.name}"))
             }
             appendLine("${indent}}")
         }
@@ -172,7 +172,7 @@ class KotlinStubEmitter {
         return roots
     }
 
-    private fun emitSealedFile(
+    private fun writeSealedFile(
         typeName: String,
         marker: String,
         entries: Set<String>,
@@ -183,18 +183,18 @@ class KotlinStubEmitter {
         val tree = buildSealedTree(entries)
         appendLine("sealed interface $typeName : $marker {")
         for ((_, node) in tree) {
-            append(emitSealedNode(node, typeName, "    "))
+            append(writeSealedNode(node, typeName, "    "))
         }
         appendLine("}")
     }
 
-    private fun emitSealedNode(node: SealedNode, parentType: String, indent: String): String = buildString {
+    private fun writeSealedNode(node: SealedNode, parentType: String, indent: String): String = buildString {
         if (node.isLeaf) {
             appendLine("${indent}data object ${node.name} : $parentType")
         } else {
             appendLine("${indent}sealed interface ${node.name} : $parentType {")
             for ((_, child) in node.children) {
-                append(emitSealedNode(child, node.name, "$indent    "))
+                append(writeSealedNode(child, node.name, "$indent    "))
             }
             appendLine("${indent}}")
         }
@@ -202,7 +202,7 @@ class KotlinStubEmitter {
 
     // ── StateMachine file ─────────────────────────────────────────────────────
 
-    private fun emitStateMachineFile(
+    private fun writeStateMachineFile(
         model: MachineModel,
         rootName: String,
         actionName: String,
@@ -231,7 +231,7 @@ class KotlinStubEmitter {
                 initialRef?.let { appendLine("        initialState($it)") }
                 orderedStates.forEachIndexed { index, (key, node) ->
                     if (index > 0 || initialRef != null) appendLine()
-                    append(emitStateBlock(key, node, rootName, actionName, effectName, isSingle, model.name, "        "))
+                    append(writeStateBlock(key, node, rootName, actionName, effectName, isSingle, model.name, "        "))
                 }
                 appendLine("    }")
                 appendLine(")")
@@ -242,14 +242,14 @@ class KotlinStubEmitter {
                 initialRef?.let { appendLine("    initialState($it)") }
                 orderedStates.forEachIndexed { index, (key, node) ->
                     if (index > 0 || initialRef != null) appendLine()
-                    append(emitStateBlock(key, node, rootName, actionName, effectName, isSingle, model.name, "    "))
+                    append(writeStateBlock(key, node, rootName, actionName, effectName, isSingle, model.name, "    "))
                 }
                 appendLine("}")
             }
         }
     }
 
-    private fun emitStateBlock(
+    private fun writeStateBlock(
         key: String,
         node: dev.gmvalentino.monaka.gradle.model.StateNode,
         rootName: String,
@@ -261,19 +261,19 @@ class KotlinStubEmitter {
     ): String = buildString {
         val typeRef = stateTypeRef(key, rootName, machineName)
         appendLine("${pad}state<$typeRef> {")
-        node.onEnter?.let { append(emitHookBlock("onEnter", it, rootName, actionName, effectName, isSingle, machineName, key, "$pad    ")) }
-        node.onExit?.let { append(emitHookBlock("onExit", it, rootName, actionName, effectName, isSingle, machineName, key, "$pad    ")) }
-        node.onUpdate?.let { append(emitHookBlock("onUpdate", it, rootName, actionName, effectName, isSingle, machineName, key, "$pad    ")) }
+        node.onEnter?.let { append(writeHookBlock("onEnter", it, rootName, actionName, effectName, isSingle, machineName, key, "$pad    ")) }
+        node.onExit?.let { append(writeHookBlock("onExit", it, rootName, actionName, effectName, isSingle, machineName, key, "$pad    ")) }
+        node.onUpdate?.let { append(writeHookBlock("onUpdate", it, rootName, actionName, effectName, isSingle, machineName, key, "$pad    ")) }
         for ((event, hook) in node.lifecycleHooks) {
-            append(emitHookBlock(event, hook, rootName, actionName, effectName, isSingle, machineName, key, "$pad    "))
+            append(writeHookBlock(event, hook, rootName, actionName, effectName, isSingle, machineName, key, "$pad    "))
         }
         for ((action, handler) in node.on) {
-            append(emitHandlerBlock(action, handler, rootName, actionName, effectName, isSingle, machineName, key, "$pad    "))
+            append(writeHandlerBlock(action, handler, rootName, actionName, effectName, isSingle, machineName, key, "$pad    "))
         }
         appendLine("${pad}}")
     }
 
-    private fun emitHookBlock(
+    private fun writeHookBlock(
         hookName: String,
         hook: HookModel,
         rootName: String,
@@ -285,7 +285,7 @@ class KotlinStubEmitter {
         pad: String,
     ): String = buildString {
         appendLine("${pad}$hookName {")
-        hook.task?.let { append(emitTaskBlock(it, actionName, "$pad    ")) }
+        hook.task?.let { append(writeTaskBlock(it, actionName, "$pad    ")) }
         hook.transitions.forEach { target ->
             appendLine("${pad}    transition(${stateTransitionExpr(sourcePath, target, rootName, isSingle, machineName)})")
         }
@@ -294,7 +294,7 @@ class KotlinStubEmitter {
         appendLine("${pad}}")
     }
 
-    private fun emitHandlerBlock(
+    private fun writeHandlerBlock(
         action: String,
         handler: HandlerModel,
         rootName: String,
@@ -307,26 +307,26 @@ class KotlinStubEmitter {
     ): String = buildString {
         appendLine("${pad}on<$actionName.$action> {")
         if (handler.reject) {
-            appendLine("${pad}    reject()")
+            appendLine("$pad    reject()")
         } else {
-            handler.task?.let { append(emitTaskBlock(it, actionName, "$pad    ")) }
+            handler.task?.let { append(writeTaskBlock(it, actionName, "$pad    ")) }
             handler.transitions.forEach { target ->
-                appendLine("${pad}    transition(${stateTransitionExpr(sourcePath, target, rootName, isSingle, machineName)})")
+                appendLine("$pad    transition(${stateTransitionExpr(sourcePath, target, rootName, isSingle, machineName)})")
             }
-            handler.effects.forEach { appendLine("${pad}    sideEffect($effectName.$it)") }
-            handler.dispatch?.let { appendLine("${pad}    dispatch($actionName.$it)") }
+            handler.effects.forEach { appendLine("$pad    sideEffect($effectName.$it)") }
+            handler.dispatch?.let { appendLine("$pad    dispatch($actionName.$it)") }
         }
-        appendLine("${pad}}")
+        appendLine("$pad}")
     }
 
-    private fun emitTaskBlock(task: TaskModel, actionName: String, pad: String): String = buildString {
+    private fun writeTaskBlock(task: TaskModel, actionName: String, pad: String): String = buildString {
         val args = buildList {
             task.key?.let { add("\"$it\"") }
             if (task.autoCancel) add("autoCancel = true")
         }.joinToString(", ")
         appendLine("${pad}task($args) {")
-        task.dispatches.forEach { appendLine("${pad}    dispatch($actionName.$it)") }
-        appendLine("${pad}}")
+        task.dispatches.forEach { appendLine("$pad    dispatch($actionName.$it)") }
+        appendLine("$pad}")
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -337,9 +337,9 @@ class KotlinStubEmitter {
 
     /** Reference to use in `transition(}` and `initialState()`. */
     private fun transitionRef(target: String, rootName: String, isSingle: Boolean, machineName: String): String =
-        when {
-            target == rootName && isSingle -> "$rootName.$machineName"
-            target == rootName -> rootName
+        when (target) {
+            rootName if isSingle -> "$rootName.$machineName"
+            rootName -> rootName
             else -> "$rootName.$target"
         }
 

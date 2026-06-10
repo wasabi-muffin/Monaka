@@ -17,7 +17,7 @@ Re-running with `--replace` overwrites them; the default is to skip files that a
 
 ## Setup
 
-Apply the Monaka Gradle plugin and configure the `monakaStubs` extension:
+Apply the Monaka Gradle plugin and configure the `monakaStubGenerator` extension:
 
 ```kotlin
 // build.gradle.kts
@@ -25,7 +25,7 @@ plugins {
     id("dev.gmvalentino.monaka")
 }
 
-monakaStubs {
+monakaStubGenerator {
     // Path to a single .yaml file or a directory to scan recursively.
     // Default: project root directory (scans for any .yaml file).
     input.set("${layout.buildDirectory.get()}/monaka-yaml")

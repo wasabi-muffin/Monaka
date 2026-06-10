@@ -1,13 +1,19 @@
 package dev.gmvalentino.monaka.gradle
 
+import dev.gmvalentino.monaka.gradle.parser.YamlParser
+import dev.gmvalentino.monaka.gradle.write.PumlWriter
+import java.io.File
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.SkipWhenEmpty
+import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
-import dev.gmvalentino.monaka.gradle.emit.PumlEmitter
-import dev.gmvalentino.monaka.gradle.parser.KtSourceParser
-import dev.gmvalentino.monaka.gradle.parser.YamlParser
 
 @DisableCachingByDefault(because = "outputs may be written to source directories")
 abstract class GenerateStateMachinePumlTask : DefaultTask() {
@@ -21,7 +27,7 @@ abstract class GenerateStateMachinePumlTask : DefaultTask() {
      * Directory where generated `.puml` files are written.
      *
      * When not set (the default), each `.puml` file is written to the same directory
-     * as the source file that contains the `stateMachine { }` block.
+     * as the `.yaml` file it was generated from.
      * When set, all `.puml` files are written to this single directory.
      */
     @get:Optional
@@ -31,38 +37,37 @@ abstract class GenerateStateMachinePumlTask : DefaultTask() {
     @TaskAction
     fun generate() {
         val fixedOutputDir = if (outputDir.isPresent) outputDir.get().asFile.also { it.mkdirs() } else null
-        val emitter = PumlEmitter()
-        val pairs = KtSourceParser().parseFiles(sources.asFileTree.files)
+        val yamlParser = YamlParser()
+        val writer = PumlWriter()
 
-        if (pairs.isEmpty()) {
-            logger.lifecycle("Monaka: no stateMachine { } blocks found in configured sources.")
+        val allYamlFiles = sources.asFileTree.matching { it.include("**/*.yaml") }.files
+        if (allYamlFiles.isEmpty()) {
+            logger.lifecycle("Monaka: no .yaml files found in configured sources.")
             return
         }
 
-        val yamlParser = YamlParser()
-        for ((sourceFile, model) in pairs) {
-            val out = fixedOutputDir ?: sourceFile.parentFile
-            val genYaml = out.resolve("${model.name}.gen.yaml")
-            val handYaml = out.resolve("${model.name}.yaml")
-            val resolvedModel = when {
-                genYaml.exists() -> {
-                    logger.lifecycle("Monaka: using ${genYaml.name} as source for puml")
-                    yamlParser.parse(genYaml.readText())
-                }
-                handYaml.exists() -> {
-                    val parsed = yamlParser.parse(handYaml.readText())
-                    if (parsed.name.isNotBlank()) {
-                        logger.lifecycle("Monaka: using ${handYaml.name} as source for puml")
-                        parsed
-                    } else model
-                }
-                else -> model
+        // For each base name, prefer hand-edited (.yaml) over auto-generated (.gen.yaml).
+        val byBaseName = LinkedHashMap<String, File>()
+        for (file in allYamlFiles) {
+            val isGen = file.name.endsWith(".gen.yaml")
+            val baseName = if (isGen) file.name.removeSuffix(".gen.yaml") else file.name.removeSuffix(".yaml")
+            if (!isGen || !byBaseName.containsKey(baseName)) {
+                byBaseName[baseName] = file
             }
-            val puml = emitter.emit(resolvedModel)
+        }
+
+        for ((_, yamlFile) in byBaseName) {
+            val model = yamlParser.parse(yamlFile.readText())
+            if (model.name.isBlank()) {
+                logger.lifecycle("Monaka: skipping ${yamlFile.name} — no machine name found")
+                continue
+            }
+            val out = fixedOutputDir ?: yamlFile.parentFile
+            val puml = writer.write(model)
             val primary = out.resolve("${model.name}.puml")
             val target = if (primary.exists()) out.resolve("${model.name}.gen.puml") else primary
             target.writeText(puml)
-            logger.lifecycle("Monaka: wrote ${target.name}")
+            logger.lifecycle("Monaka: wrote ${target.name} (from ${yamlFile.name})")
         }
     }
 }
