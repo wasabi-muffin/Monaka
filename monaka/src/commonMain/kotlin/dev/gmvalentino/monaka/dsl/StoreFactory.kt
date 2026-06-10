@@ -83,7 +83,7 @@ public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> s
     val config = StateMachineBuilder<State, Action, Effect>().apply(builder).build(initialState = initialState, extraPlugins = plugins)
     return DefaultStore(
         id = config.id,
-        initialState = config.initialState,
+        initialState = config.initialState ?: error("initialState must be set inside the stateMachine builder or passed as the initialState argument to store()."),
         actionHandlers = config.actionHandlers,
         enterHandlers = config.enterHandlers,
         exitHandlers = config.exitHandlers,
@@ -121,7 +121,7 @@ public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> s
     initializer: (suspend () -> State)? = null,
 ): Store<State, Action, Effect> = DefaultStore(
     id = stateMachine.id,
-    initialState = initialState ?: stateMachine.initialState,
+    initialState = initialState ?: stateMachine.initialState ?: error("initialState must be set inside the stateMachine builder or passed as the initialState argument to store()."),
     actionHandlers = stateMachine.actionHandlers,
     enterHandlers = stateMachine.enterHandlers,
     exitHandlers = stateMachine.exitHandlers,

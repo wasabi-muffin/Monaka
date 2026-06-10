@@ -1,16 +1,18 @@
 package dev.gmvalentino.monaka.runtime
 
-import kotlin.reflect.KClass
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import co.touchlab.kermit.Logger
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.State as StateMarker
 import dev.gmvalentino.monaka.core.Store
 import dev.gmvalentino.monaka.relay.Relay
+import kotlin.reflect.KClass
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.MainScope
 
 /**
- * A keyed collection of [Store] instances that automatically applies [dev.gmvalentino.monaka.relay.Relay]s
+ * A keyed collection of [Store] instances that automatically applies [Relay]s
  * as stores are registered.
  *
  * Multiple instances of the same [Store] subclass can be registered simultaneously,
@@ -20,7 +22,7 @@ import dev.gmvalentino.monaka.relay.Relay
  * The registry serves two purposes:
  * 1. **Keying** — stores are stored under their [KClass] so they can be retrieved
  *    without holding individual references.
- * 2. **Relaying** — [dev.gmvalentino.monaka.relay.Relay]s installed via [install] start observing a
+ * 2. **Relaying** — [Relay]s installed via [bind] start observing a
  *    source store as soon as a matching instance is registered. Relay targets are resolved
  *    lazily through the registry at emission time, so a relay reaches whatever target stores
  *    are registered when an event fires. All relay coroutines run in [bridgeScope].
@@ -43,15 +45,21 @@ import dev.gmvalentino.monaka.relay.Relay
  * Relays and stores may be installed in any order. When the source store of a relay is
  * already registered at install time, the relay starts observing it immediately.
  *
- * ### Disposing stores
+ * ### Store lifetime and cleanup
+ * Registered stores are **automatically** stopped and unregistered — no manual teardown needed
+ * in the common case. Cleanup fires when whichever of these happens first:
+ * - The store's owning [CoroutineScope] is cancelled (e.g. `viewModelScope` cleared on Android).
+ * - [Store.stop] is called explicitly (e.g. from a Compose `DisposableEffect` when a
+ *   navigation entry leaves the composition).
+ *
+ * To unregister without stopping the store — for example, to move a store between registries —
+ * call [unregister] directly:
  * ```kotlin
- * val auth = AuthStore(authMachine, scope).register(registry)
- * // … later, when the store is no longer needed:
- * registry.unregister(auth)
+ * registry.unregister(store)
  * ```
  *
  * ### Threading
- * [StoreRegistry] is **not thread-safe**. All calls to [register], [unregister], [install],
+ * [StoreRegistry] is **not thread-safe**. All calls to [register], [unregister], [bind],
  * and [get]/[getAll] must be made from the same thread — typically the main thread on Android
  * and iOS. Pass a [bridgeScope] confined to that same thread (e.g. `viewModelScope`, which
  * runs on `Dispatchers.Main`) so relay collector coroutines also access the registry on the
@@ -67,17 +75,23 @@ import dev.gmvalentino.monaka.relay.Relay
  *                    thread used to call [register] and [unregister] (typically `Dispatchers.Main`).
  *                    Pass the same scope that owns the stores so all relay work is canceled together.
  */
-public class StoreRegistry(private val bridgeScope: CoroutineScope) {
+public class StoreRegistry(
+    private val bridgeScope: CoroutineScope = MainScope(),
+    initializer: StoreRegistry.() -> Unit = {},
+) {
 
     private val stores = LinkedHashMap<KClass<out Store<*, *, *>>, MutableList<Store<*, *, *>>>()
     private val relays = mutableListOf<Relay<*, *, *>>()
-    // sourceId → collector jobs launched by relay.apply for that source store
     private val relayJobs = HashMap<String, MutableList<Job>>()
+
+    init {
+        initializer()
+    }
 
     // ── Relays ──────────────────────────────────────────────────────────────────
 
     /**
-     * Install one or more [Relay]s into this registry.
+     * Bind one or more [Relay]s into this registry.
      *
      * Each relay starts observing any already-registered instance of its source class,
      * and again whenever a matching source store is registered in the future.
@@ -93,8 +107,8 @@ public class StoreRegistry(private val bridgeScope: CoroutineScope) {
      * )
      * ```
      */
-    public fun install(vararg relays: Relay<*, *, *>) {
-        for (relay in relays) {
+    public fun bind(vararg relays: Relay<*, *, *>) {
+        relays.forEach { relay ->
             this.relays.add(element = relay)
             stores[relay.source]?.forEach { source ->
                 val jobs = relay.apply(source = source, registry = this, scope = bridgeScope)
@@ -102,6 +116,8 @@ public class StoreRegistry(private val bridgeScope: CoroutineScope) {
             }
         }
     }
+
+    public operator fun Relay<*, *, *>.unaryPlus(): Unit = bind(this)
 
     // ── Registration ──────────────────────────────────────────────────────────
 
@@ -114,6 +130,11 @@ public class StoreRegistry(private val bridgeScope: CoroutineScope) {
      *
      * Only relays whose source matches [store] launch collectors here; relays that merely
      * target [store]'s class need no wiring, since they resolve targets lazily at emission time.
+     *
+     * The store is automatically stopped and unregistered when it is done — no manual cleanup
+     * is required. Cleanup is triggered by whichever happens first:
+     * - The store's owning [CoroutineScope] is cancelled (e.g. `viewModelScope` cleared).
+     * - [Store.stop] is called explicitly (e.g. from a Compose `DisposableEffect`).
      */
     public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> register(
         store: Store<State, Action, Effect>,
@@ -129,6 +150,10 @@ public class StoreRegistry(private val bridgeScope: CoroutineScope) {
             }
         }
         storeList += store
+        store.invokeOnCompletion {
+            store.stop()
+            unregister(store = store)
+        }
         return store
     }
 
@@ -197,28 +222,3 @@ public class StoreRegistry(private val bridgeScope: CoroutineScope) {
 public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> Store<State, Action, Effect>.register(
     registry: StoreRegistry,
 ): Store<State, Action, Effect> = also(registry::register)
-
-/**
- * Register this store in [registry] and automatically cancel it and [StoreRegistry.unregister]
- * it when the store's own scope completes.
- *
- * The unregister hook is idempotent, so a later manual [StoreRegistry.unregister] is a harmless
- * no-op. If the store's scope is already completed when this is called, the store is registered
- * and then immediately unregistered.
- *
- * ```kotlin
- * val cart = CartStore(cartMachine, scope = viewModelScope)
- *     .registerScoped(registry)
- * ```
- */
-public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> Store<State, Action, Effect>.registerScoped(
-    registry: StoreRegistry,
-): Store<State, Action, Effect> {
-    val store = this
-    registry.register(store = store)
-    invokeOnCompletion {
-        store.stop()
-        registry.unregister(store = store)
-    }
-    return store
-}

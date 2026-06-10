@@ -32,8 +32,11 @@ import dev.gmvalentino.monaka.plugin.Plugin
 public interface StateMachine<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> {
     /** Unique identifier for this configuration, used as the [dev.gmvalentino.monaka.core.Store.id] of created stores. */
     public val id: String
-    /** The state the machine starts in before any action is processed. */
-    public val initialState: State
+    /**
+     * The state the machine starts in before any action is processed, or `null` if the initial
+     * state is deferred to the call site.
+     */
+    public val initialState: State?
     /** Registered `on<>` handlers, keyed by state class then action class. */
     public val actionHandlers: Map<KClass<out State>, Map<KClass<out Action>, ActionHandler<State, Action, Effect>>>
     /** Hooks registered via `onEnter { }`, keyed by state class. */

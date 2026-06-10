@@ -28,8 +28,9 @@ fun CounterScreen() {
 ```
 
 The factory lambda receives a `CoroutineScope` backed by `rememberCoroutineScope()`. The store
-is created once and remembered across recompositions; it is cancelled in a `DisposableEffect`
-when the composable is removed from the tree.
+is created once and remembered across recompositions. When the composable is removed from the
+tree, `stop()` is called in a `DisposableEffect` — which also triggers any `invokeOnCompletion`
+handlers, including auto-unregistration from a `StoreRegistry` if the store was registered.
 
 **Android with ViewModel** — on Android, prefer tying the store to `viewModelScope` instead so
 it survives configuration changes:
@@ -201,11 +202,11 @@ fun LoginScreen(
 
 ---
 
-## Android ViewModel + StoreRegistry helper
+## Android ViewModel + StoreRegistry
 
-`ViewModelExt.kt` in the sample provides `createStore`, a convenience function that creates a
-store from a `StateMachine`, wires it to a registry, and auto-unregisters it when the ViewModel
-is cleared:
+To wire a ViewModel-owned store into a `StoreRegistry`, call `store(…, scope = viewModelScope)`
+and chain `.register(registry)`. The `register` call attaches an `invokeOnCompletion` handler
+so the store is automatically unregistered when `viewModelScope` is cancelled:
 
 ```kotlin
 class AppViewModel(
@@ -214,13 +215,10 @@ class AppViewModel(
 ) : ViewModel() {
     val registry = StoreRegistry(viewModelScope)
 
-    val authStore = createStore(
-        registry = registry,
+    val authStore = store(
         stateMachine = AuthStateMachine(authRepo),
+        scope = viewModelScope,
         initialState = AuthState.SignedOut,
-    )
+    ).register(registry)
 }
 ```
-
-`createStore` calls `store(…, scope = viewModelScope).registerScoped(registry)`, so the store
-is cancelled and unregistered when the ViewModel scope is cleared.

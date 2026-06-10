@@ -102,7 +102,7 @@ public class StateMachineStore<State : StateMarker, Action : ActionMarker, Effec
 ) : Store<State, Action, Effect> by DefaultStore(
     machineScope = scope,
     id = stateMachine.id,
-    initialState = initialState ?: stateMachine.initialState,
+    initialState = initialState ?: stateMachine.initialState ?: error("initialState must be set inside the stateMachine builder or passed as the StateMachineStore constructor argument."),
     actionHandlers = stateMachine.actionHandlers,
     enterHandlers = stateMachine.enterHandlers,
     exitHandlers = stateMachine.exitHandlers,

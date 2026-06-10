@@ -80,7 +80,7 @@ class AppCoordinator(
     init {
         // ── 1. Declare the relay topology, grouped by source store ────────────
 
-        registry.install(
+        registry.bind(
             AuthRelay,
             CartRelay,
             CheckoutRelay,

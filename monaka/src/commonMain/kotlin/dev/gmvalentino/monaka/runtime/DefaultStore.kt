@@ -26,6 +26,7 @@ import dev.gmvalentino.monaka.scopes.StateUpdateScope
 import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DisposableHandle
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -69,6 +70,18 @@ import kotlinx.coroutines.launch
  * ### Error handling
  * Handler and hook exceptions are caught and discarded — the state remains unchanged.
  * Handler errors are forwarded to plugins via [Plugin.onError].
+ *
+ * ### Store lifetime and cleanup
+ * Cleanup callbacks registered via [invokeOnCompletion] fire when the store is stopped,
+ * regardless of how it is stopped:
+ * - **Scope cancellation** — when [machineScope] is cancelled (e.g. `viewModelScope` cleared),
+ *   `storeJob` is cancelled as its child, triggering all [invokeOnCompletion] handlers.
+ * - **Explicit [stop] call** — `stop()` cancels `storeJob` directly, so callers that drive the
+ *   store lifetime via `stop()` (e.g. a Compose `DisposableEffect`) also trigger cleanup without
+ *   needing to cancel the owning scope.
+ *
+ * This dual-trigger design ensures [StoreRegistry] auto-unregistration works correctly for both
+ * ViewModel-owned stores (scope-driven) and composition-owned stores (stop-driven).
  */
 @OptIn(InternalMonakaApi::class)
 internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
@@ -115,6 +128,8 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
                 is Trigger.Restore -> processRestore(initializer = trigger.initializer)
             }
         }
+    }.also { job ->
+        job.invokeOnCompletion { stop() }
     }
 
     override val isActive: Boolean get() = phase != Phase.Cancelled
@@ -158,7 +173,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     }
 
     override fun invokeOnCompletion(handler: (cause: Throwable?) -> Unit): DisposableHandle =
-        machineScope.coroutineContext.job.invokeOnCompletion(handler)
+        processingJob.invokeOnCompletion(handler)
 
     private fun whenActive(block: () -> Unit) {
         if (isActive) block()

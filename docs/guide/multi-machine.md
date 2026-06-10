@@ -100,21 +100,30 @@ state<ChatState.NewMessage> {
 ## Registering stores
 
 Call `register` on a store to add it to the registry. Any installed relay whose source class
-matches starts observing immediately:
+matches starts observing immediately, and the store is **automatically stopped and unregistered**
+when it is done — no extra cleanup step is needed:
 
 ```kotlin
-AuthStore(authMachine, scope).register(registry)
-CartStore(cartMachine, scope).register(registry)
+AuthStore(authMachine, viewModelScope).register(registry)
+CartStore(cartMachine, viewModelScope).register(registry)
 ```
 
-Use `registerScoped` to have the store automatically unregister and cancel itself when its scope
-completes — the recommended approach for ViewModel-owned stores:
+Cleanup is triggered by whichever happens first:
+
+- **Scope cancellation** — when the owning `CoroutineScope` is cancelled (e.g. `viewModelScope`
+  cleared on Android), the store stops and unregisters automatically.
+- **Explicit `stop()` call** — when `store.stop()` is called directly, the same cleanup fires.
+  This is useful for stores whose lifetime is shorter than their scope, such as stores driven by
+  a Compose composition rather than a ViewModel:
 
 ```kotlin
-AuthStore(authMachine, viewModelScope).registerScoped(registry)
+// Composition-scoped — stop() is called in onDispose when the entry leaves the nav stack
+DisposableEffect(viewModel) {
+    onDispose { viewModel.store.stop() }
+}
 ```
 
-To unregister manually:
+To unregister manually without stopping the store:
 
 ```kotlin
 registry.unregister(store)

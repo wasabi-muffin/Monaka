@@ -150,6 +150,9 @@ public class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Eff
      * Snapshot the current builder state into a [dev.gmvalentino.monaka.dsl.StateMachine].
      *
      * @param initialState When non-null, replaces any state set via [StateMachineBuilder.initialState].
+     *   When both this parameter and the builder's [initialState] call are omitted, the resulting
+     *   [StateMachine.initialState] is `null` — the caller must supply a non-null state when
+     *   creating the store (e.g. via [store]).
      * @param extraPlugins Appended **after** any plugins already installed in this builder.
      */
     public fun build(
@@ -157,7 +160,7 @@ public class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Eff
         extraPlugins: List<Plugin<State, Action, Effect>> = emptyList(),
     ): StateMachine<State, Action, Effect> {
         val snapshotId = id
-        val snapshotInitialState = initialState ?: this.initialState ?: error(message = "StateMachine requires an initialState.")
+        val snapshotInitialState: State? = initialState ?: this.initialState
         val snapshotActionHandlers = actionHandlers.mapValuesTo(LinkedHashMap()) { LinkedHashMap(it.value) }
         val snapshotEnterHandlers = LinkedHashMap(enterHandlers)
         val snapshotExitHandlers = LinkedHashMap(exitHandlers)
@@ -167,7 +170,7 @@ public class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Eff
         val snapshotPlugins = plugins + extraPlugins
         return object : StateMachine<State, Action, Effect> {
             override val id = snapshotId
-            override val initialState = snapshotInitialState
+            override val initialState: State? = snapshotInitialState
             override val actionHandlers = snapshotActionHandlers
             override val enterHandlers = snapshotEnterHandlers
             override val exitHandlers = snapshotExitHandlers
