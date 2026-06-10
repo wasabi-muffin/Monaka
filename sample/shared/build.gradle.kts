@@ -33,6 +33,7 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.lifecycle.runtime.compose)
             implementation(libs.lifecycle.viewmodel)
+            implementation(libs.navigation3.ui)
 
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)

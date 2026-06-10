@@ -8,6 +8,7 @@ compose = "1.11.1"
 compose-material3 = "1.11.0-alpha07"
 compose-material-icons = "1.7.3"
 lifecycle = "2.10.0"
+navigation3 = "1.1.1"
 datetime = "0.8.0"
 
 # Android
@@ -42,6 +43,7 @@ kotlinx-coroutines-test = { module =  "org.jetbrains.kotlinx:kotlinx-coroutines-
 kotlinx-datetime = { module =  "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
 lifecycle-runtime-compose = { module =  "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 lifecycle-viewmodel = { module =  "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 
 # Compose Multiplatform
 compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose" }

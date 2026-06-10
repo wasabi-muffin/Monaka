@@ -133,7 +133,7 @@ Dependencies (UseCases, Repositories) are injected via normal closure capture fr
 Targets `androidTarget`, `iosArm64`, `iosSimulatorArm64`. (Intel Mac simulators / `iosX64` were dropped — Compose Multiplatform 1.11+ no longer publishes those binaries; modern Apple-silicon Macs use `iosSimulatorArm64` for the simulator.) UI lives in `commonMain` using JetBrains Compose. Lifecycle observation uses `org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose` (JetBrains' multiplatform fork of AndroidX lifecycle), so `LocalLifecycleOwner` and `LifecycleEventObserver` work directly in commonMain — no `expect`/`actual` indirection needed. `ComposeUIViewController` populates `LocalLifecycleOwner` on iOS automatically.
 
 **Cross-platform helpers in `dev.gmvalentino.monaka.sample`:**
-- `App()` — root composable with manual `Screen` enum navigation. No external nav library.
+- `App()` — root composable using `org.jetbrains.androidx.navigation3:navigation3-ui`. `Screen` is a sealed interface implementing `NavKey`; `NavBackStack<Screen>` holds the stack; `NavDisplay` + `entryProvider { entry<T> { } }` DSL renders destinations.
 - `rememberStore { scope -> ... }` — replaces the Android-only `ViewModel + viewModel()` pattern. Creates a `Store` tied to the composition's coroutine scope; cancels on disposal.
 - `BindLifecycle()` — single commonMain composable. Bridges `androidx.lifecycle.Lifecycle.Event` → `dev.gmvalentino.monaka.core.LifecycleEvent`.
 - `toViewStore()`, `handleEffects { }`, `render<State>()` — small Compose adapters around `Store`. `toViewStore()` uses `collectAsStateWithLifecycle()` so the UI stops collecting when the screen is backgrounded.
