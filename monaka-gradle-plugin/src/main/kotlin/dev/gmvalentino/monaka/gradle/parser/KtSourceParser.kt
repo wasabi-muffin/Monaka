@@ -17,14 +17,14 @@ import java.io.File
  */
 class KtSourceParser {
 
-    fun parseFiles(files: Iterable<File>): List<MachineModel> =
+    fun parseFiles(files: Iterable<File>): List<Pair<File, MachineModel>> =
         files.filter { it.extension == "kt" }.flatMap { parseFile(it) }
 
     // ── File entry ────────────────────────────────────────────────────────────
 
-    private fun parseFile(file: File): List<MachineModel> {
+    private fun parseFile(file: File): List<Pair<File, MachineModel>> {
         val text = file.readText()
-        return extractMachines(text, file.nameWithoutExtension)
+        return extractMachines(text, file.nameWithoutExtension).map { file to it }
     }
 
     // ── Machine extraction ────────────────────────────────────────────────────
@@ -215,26 +215,27 @@ class KtSourceParser {
         // dispatch() calls that belong to the task, not the handler directly.
         val bodyNoTaskBodies = stripTaskBodies(body)
 
-        // transition(nextState)
-        // Searched in original body — transition() is always at handler level.
-        var transition: String? = null
-        val transMatch = transitionCallRegex.find(body)
-        if (transMatch != null) {
-            val transBody = extractParen(body, transMatch.range.last)?.trim() ?: ""
-            transition = when {
-                // state.toXxx(...) — resolve via lookup to recover dot-path for nested states
-                transBody.startsWith("state.to") && !transBody.startsWith("state.toSelf") -> {
-                    val suffix = transBody.removePrefix("state.to").substringBefore("(").trim()
-                    (statePathLookup[suffix] ?: suffix).takeIf { it.isNotBlank() } ?: statePath
+        // Collect all transition(...) calls at handler level (task bodies already stripped).
+        val transitions = transitionCallRegex.findAll(bodyNoTaskBodies)
+            .toList()
+            .sortedBy { it.range.first }
+            .mapNotNull { transMatch ->
+                val transBody = extractParen(body, transMatch.range.last)?.trim() ?: ""
+                when {
+                    // state.toXxx(...) — resolve via lookup to recover dot-path for nested states
+                    transBody.startsWith("state.to") && !transBody.startsWith("state.toSelf") -> {
+                        val suffix = transBody.removePrefix("state.to").substringBefore("(").trim()
+                        (statePathLookup[suffix] ?: suffix).takeIf { it.isNotBlank() } ?: statePath
+                    }
+                    // state.copy(...) / state.toSelf(...) / bare state — stays in same state
+                    transBody.startsWith("state.") || transBody == "state" -> statePath
+                    else -> transBody.substringBefore("(").trim()
+                        .stripPrefix(stateType)
+                        .ifEmpty { stateType.substringAfterLast(".") }
+                        .takeIf { it.isNotBlank() }
                 }
-                // state.copy(...) / state.toSelf(...) / bare state — stays in same state
-                transBody.startsWith("state.") || transBody == "state" -> statePath
-                else -> transBody.substringBefore("(").trim()
-                    .stripPrefix(stateType)
-                    .ifEmpty { stateType.substringAfterLast(".") }
-                    .takeIf { it.isNotBlank() }
             }
-        }
+            .distinct()
 
         effects.addAll(collectSideEffects(body).map { it.extractEffectName() })
 
@@ -251,7 +252,7 @@ class KtSourceParser {
         val task = findTaskBlock(body)
 
         return HandlerModel(
-            transition = transition,
+            transitions = transitions,
             effects = effects,
             reject = reject,
             dispatch = dispatch,

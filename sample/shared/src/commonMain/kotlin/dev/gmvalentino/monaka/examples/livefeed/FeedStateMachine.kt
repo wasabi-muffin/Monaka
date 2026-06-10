@@ -134,7 +134,7 @@ class FeedStateMachine(
         }
 
         on<FeedAction.SearchCompleted> {
-            if (action.query != state.query) return@on
+            guard { action.query != state.query }
             transition(state.copy(items = action.items, isLoading = false))
         }
 
@@ -147,7 +147,7 @@ class FeedStateMachine(
 
         // Pattern 2 — start live polling loop
         on<FeedAction.GoLive> {
-            if (state.isLive) return@on
+            guard { state.isLive }
             val sinceTimestamp = state.items.maxOfOrNull { it.timestamp } ?: 0L
 
             task("poll") {

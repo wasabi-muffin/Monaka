@@ -78,7 +78,7 @@ public abstract class HandlerScope<State : StateMarker, Action : ActionMarker, E
      *
      * All verbs called before [guard] are preserved and returned as the handler result.
      * All verbs called after a failing [guard] — [transition], [sideEffect], [dispatch],
-     * and [cancel] — become no-ops for this handler invocation.
+     * [cancel], and `task` — become no-ops for this handler invocation.
      *
      * Unlike [reject], a failing [guard] does not discard pre-guard recordings and does
      * not notify plugins via `onRejected`. The result is whatever was recorded before the

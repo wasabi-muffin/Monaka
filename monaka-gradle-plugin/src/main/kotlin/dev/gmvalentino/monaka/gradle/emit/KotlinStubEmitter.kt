@@ -50,7 +50,7 @@ class KotlinStubEmitter {
         fun walk(states: Map<String, dev.gmvalentino.monaka.gradle.model.StateNode>) {
             for ((key, node) in states) {
                 val name = key.substringAfterLast(".")
-                node.on.values.forEach { handler -> addTarget(name, handler.transition) }
+                node.on.values.forEach { handler -> handler.transitions.forEach { addTarget(name, it) } }
                 node.onEnter?.transitions?.forEach { addTarget(name, it) }
                 node.onExit?.transitions?.forEach { addTarget(name, it) }
                 node.onUpdate?.transitions?.forEach { addTarget(name, it) }
@@ -92,7 +92,7 @@ class KotlinStubEmitter {
             node.onExit?.transitions?.forEach { if (it != rootName) paths.add(it) }
             node.onUpdate?.transitions?.forEach { if (it != rootName) paths.add(it) }
             node.lifecycleHooks.values.forEach { h -> h.transitions.forEach { if (it != rootName) paths.add(it) } }
-            node.on.values.forEach { h -> h.transition?.let { if (it != rootName) paths.add(it) } }
+            node.on.values.forEach { h -> h.transitions.forEach { if (it != rootName) paths.add(it) } }
         }
         return paths
     }
@@ -278,7 +278,7 @@ class KotlinStubEmitter {
             appendLine("${pad}    reject()")
         } else {
             handler.task?.let { append(emitTaskBlock(it, actionName, "$pad    ")) }
-            handler.transition?.let { target ->
+            handler.transitions.forEach { target ->
                 appendLine("${pad}    transition(${stateTransitionExpr(sourcePath, target, rootName, isSingle, machineName)})")
             }
             handler.effects.forEach { appendLine("${pad}    sideEffect($effectName.$it)") }

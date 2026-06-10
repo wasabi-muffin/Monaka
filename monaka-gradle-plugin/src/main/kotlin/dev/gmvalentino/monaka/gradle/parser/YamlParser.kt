@@ -196,7 +196,7 @@ class YamlParser {
         }
 
         return HandlerModel(
-            transition = transition, effects = effects,
+            transitions = listOfNotNull(transition), effects = effects,
             reject = reject, dispatch = dispatch, task = task,
         ) to i
     }

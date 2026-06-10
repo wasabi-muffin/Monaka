@@ -11,12 +11,6 @@ class MonakaPlugin : Plugin<Project> {
             MonakaExtension::class.java,
         )
 
-        yamlExtension.outputDir.convention(
-            target.layout.buildDirectory.dir("monaka-yaml")
-        )
-
-        yamlExtension.pumlOutputDir.convention(yamlExtension.outputDir)
-
         target.tasks.register(
             "generateMonakaYaml",
             GenerateStateMachineYamlTask::class.java,

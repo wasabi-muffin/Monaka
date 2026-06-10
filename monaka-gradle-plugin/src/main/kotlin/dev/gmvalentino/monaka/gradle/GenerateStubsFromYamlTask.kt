@@ -6,11 +6,13 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.options.Option
+import org.gradle.work.DisableCachingByDefault
 import dev.gmvalentino.monaka.gradle.emit.KotlinStubEmitter
 import dev.gmvalentino.monaka.gradle.parser.YamlParser
 import java.io.File
 import javax.inject.Inject
 
+@DisableCachingByDefault(because = "outputs are written to source directories")
 abstract class GenerateStubsFromYamlTask @Inject constructor(
     objects: ObjectFactory,
 ) : DefaultTask() {

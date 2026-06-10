@@ -83,7 +83,7 @@ class PumlEmitter {
                 else -> {
                     // Resolve direct transitions first; fall back to following dispatch chains
                     // (mirrors YamlEmitter.reachableTransitions so output is consistent).
-                    val targets = reachableTransitions(hook, node)
+                    val targets = reachableTransitions(hook)
                     if (targets.isNotEmpty()) {
                         val targetStr = if (targets.size == 1) targets.first()
                                         else targets.joinToString(" | ", "[", "]")
@@ -101,11 +101,12 @@ class PumlEmitter {
                     descLines += "$indent$name : onExit ▶ ${formatTask(hook.task)}"
                 }
                 else -> {
-                    val targets = reachableTransitions(hook, node)
+                    val targets = reachableTransitions(hook)
                     if (targets.isNotEmpty()) {
-                        val target = targets.first()
-                        descLines += "$indent$name : onExit → $target${formatEffects(hook.effects)}"
-                        arrowLines += "$indent$name --> $target : onExit"
+                        val targetStr = if (targets.size == 1) targets.first()
+                                        else targets.joinToString(" | ", "[", "]")
+                        descLines += "$indent$name : onExit → $targetStr${formatEffects(hook.effects)}"
+                        targets.forEach { arrowLines += "$indent$name --> $it : onExit" }
                     }
                 }
             }
@@ -122,11 +123,12 @@ class PumlEmitter {
                     descLines += "$indent$name : onUpdate${formatEffects(hook.effects)}"
                 }
                 else -> {
-                    val targets = reachableTransitions(hook, node).filter { it != name }
+                    val targets = reachableTransitions(hook).filter { it != name }
                     if (targets.isNotEmpty()) {
-                        val target = targets.first()
-                        descLines += "$indent$name : onUpdate → $target${formatEffects(hook.effects)}"
-                        arrowLines += "$indent$name --> $target : onUpdate"
+                        val targetStr = if (targets.size == 1) targets.first()
+                                        else targets.joinToString(" | ", "[", "]")
+                        descLines += "$indent$name : onUpdate → $targetStr${formatEffects(hook.effects)}"
+                        targets.forEach { arrowLines += "$indent$name --> $it : onUpdate" }
                     }
                 }
             }
@@ -134,17 +136,18 @@ class PumlEmitter {
 
         // Lifecycle hooks (onPause, onResume, onStart, onStop, …)
         for ((event, hook) in node.lifecycleHooks) {
-            val targets = reachableTransitions(hook, node)
+            val targets = reachableTransitions(hook)
             if (targets.isEmpty()) continue
-            val target = targets.first()
-            descLines += "$indent$name : $event → $target"
-            arrowLines += "$indent$name --> $target : $event"
+            val targetStr = if (targets.size == 1) targets.first()
+                            else targets.joinToString(" | ", "[", "]")
+            descLines += "$indent$name : $event → $targetStr"
+            targets.forEach { arrowLines += "$indent$name --> $it : $event" }
         }
 
         // Action handlers
         for ((action, handler) in node.on) {
             buildHandlerDescLine(indent, name, action, handler)?.let { descLines += it }
-            handler.transition?.let { arrowLines += "$indent$name --> $it : $action" }
+            handler.transitions.forEach { arrowLines += "$indent$name --> $it : $action" }
         }
 
         descLines.forEach { appendLine(it) }
@@ -157,8 +160,8 @@ class PumlEmitter {
         action: String,
         handler: HandlerModel,
     ): String? {
-        if (handler.transition == null && handler.task == null && handler.effects.isEmpty()) return null
-        val target = handler.transition?.let { " → $it" } ?: ""
+        if (handler.transitions.isEmpty() && handler.task == null && handler.effects.isEmpty()) return null
+        val target = if (handler.transitions.isNotEmpty()) " → ${handler.transitions.joinToString(" | ")}" else ""
         val effects = formatEffects(handler.effects)
         val task = handler.task?.let { " ▶ ${formatTask(it)}" } ?: ""
         return "$indent$stateName : $action$target$effects$task"
@@ -167,24 +170,15 @@ class PumlEmitter {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /**
-     * States reachable from a hook, mirroring YamlEmitter.reachableTransitions:
-     * 1. Direct `transition(Target }` calls recorded in [HookModel.transitions].
-     * 2. For each action the task dispatches: the transition recorded in that action's handler.
-     * 3. Same resolution for a bare `dispatch(Action)` in the hook body.
+     * States reachable from a hook: only explicit `transition(Target)` calls recorded
+     * directly in the hook body. Dispatch-based inference is excluded for the same reason
+     * as in YamlEmitter — dispatches are async side-effects, not direct hook outcomes.
      */
-    private fun reachableTransitions(hook: HookModel, state: StateNode): List<String> = buildList {
-        addAll(hook.transitions)
-        hook.task?.dispatches?.forEach { dispatched ->
-            state.on[dispatched.substringAfterLast(".")]?.transition?.let { add(it) }
-        }
-        hook.dispatch?.let { dispatched ->
-            state.on[dispatched.substringAfterLast(".")]?.transition?.let { add(it) }
-        }
-    }.distinct()
+    private fun reachableTransitions(hook: HookModel): List<String> = hook.transitions.distinct()
 
     private fun collectAllTargets(states: Map<String, StateNode>): Set<String> = buildSet {
         for (node in states.values) {
-            node.on.values.mapNotNull { it.transition }.forEach { add(it) }
+            node.on.values.flatMap { it.transitions }.forEach { add(it) }
             node.onEnter?.transitions?.forEach { add(it) }
             node.onExit?.transitions?.forEach { add(it) }
             node.onUpdate?.transitions?.forEach { add(it) }

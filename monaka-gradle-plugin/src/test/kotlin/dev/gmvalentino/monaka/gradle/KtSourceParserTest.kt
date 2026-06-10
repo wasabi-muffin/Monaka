@@ -53,7 +53,7 @@ class KtSourceParserTest {
             }
         """.trimIndent()
 
-        val models = parser.parseFiles(listOf(writeTempFile("Counter.kt", src)))
+        val models = parser.parseFiles(listOf(writeTempFile("Counter.kt", src))).map { it.second }
         assertEquals(1, models.size)
         val m = models[0]
 
@@ -64,7 +64,7 @@ class KtSourceParserTest {
         assertNotNull(idle)
         val start = idle.on["Start"]
         assertNotNull(start)
-        assertEquals("Running", start.transition)
+        assertEquals("Running", start.transitions.firstOrNull())
         assertEquals(listOf("PlaySound"), start.effects)   // bare effect name
 
         val reset = idle.on["Reset"]
@@ -114,7 +114,7 @@ class KtSourceParserTest {
             })
         """.trimIndent()
 
-        val models = parser.parseFiles(listOf(writeTempFile("Login.kt", src)))
+        val models = parser.parseFiles(listOf(writeTempFile("Login.kt", src))).map { it.second }
         assertEquals(1, models.size)
         val m = models[0]
 
@@ -150,8 +150,8 @@ class KtSourceParserTest {
             }
         """.trimIndent()
 
-        val model = parser.parseFiles(listOf(writeTempFile("Feed.kt", src))).first()
-        val transition = model.states["Active"]?.on?.get("Update")?.transition
+        val model = parser.parseFiles(listOf(writeTempFile("Feed.kt", src))).first().second
+        val transition = model.states["Active"]?.on?.get("Update")?.transitions?.firstOrNull()
         assertEquals("Active", transition)
     }
 
@@ -194,18 +194,18 @@ class KtSourceParserTest {
             }
         """.trimIndent()
 
-        val model = parser.parseFiles(listOf(writeTempFile("Login.kt", src))).first()
+        val model = parser.parseFiles(listOf(writeTempFile("Login.kt", src))).first().second
 
         // state.toXxx() resolves to target state
-        assertEquals("Typing", model.states["Idle"]?.on?.get("Update")?.transition)
-        assertEquals("Submitting", model.states["Typing"]?.on?.get("Submit")?.transition)
-        assertEquals("Submitting", model.states["Error"]?.on?.get("Retry")?.transition)
+        assertEquals("Typing", model.states["Idle"]?.on?.get("Update")?.transitions?.firstOrNull())
+        assertEquals("Submitting", model.states["Typing"]?.on?.get("Submit")?.transitions?.firstOrNull())
+        assertEquals("Submitting", model.states["Error"]?.on?.get("Retry")?.transitions?.firstOrNull())
 
         // state.copy() stays in same state
-        assertEquals("Typing", model.states["Typing"]?.on?.get("Update")?.transition)
+        assertEquals("Typing", model.states["Typing"]?.on?.get("Update")?.transitions?.firstOrNull())
 
         // state.toSelf() stays in same state
-        assertEquals("Error", model.states["Error"]?.on?.get("Update")?.transition)
+        assertEquals("Error", model.states["Error"]?.on?.get("Update")?.transitions?.firstOrNull())
 
         // onEnter hook transitions via state.toXxx()
         // (onError is a separate DSL hook, not captured in onEnter.transitions)
@@ -242,7 +242,7 @@ class KtSourceParserTest {
             }
         """.trimIndent()
 
-        val model = parser.parseFiles(listOf(writeTempFile("App.kt", src))).first()
+        val model = parser.parseFiles(listOf(writeTempFile("App.kt", src))).first().second
 
         // buildHierarchy nests Auth.SignedOut under states["Auth"].states["SignedOut"]
         val signedOut  = model.states["Auth"]?.states?.get("SignedOut")
@@ -250,14 +250,14 @@ class KtSourceParserTest {
         val loading    = model.states["Loading"]
 
         // Cross-hierarchy: toAuthSigningIn → dot-path "Auth.SigningIn"
-        assertEquals("Auth.SigningIn", signedOut?.on?.get("Attempt")?.transition)
-        assertEquals("Auth.SigningIn", loading?.on?.get("SignIn")?.transition)
+        assertEquals("Auth.SigningIn", signedOut?.on?.get("Attempt")?.transitions?.firstOrNull())
+        assertEquals("Auth.SigningIn", loading?.on?.get("SignIn")?.transitions?.firstOrNull())
 
         // Same-level within Auth: toAuthSignedOut → dot-path "Auth.SignedOut"
-        assertEquals("Auth.SignedOut", signingIn?.on?.get("Cancel")?.transition)
+        assertEquals("Auth.SignedOut", signingIn?.on?.get("Cancel")?.transitions?.firstOrNull())
 
         // Flat self-reference: toLoading → "Loading"
-        assertEquals("Loading", loading?.on?.get("Clear")?.transition)
+        assertEquals("Loading", loading?.on?.get("Clear")?.transitions?.firstOrNull())
     }
 
     // ── Lifecycle hooks ───────────────────────────────────────────────────────
@@ -281,7 +281,7 @@ class KtSourceParserTest {
             }
         """.trimIndent()
 
-        val model = parser.parseFiles(listOf(writeTempFile("Feed.kt", src))).first()
+        val model = parser.parseFiles(listOf(writeTempFile("Feed.kt", src))).first().second
         val active = model.states["Active"]
         assertNotNull(active)
         assertTrue(active.lifecycleHooks.containsKey("onResume"), "Expected onResume hook")
@@ -317,7 +317,7 @@ class KtSourceParserTest {
             }
         """.trimIndent()
 
-        val models = parser.parseFiles(listOf(writeTempFile("Call.kt", src)))
+        val models = parser.parseFiles(listOf(writeTempFile("Call.kt", src))).map { it.second }
         val m = models[0]
 
         val active = m.states["Active"]
@@ -330,7 +330,7 @@ class KtSourceParserTest {
 
         val talking = active.states["Connected"]?.states?.get("Talking")
         assertNotNull(talking, "Talking should be nested under Active.Connected")
-        assertEquals("Active.Connected.OnHold", talking.on["Hold"]?.transition)
+        assertEquals("Active.Connected.OnHold", talking.on["Hold"]?.transitions?.firstOrNull())
     }
 
     // ── YAML emission ─────────────────────────────────────────────────────────
@@ -354,7 +354,7 @@ class KtSourceParserTest {
             }
         """.trimIndent()
 
-        val model = parser.parseFiles(listOf(writeTempFile("Toggle.kt", src))).first()
+        val model = parser.parseFiles(listOf(writeTempFile("Toggle.kt", src))).first().second
         val yaml = emitter.emit(model)
 
         assertTrue(yaml.contains("name: Toggle"))
@@ -388,7 +388,7 @@ class KtSourceParserTest {
             }
         """.trimIndent()
 
-        val model = parser.parseFiles(listOf(writeTempFile("App.kt", src))).first()
+        val model = parser.parseFiles(listOf(writeTempFile("App.kt", src))).first().second
         val yaml = emitter.emit(model)
         println(yaml)
 
@@ -406,7 +406,7 @@ class KtSourceParserTest {
         val loginFile = sampleDir.resolve("login/LoginStateMachine.kt")
         if (!loginFile.exists()) return
 
-        val models = parser.parseFiles(listOf(loginFile))
+        val models = parser.parseFiles(listOf(loginFile)).map { it.second }
         assertTrue(models.isNotEmpty())
         val yaml = emitter.emit(models[0])
         println("=== LoginStateMachine YAML ===\n$yaml")
@@ -423,7 +423,7 @@ class KtSourceParserTest {
         val counterFile = sampleDir.resolve("counter/CounterStateMachine.kt")
         if (!counterFile.exists()) return
 
-        val models = parser.parseFiles(listOf(counterFile))
+        val models = parser.parseFiles(listOf(counterFile)).map { it.second }
         assertTrue(models.isNotEmpty())
         val yaml = emitter.emit(models[0])
         println("=== CounterStateMachine YAML ===\n$yaml")
