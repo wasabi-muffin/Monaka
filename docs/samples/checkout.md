@@ -93,8 +93,8 @@ class AppCoordinator(
     val registry = StoreRegistry(bridgeScope = scope)
 
     init {
-        // 1. Declare the wiring — relays can be installed before stores are registered
-        registry.install(AuthRelay, CartRelay, CheckoutRelay)
+        // 1. Declare the wiring — relays can be bound before stores are registered
+        registry.bind(AuthRelay, CartRelay, CheckoutRelay)
 
         // 2. Register stores — matching relays start observing immediately
         AuthStore(AuthStateMachine(authRepository), scope).register(registry)
@@ -155,15 +155,14 @@ emission that matches the type, including when the machine first enters that sta
 effect is emitted, not on every state change. This is the right trigger when the downstream
 action should happen in response to a specific event rather than continuously while in a state.
 
-### `register` vs `registerScoped`
+### `register` and automatic cleanup
 
-The coordinator uses `register` since it manages the store lifetimes explicitly via the
-`CoroutineScope` passed to `AppCoordinator`. In a simpler setup where each store owns its own
-`viewModelScope`, use `registerScoped` to have the store unregister itself automatically when
-its scope is cancelled:
+`register` attaches an `invokeOnCompletion` callback that stops and unregisters the store when
+its owning `CoroutineScope` is cancelled. When each store owns its own `viewModelScope`, calling
+`register` is all that is needed — no manual cleanup required:
 
 ```kotlin
-AuthStore(authMachine, viewModelScope).registerScoped(registry)
+AuthStore(authMachine, viewModelScope).register(registry)
 ```
 
 See [Multi-machine coordination](../guide/multi-machine.md) for the full API reference.

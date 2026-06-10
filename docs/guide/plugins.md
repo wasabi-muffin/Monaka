@@ -91,7 +91,8 @@ class AnalyticsPlugin : Plugin<MyState, MyAction, MyEffect> {
 | `onAction(state, action)` | Just before an action is dequeued and processed. `state` reflects the actual state at dequeue time, which may differ from the state when `dispatch()` was called. |
 | `onTransition(from, to)` | A state transition was recorded and applied. |
 | `onEffect(effect)` | A side effect was emitted. |
-| `onRejected(state, handlerType)` | No handler was registered for the current state + action pair, or a handler called `reject()`. |
+| `onUnhandled(state, action)` | No `on<>` handler was registered for the current state + action pair. |
+| `onRejected(state, handlerType)` | A handler explicitly called `reject()`. |
 | `onError(error, state, handlerType)` | An unhandled exception was thrown inside a handler or hook. The state is **not** changed. |
 
 ### Launching coroutines from a plugin

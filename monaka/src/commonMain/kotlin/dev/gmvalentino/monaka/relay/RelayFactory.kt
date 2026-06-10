@@ -19,7 +19,7 @@ import dev.gmvalentino.monaka.core.Store
  *     }
  * }
  *
- * registry.install(authRelay)
+ * registry.bind(authRelay)
  * ```
  *
  * @param from    KClass of the source store type.

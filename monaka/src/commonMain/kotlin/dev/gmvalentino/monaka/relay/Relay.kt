@@ -27,7 +27,7 @@ import dev.gmvalentino.monaka.runtime.StoreRegistry
  *     }
  * }
  *
- * registry.install(authRelay)
+ * registry.bind(authRelay)
  * ```
  *
  * Implement this interface directly when the [relay] DSL is insufficient, such as when

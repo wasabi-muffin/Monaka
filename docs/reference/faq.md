@@ -140,19 +140,19 @@ Registering the same store instance (same `id`) twice throws `IllegalArgumentExc
 usually happens when a ViewModel is recreated and tries to re-register a store that was not
 unregistered from the previous instance.
 
-Use `registerScoped` to have the store automatically unregister itself when its scope is
-cancelled:
+Use `register` — it attaches an `invokeOnCompletion` callback that automatically unregisters
+the store when the owning scope is cancelled, so no manual cleanup is needed when the ViewModel
+is cleared:
 
 ```kotlin
-AuthStore(authMachine, viewModelScope).registerScoped(registry)
+AuthStore(authMachine, viewModelScope).register(registry)
 ```
 
-Or unregister manually in `onCleared()`:
+If you stop a store explicitly before its scope is cancelled, unregister it manually:
 
 ```kotlin
-override fun onCleared() {
-    registry.unregister(authStore)
-}
+store.stop()
+registry.unregister(store)
 ```
 
 ---

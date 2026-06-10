@@ -31,10 +31,10 @@ import kotlinx.coroutines.MainScope
  * ```kotlin
  * val registry = StoreRegistry(viewModelScope)
  *
- * registry.install(
+ * registry.bind(
  *     relay(from = AuthStore::class) {
- *         state<AuthState.SignedIn>  { dispatch<CartStore>(CartAction.LoadForUser(event.user.id)) }
- *         state<AuthState.SignedOut> { dispatch<CartStore>(CartAction.Clear) }
+ *         state<AuthState.SignedIn>  { dispatch(CartStore::class, CartAction.LoadForUser(event.user.id)) }
+ *         state<AuthState.SignedOut> { dispatch(CartStore::class, CartAction.Clear) }
  *     }
  * )
  *
@@ -46,11 +46,22 @@ import kotlinx.coroutines.MainScope
  * already registered at install time, the relay starts observing it immediately.
  *
  * ### Store lifetime and cleanup
- * Registered stores are **automatically** stopped and unregistered — no manual teardown needed
- * in the common case. Cleanup fires when whichever of these happens first:
- * - The store's owning [CoroutineScope] is cancelled (e.g. `viewModelScope` cleared on Android).
- * - [Store.stop] is called explicitly (e.g. from a Compose `DisposableEffect` when a
- *   navigation entry leaves the composition).
+ * Registered stores are **automatically** stopped and unregistered when the store's owning
+ * [CoroutineScope] is cancelled (e.g. `viewModelScope` cleared on Android). [register] attaches
+ * an [Store.invokeOnCompletion] callback that calls [Store.stop] and [unregister] when the scope
+ * completes.
+ *
+ * Calling [Store.stop] directly does **not** trigger [Store.invokeOnCompletion] — it only cancels
+ * the store's internal processing coroutine. To unregister when using explicit `stop()` (e.g. from
+ * a Compose `DisposableEffect`), call [unregister] manually after `stop()`:
+ * ```kotlin
+ * DisposableEffect(viewModel) {
+ *     onDispose {
+ *         viewModel.store.stop()
+ *         registry.unregister(viewModel.store)
+ *     }
+ * }
+ * ```
  *
  * To unregister without stopping the store — for example, to move a store between registries —
  * call [unregister] directly:
@@ -97,12 +108,12 @@ public class StoreRegistry(
      * and again whenever a matching source store is registered in the future.
      *
      * ```kotlin
-     * registry.install(
+     * registry.bind(
      *     relay(from = AuthStore::class) {
-     *         state<AuthState.SignedOut> { dispatch<CartStore>(CartAction.Clear) }
+     *         state<AuthState.SignedOut> { dispatch(CartStore::class, CartAction.Clear) }
      *     },
      *     relay(from = CartStore::class) {
-     *         effect<CartEffect.CartChanged> { dispatch<CheckoutStore>(CheckoutAction.SyncCart(event.items, event.total)) }
+     *         effect<CartEffect.CartChanged> { dispatch(CheckoutStore::class, CheckoutAction.SyncCart(event.items, event.total)) }
      *     },
      * )
      * ```
@@ -131,10 +142,10 @@ public class StoreRegistry(
      * Only relays whose source matches [store] launch collectors here; relays that merely
      * target [store]'s class need no wiring, since they resolve targets lazily at emission time.
      *
-     * The store is automatically stopped and unregistered when it is done — no manual cleanup
-     * is required. Cleanup is triggered by whichever happens first:
-     * - The store's owning [CoroutineScope] is cancelled (e.g. `viewModelScope` cleared).
-     * - [Store.stop] is called explicitly (e.g. from a Compose `DisposableEffect`).
+     * The store is automatically stopped and unregistered when its owning [CoroutineScope] is
+     * cancelled (e.g. `viewModelScope` cleared). This is implemented via [Store.invokeOnCompletion],
+     * which fires on scope cancellation. Calling [Store.stop] directly does **not** trigger this
+     * hook — call [unregister] manually if you stop the store before its scope is cancelled.
      */
     public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> register(
         store: Store<State, Action, Effect>,

@@ -72,16 +72,12 @@ import kotlinx.coroutines.launch
  * Handler errors are forwarded to plugins via [Plugin.onError].
  *
  * ### Store lifetime and cleanup
- * Cleanup callbacks registered via [invokeOnCompletion] fire when the store is stopped,
- * regardless of how it is stopped:
- * - **Scope cancellation** — when [machineScope] is cancelled (e.g. `viewModelScope` cleared),
- *   `storeJob` is cancelled as its child, triggering all [invokeOnCompletion] handlers.
- * - **Explicit [stop] call** — `stop()` cancels `storeJob` directly, so callers that drive the
- *   store lifetime via `stop()` (e.g. a Compose `DisposableEffect`) also trigger cleanup without
- *   needing to cancel the owning scope.
- *
- * This dual-trigger design ensures [StoreRegistry] auto-unregistration works correctly for both
- * ViewModel-owned stores (scope-driven) and composition-owned stores (stop-driven).
+ * Callbacks registered via [invokeOnCompletion] are attached to [machineScope]'s job. They fire
+ * when [machineScope] is cancelled (e.g. `viewModelScope` cleared on Android). Calling [stop]
+ * directly cancels the internal processing coroutine and closes the trigger channel, but does
+ * **not** cancel [machineScope], so [invokeOnCompletion] handlers do **not** fire on an explicit
+ * [stop] call. To receive cleanup notifications in both cases, cancel the owning scope rather
+ * than calling [stop] directly, or unregister manually via [StoreRegistry.unregister].
  */
 @OptIn(InternalMonakaApi::class)
 internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
@@ -173,7 +169,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     }
 
     override fun invokeOnCompletion(handler: (cause: Throwable?) -> Unit): DisposableHandle =
-        processingJob.invokeOnCompletion(handler)
+        machineScope.coroutineContext.job.invokeOnCompletion(handler)
 
     private fun whenActive(block: () -> Unit) {
         if (isActive) block()

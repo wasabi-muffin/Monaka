@@ -135,20 +135,25 @@ Stop the store permanently. Cancels the internal processing coroutine and all ru
 Closes the trigger channel. All subsequent calls to `dispatch` and `onLifecycleEvent` become
 silent no-ops.
 
-Calling `stop()` also fires any callbacks registered via `invokeOnCompletion` — including the
-auto-unregistration hook installed by `StoreRegistry.register`. This means you can cleanly tear
-down a registry-tracked store without cancelling its owning scope:
+Note that `stop()` does **not** fire callbacks registered via `invokeOnCompletion` — those are
+attached to the owning `CoroutineScope` and only fire when the scope is cancelled. If you stop a
+store early (before its scope is cancelled) and the store is registered in a `StoreRegistry`, call
+`unregister` manually:
 
 ```kotlin
-// Composition entry leaving the nav stack — stop() unregisters the store from the registry
+// Composition entry leaving the nav stack
 DisposableEffect(viewModel) {
-    onDispose { viewModel.store.stop() }
+    onDispose {
+        viewModel.store.stop()
+        registry.unregister(viewModel.store)
+    }
 }
 ```
 
 On Android, prefer letting the owning `CoroutineScope` (e.g. `viewModelScope`) stop the store
-automatically when the ViewModel is cleared. Call `stop()` explicitly only when the store has a
-shorter lifetime than its scope.
+automatically when the ViewModel is cleared — scope cancellation triggers `invokeOnCompletion` and
+auto-unregistration. Call `stop()` explicitly only when the store has a shorter lifetime than its
+scope.
 
 ---
 
@@ -173,9 +178,9 @@ which calls it on your behalf via `trigger(StateHook.OnEnter) { … }`. See
 
 ### `invokeOnCompletion(handler: (Throwable?) -> Unit): DisposableHandle`
 
-Register a callback that fires when the store is stopped. The handler receives the cancellation
-cause, or `null` for normal completion. Useful for observing store lifetime without holding a
-reference to the underlying scope:
+Register a callback that fires when the store's owning `CoroutineScope` is cancelled. The handler
+receives the cancellation cause, or `null` for normal completion. Useful for observing store
+lifetime without holding a reference to the underlying scope:
 
 ```kotlin
 val handle = store.invokeOnCompletion { cause ->
@@ -186,11 +191,11 @@ val handle = store.invokeOnCompletion { cause ->
 handle.dispose()
 ```
 
-The callback fires when **either** of the following occurs:
-
-- The store's owning `CoroutineScope` is cancelled (e.g. `viewModelScope` cleared on Android).
-- `stop()` is called explicitly (e.g. from a Compose `DisposableEffect`).
+The callback fires when the store's owning `CoroutineScope` is cancelled (e.g. `viewModelScope`
+cleared on Android). It does **not** fire when `stop()` is called directly — `stop()` only
+cancels the internal processing coroutine, not the scope.
 
 This is how `StoreRegistry.register` implements auto-unregistration: it attaches an
-`invokeOnCompletion` handler at registration time, so the store removes itself from the registry
-regardless of whether it was stopped by scope cancellation or by a direct `stop()` call.
+`invokeOnCompletion` handler that calls `stop()` and `unregister` when the owning scope is
+cancelled. If you call `stop()` directly before the scope is cancelled, call
+`registry.unregister(store)` manually to remove it from the registry.

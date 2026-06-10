@@ -29,8 +29,10 @@ fun CounterScreen() {
 
 The factory lambda receives a `CoroutineScope` backed by `rememberCoroutineScope()`. The store
 is created once and remembered across recompositions. When the composable is removed from the
-tree, `stop()` is called in a `DisposableEffect` — which also triggers any `invokeOnCompletion`
-handlers, including auto-unregistration from a `StoreRegistry` if the store was registered.
+tree, `rememberCoroutineScope` cancels its scope, which fires any `invokeOnCompletion` callbacks —
+including the auto-unregistration hook installed by `StoreRegistry.register`. A `DisposableEffect`
+also calls `stop()` as a belt-and-suspenders measure to cancel the processing coroutine promptly,
+but scope cancellation is what drives registry cleanup.
 
 **Android with ViewModel** — on Android, prefer tying the store to `viewModelScope` instead so
 it survives configuration changes:

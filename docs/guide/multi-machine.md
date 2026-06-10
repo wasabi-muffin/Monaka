@@ -12,7 +12,7 @@ A `StoreRegistry` is a keyed collection of `Store` instances. It has two jobs:
 
 1. **Keying** — stores are stored under their `KClass` so any relay can dispatch into them
    without needing a direct reference.
-2. **Relaying** — relays installed via `install(…)` start observing a source store as soon as
+2. **Relaying** — relays installed via `bind(…)` start observing a source store as soon as
    a matching instance is registered.
 
 ```kotlin
@@ -24,7 +24,7 @@ with everything else when the ViewModel is cleared.
 
 ### Threading
 
-`StoreRegistry` is **not thread-safe**. All calls to `register`, `unregister`, `install`, and
+`StoreRegistry` is **not thread-safe**. All calls to `register`, `unregister`, `bind`, and
 `get` / `getAll` must be made from the same thread — typically the main thread. Pass a
 `bridgeScope` confined to that thread (e.g. `viewModelScope`, which runs on `Dispatchers.Main`)
 so relay coroutines also access the registry on the main thread.
@@ -108,22 +108,25 @@ AuthStore(authMachine, viewModelScope).register(registry)
 CartStore(cartMachine, viewModelScope).register(registry)
 ```
 
-Cleanup is triggered by whichever happens first:
+Cleanup is triggered when the owning `CoroutineScope` is cancelled (e.g. `viewModelScope`
+cleared on Android) — `register` attaches an `invokeOnCompletion` callback that calls `stop()`
+and removes the store from the registry when the scope completes.
 
-- **Scope cancellation** — when the owning `CoroutineScope` is cancelled (e.g. `viewModelScope`
-  cleared on Android), the store stops and unregisters automatically.
-- **Explicit `stop()` call** — when `store.stop()` is called directly, the same cleanup fires.
-  This is useful for stores whose lifetime is shorter than their scope, such as stores driven by
-  a Compose composition rather than a ViewModel:
+Calling `store.stop()` directly does **not** trigger the `invokeOnCompletion` hook. If a store
+has a shorter lifetime than its scope (e.g. it is driven by a Compose composition rather than a
+ViewModel), call `unregister` manually after `stop()`:
 
 ```kotlin
-// Composition-scoped — stop() is called in onDispose when the entry leaves the nav stack
+// Composition-scoped — manually unregister when the entry leaves the nav stack
 DisposableEffect(viewModel) {
-    onDispose { viewModel.store.stop() }
+    onDispose {
+        viewModel.store.stop()
+        registry.unregister(viewModel.store)
+    }
 }
 ```
 
-To unregister manually without stopping the store:
+To unregister without stopping the store:
 
 ```kotlin
 registry.unregister(store)
@@ -212,7 +215,7 @@ class AppCoordinator(
     val registry = StoreRegistry(bridgeScope = scope)
 
     init {
-        registry.install(AuthRelay, CartRelay, CheckoutRelay)
+        registry.bind(AuthRelay, CartRelay, CheckoutRelay)
 
         AuthStore(AuthStateMachine(authRepository), scope).register(registry)
         CartStore(CartStateMachine(cartRepository), scope).register(registry)

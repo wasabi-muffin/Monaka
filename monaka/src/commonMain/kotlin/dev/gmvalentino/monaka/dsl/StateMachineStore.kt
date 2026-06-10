@@ -46,7 +46,10 @@ import dev.gmvalentino.monaka.runtime.DefaultStore
  *         state<LoginState.Submitting> {
  *             onEnter {
  *                 when (val r = loginRepository.login(state.username, state.password)) {
- *                     is Success -> transition(LoginEffect.NavigateToHome) { LoginState.Authenticated(r.username))
+ *                     is Success -> {
+ *                         transition(LoginState.Authenticated(r.username))
+ *                         sideEffect(LoginEffect.NavigateToHome)
+ *                     }
  *                     is Failure -> transition(LoginState.Error(r.reason))
  *                 }
  *             }

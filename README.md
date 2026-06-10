@@ -382,18 +382,18 @@ Use `StoreRegistry` and `relay` to wire machines together declaratively.
 val registry = StoreRegistry(viewModelScope)
 
 // Auth state → Cart and Checkout actions
-registry.install(
+registry.bind(
     relay(from = AuthStore::class) {
-        state<AuthState.SignedIn>  { dispatch<CartStore>(CartAction.LoadForUser(event.user.id)) }
+        state<AuthState.SignedIn>  { dispatch(CartStore::class, CartAction.LoadForUser(event.user.id)) }
         state<AuthState.SignedOut> {
-            dispatch<CartStore>(CartAction.Clear)
-            dispatch<CheckoutStore>(CheckoutAction.Cancel)
+            dispatch(CartStore::class, CartAction.Clear)
+            dispatch(CheckoutStore::class, CheckoutAction.Cancel)
         }
     },
     // Cart effects → Checkout actions
     relay(from = CartStore::class) {
         effect<CartEffect.CartChanged> {
-            dispatch<CheckoutStore>(CheckoutAction.SyncCart(event.items, event.total))
+            dispatch(CheckoutStore::class, CheckoutAction.SyncCart(event.items, event.total))
         }
     },
 )
