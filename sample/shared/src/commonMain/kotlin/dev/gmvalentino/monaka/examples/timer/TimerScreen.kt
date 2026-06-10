@@ -39,12 +39,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import dev.gmvalentino.monaka.ext.bindLifecycle
+import dev.gmvalentino.monaka.compose.bindLifecycle
 import dev.gmvalentino.monaka.dsl.store
-import dev.gmvalentino.monaka.ext.handleEffects
-import dev.gmvalentino.monaka.ext.rememberStore
-import dev.gmvalentino.monaka.ext.render
-import dev.gmvalentino.monaka.ext.toViewStore
+import dev.gmvalentino.monaka.compose.handleEffects
+import dev.gmvalentino.monaka.compose.rememberStore
+import dev.gmvalentino.monaka.compose.render
+import dev.gmvalentino.monaka.compose.toViewStore
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 

@@ -84,7 +84,7 @@ Available events and their hook methods:
 
 ### Compose Multiplatform
 
-The `BindLifecycle()` composable (from the sample module) bridges
+The `bindLifecycle()` extension (from `monaka-compose`) bridges
 `androidx.lifecycle.Lifecycle.Event` to `LifecycleEvent` and forwards events automatically,
 with no `expect`/`actual` required:
 

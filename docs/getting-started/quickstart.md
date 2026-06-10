@@ -58,7 +58,7 @@ counter.state.collect { render(it) }
 counter.effects.collect { handle(it) }
 ```
 
-In Compose, use the `toViewStore()` / `handleEffects { }` helpers from the sample module so
+In Compose, use the `toViewStore()` / `handleEffects { }` helpers from `monaka-compose` so
 collection stops when the UI is backgrounded.
 
 ## 4. Dispatch actions

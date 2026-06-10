@@ -34,9 +34,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import dev.gmvalentino.monaka.ext.handleEffects
-import dev.gmvalentino.monaka.ext.rememberStore
-import dev.gmvalentino.monaka.ext.toViewStore
+import dev.gmvalentino.monaka.compose.handleEffects
+import dev.gmvalentino.monaka.compose.rememberStore
+import dev.gmvalentino.monaka.compose.toViewStore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

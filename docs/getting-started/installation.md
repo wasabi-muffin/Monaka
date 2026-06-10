@@ -11,6 +11,16 @@ implementation("dev.gmvalentino:monaka:<version>")
 Required for all targets. Provides `State`, `Action`, `Effect`, `Store`, the `store { }` DSL,
 `stateMachine { }`, `StateMachineStore`, plugins, and the relay/bridge API.
 
+## Compose integration
+
+```kotlin
+implementation("dev.gmvalentino:monaka-compose:<version>")
+```
+
+Provides the Compose Multiplatform helpers: `rememberStore`, `toViewStore`, `handleEffects`,
+`bindLifecycle`, `render`, `ViewStore`, and `RenderScope`. Targets Android, iOS, and JVM.
+Brings in `:monaka` transitively. See the [Compose integration guide](../guide/compose.md).
+
 ## Test DSL
 
 ```kotlin

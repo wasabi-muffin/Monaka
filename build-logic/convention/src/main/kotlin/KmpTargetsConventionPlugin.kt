@@ -59,7 +59,6 @@ class KmpTargetsConventionPlugin : Plugin<Project> {
                 androidNativeArm32()
                 androidNativeArm64()
                 androidNativeX64()
-                androidNativeX86()
 
                 // JavaScript / WebAssembly
                 js {

@@ -41,6 +41,7 @@ dependencyResolutionManagement {
 rootProject.name = "Monaka"
 includeBuild("monaka-gradle-plugin")
 include(":monaka")
+include(":monaka-compose")
 include(":monaka-test")
 include(":monaka-transitions")
 include(":sample:shared")

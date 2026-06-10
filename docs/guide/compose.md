@@ -1,13 +1,18 @@
 # Compose & Multiplatform integration
 
-The helpers described on this page live in the sample module
-(`sample/shared/src/commonMain/kotlin/dev/gmvalentino/monaka/ext/`) and are designed to be
-copied into your own project. They require:
+The helpers described on this page are provided by the `monaka-compose` artifact. Add it to your
+module's `build.gradle.kts`:
 
-- `org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose` — JetBrains' multiplatform fork
-  of AndroidX lifecycle. Provides `LocalLifecycleOwner`, `collectAsStateWithLifecycle`, and
-  `repeatOnLifecycle` in `commonMain` with no `expect`/`actual` needed.
-- Jetpack Compose / Compose Multiplatform.
+```kotlin
+implementation("dev.gmvalentino:monaka-compose:<version>")
+```
+
+`monaka-compose` brings in `:monaka` transitively and requires
+`org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose` — JetBrains' multiplatform fork of
+AndroidX lifecycle. `LocalLifecycleOwner`, `collectAsStateWithLifecycle`, and `repeatOnLifecycle`
+all work in `commonMain` with no `expect`/`actual` needed.
+
+All helpers live in the `dev.gmvalentino.monaka.compose` package.
 
 ---
 

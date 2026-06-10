@@ -32,10 +32,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.gmvalentino.monaka.ext.bindLifecycle
-import dev.gmvalentino.monaka.ext.handleEffects
-import dev.gmvalentino.monaka.ext.render
-import dev.gmvalentino.monaka.ext.toViewStore
+import dev.gmvalentino.monaka.compose.bindLifecycle
+import dev.gmvalentino.monaka.compose.handleEffects
+import dev.gmvalentino.monaka.compose.render
+import dev.gmvalentino.monaka.compose.toViewStore
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

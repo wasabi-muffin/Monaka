@@ -27,10 +27,10 @@ Effects are emitted on a `SharedFlow` with `replay = 0` — they are one-shot an
 re-delivered to late subscribers. A subscriber that attaches after an effect was emitted will
 never receive it.
 
-**In Compose**, use `handleEffects { }` from the Compose integration helpers. It buffers every
-effect into an internal `Channel` from the moment the composable appears, and drains that channel
-only when the lifecycle is `STARTED`. Effects emitted during configuration changes are buffered
-and delivered when the screen comes back to the foreground.
+**In Compose**, use `handleEffects { }` from `monaka-compose`. It buffers every effect into an
+internal `Channel` from the moment the composable appears, and drains that channel only when the
+lifecycle is `STARTED`. Effects emitted during configuration changes are buffered and delivered
+when the screen comes back to the foreground.
 
 **In non-Compose code**, set up your effect collector before dispatching the first action, or
 before calling `store.start()`.
