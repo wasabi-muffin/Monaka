@@ -1,0 +1,45 @@
+@startuml Feed
+hide empty description
+title Feed
+
+[*] --> Idle
+
+state "FeedState" as FeedState {
+  FeedState : Clear → Idle
+  FeedState --> Idle : Clear
+
+  state "Idle" as Idle
+  Idle : QueryChanged → Active ▶ task(search){ SearchCompleted | SearchFailed }
+  Idle --> Active : QueryChanged
+
+  state "Active" as Active
+  Active : QueryChanged → Idle | Active ▶ task(search){ SearchCompleted | SearchFailed }
+  Active : Refresh → Active ▶ task(search){ SearchCompleted | SearchFailed }
+  Active : SearchCompleted → Active
+  Active : SearchFailed → Failed ◆ ShowToast
+  Active : GoLive → Active ▶ task(poll){ NewItems }
+  Active : PauseLive → Active
+  Active : NewItems → Active
+  Active : ItemViewed ▶ task()
+  Active --> Idle : QueryChanged
+  Active --> Active : QueryChanged
+  Active --> Active : Refresh
+  Active --> Active : SearchCompleted
+  Active --> Failed : SearchFailed
+  Active --> Active : GoLive
+  Active --> Active : PauseLive
+  Active --> Active : NewItems
+
+  state "Failed" as Failed
+  Failed : Retry → Active ▶ task(search){ SearchCompleted | SearchFailed }
+  Failed : SearchCompleted → Active
+  Failed : SearchFailed → Failed ◆ ShowToast
+  Failed : QueryChanged → Idle | Active ▶ task(search){ SearchCompleted | SearchFailed }
+  Failed --> Active : Retry
+  Failed --> Active : SearchCompleted
+  Failed --> Failed : SearchFailed
+  Failed --> Idle : QueryChanged
+  Failed --> Active : QueryChanged
+}
+
+@enduml

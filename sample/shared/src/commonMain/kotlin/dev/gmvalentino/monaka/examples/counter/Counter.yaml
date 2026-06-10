@@ -1,0 +1,16 @@
+name: Counter
+initial: CounterState
+states:
+  CounterState:
+    Increment:
+      transition: [CounterState]
+    Decrement:
+      transition: [CounterState]
+    SetStep:
+      transition: [CounterState]
+      effect: [ShowMessage]
+    Reset:
+      transition: [CounterState]
+      effect: [ShowMessage, SaveCount]
+    SaveCompleted:
+      effect: [ShowMessage]

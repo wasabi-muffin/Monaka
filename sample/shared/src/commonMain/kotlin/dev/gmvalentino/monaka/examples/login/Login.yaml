@@ -1,0 +1,25 @@
+name: Login
+initial: Idle
+states:
+  Idle:
+    UpdateCredentials:
+      transition: [Typing]
+  Typing:
+    UpdateCredentials:
+      transition: [Typing]
+    Submit:
+      transition: [Submitting]
+      effect: [ShowValidationError]
+  Submitting:
+    onEnter:
+      transition: [Authenticated]
+      effect: [NavigateToHome]
+  Error:
+    UpdateCredentials:
+      transition: [Error]
+    Retry:
+      transition: [Submitting]
+  LoginState:
+    Logout:
+      transition: [Idle]
+      effect: [NavigateToLogin]

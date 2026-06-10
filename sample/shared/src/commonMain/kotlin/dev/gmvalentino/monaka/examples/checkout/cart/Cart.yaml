@@ -1,0 +1,22 @@
+name: Cart
+initial: Empty
+states:
+  Empty:
+    LoadForUser:
+      transition: [Loading]
+  Loading:
+    onEnter:
+      transition: [WithItems]
+  WithItems:
+    AddItem:
+      transition: [WithItems]
+      effect: [CartChanged]
+    RemoveItem:
+      transition: [WithItems]
+      effect: [CartChanged]
+    UpdateQuantity:
+      transition: [WithItems]
+      effect: [CartChanged]
+  CartState:
+    Clear:
+      transition: [Empty]

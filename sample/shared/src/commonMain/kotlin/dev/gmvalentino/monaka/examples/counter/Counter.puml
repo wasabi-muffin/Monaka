@@ -1,0 +1,19 @@
+@startuml Counter
+hide empty description
+title Counter
+
+[*] --> CounterState
+
+state "CounterState" as CounterState
+CounterState : Increment → CounterState
+CounterState : Decrement → CounterState
+CounterState : SetStep → CounterState ◆ ShowMessage
+CounterState : Reset → CounterState ◆ ShowMessage, SaveCount
+CounterState : SaveCompleted ◆ ShowMessage
+CounterState --> CounterState : Increment
+CounterState --> CounterState : Decrement
+CounterState --> CounterState : SetStep
+CounterState --> CounterState : Reset
+
+
+@enduml

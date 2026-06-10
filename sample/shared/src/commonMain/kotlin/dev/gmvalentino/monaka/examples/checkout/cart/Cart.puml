@@ -1,0 +1,28 @@
+@startuml Cart
+hide empty description
+title Cart
+
+[*] --> Empty
+
+state "CartState" as CartState {
+  CartState : Clear → Empty
+  CartState --> Empty : Clear
+
+  state "Empty" as Empty
+  Empty : LoadForUser → Loading
+  Empty --> Loading : LoadForUser
+
+  state "Loading" as Loading
+  Loading : onEnter → WithItems
+  Loading -[dashed]-> WithItems : onEnter
+
+  state "WithItems" as WithItems
+  WithItems : AddItem → WithItems ◆ CartChanged
+  WithItems : RemoveItem → WithItems ◆ CartChanged
+  WithItems : UpdateQuantity → WithItems ◆ CartChanged
+  WithItems --> WithItems : AddItem
+  WithItems --> WithItems : RemoveItem
+  WithItems --> WithItems : UpdateQuantity
+}
+
+@enduml

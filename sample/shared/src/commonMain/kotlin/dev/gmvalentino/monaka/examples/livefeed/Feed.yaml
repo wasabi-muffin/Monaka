@@ -1,0 +1,55 @@
+name: Feed
+initial: Idle
+states:
+  Idle:
+    QueryChanged:
+      task:
+        key: search
+        dispatch: [SearchCompleted, SearchFailed]
+      transition: [Active]
+  Active:
+    QueryChanged:
+      task:
+        key: search
+        dispatch: [SearchCompleted, SearchFailed]
+      transition: [Idle]
+    Refresh:
+      task:
+        key: search
+        dispatch: [SearchCompleted, SearchFailed]
+      transition: [Active]
+    SearchCompleted:
+      transition: [Active]
+    SearchFailed:
+      transition: [Failed]
+      effect: [ShowToast]
+    GoLive:
+      task:
+        key: poll
+        dispatch: [NewItems]
+      transition: [Active]
+    PauseLive:
+      transition: [Active]
+    NewItems:
+      transition: [Active]
+    ItemViewed:
+      task: {}
+  Failed:
+    Retry:
+      task:
+        key: search
+        dispatch: [SearchCompleted, SearchFailed]
+      transition: [Active]
+    SearchCompleted:
+      transition: [Active]
+    SearchFailed:
+      transition: [Failed]
+      effect: [ShowToast]
+    QueryChanged:
+      task:
+        key: search
+        dispatch: [SearchCompleted, SearchFailed]
+      transition: [Idle]
+  FeedState:
+    Clear:
+      transition: [Idle]

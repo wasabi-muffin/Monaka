@@ -1,0 +1,25 @@
+@startuml Auth
+hide empty description
+title Auth
+
+[*] --> SignedOut
+
+state "SignedOut" as SignedOut
+SignedOut : Attempt → SigningIn
+SignedOut --> SigningIn : Attempt
+
+state "SigningIn" as SigningIn
+SigningIn : onEnter → [SignedIn | SignInFailed]
+SigningIn -[dashed]-> SignedIn : onEnter
+SigningIn -[dashed]-> SignInFailed : onEnter
+
+state "SignInFailed" as SignInFailed
+SignInFailed : Attempt → SigningIn
+SignInFailed --> SigningIn : Attempt
+
+state "SignedIn" as SignedIn
+SignedIn : SignOut → SignedOut
+SignedIn --> SignedOut : SignOut
+
+
+@enduml

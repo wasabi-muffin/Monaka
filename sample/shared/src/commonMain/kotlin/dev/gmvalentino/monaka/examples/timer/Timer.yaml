@@ -1,0 +1,41 @@
+name: Timer
+initial: Idle
+states:
+  Idle:
+    SetDuration:
+      transition: [Idle]
+    SetAutoPause:
+      transition: [Idle]
+    Start:
+      transition: [Running]
+  Running:
+    onEnter:
+      task:
+        key: tick
+        autoCancel: true
+        dispatch: [Tick]
+    onPause:
+      transition: [Paused]
+    Tick:
+      transition: [Finished]
+      effect: [Completed]
+    Pause:
+      transition: [Paused]
+    PauseForLifecycle:
+      transition: [Paused]
+    SetAutoPause:
+      transition: [Running]
+    Reset:
+      transition: [Idle]
+  Paused:
+    onResume:
+      transition: [Running]
+    Resume:
+      transition: [Running]
+    SetAutoPause:
+      transition: [Paused]
+    Reset:
+      transition: [Idle]
+  Finished:
+    Reset:
+      transition: [Idle]

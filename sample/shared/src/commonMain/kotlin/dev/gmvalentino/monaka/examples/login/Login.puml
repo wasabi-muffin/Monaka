@@ -1,0 +1,34 @@
+@startuml Login
+hide empty description
+title Login
+
+[*] --> Idle
+
+state "LoginState" as LoginState {
+  LoginState : Logout → Idle ◆ NavigateToLogin
+  LoginState --> Idle : Logout
+
+  state "Idle" as Idle
+  Idle : UpdateCredentials → Typing
+  Idle --> Typing : UpdateCredentials
+
+  state "Typing" as Typing
+  Typing : UpdateCredentials → Typing
+  Typing : Submit → Submitting ◆ ShowValidationError
+  Typing --> Typing : UpdateCredentials
+  Typing --> Submitting : Submit
+
+  state "Submitting" as Submitting
+  Submitting : onEnter → Authenticated ◆ NavigateToHome
+  Submitting -[dashed]-> Authenticated : onEnter
+
+  state "Error" as Error
+  Error : UpdateCredentials → Error
+  Error : Retry → Submitting
+  Error --> Error : UpdateCredentials
+  Error --> Submitting : Retry
+
+  state "Authenticated" as Authenticated
+}
+
+@enduml

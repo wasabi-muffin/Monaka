@@ -1,0 +1,42 @@
+@startuml Timer
+hide empty description
+title Timer
+
+[*] --> Idle
+
+state "Idle" as Idle
+Idle : SetDuration → Idle
+Idle : SetAutoPause → Idle
+Idle : Start → Running
+Idle --> Idle : SetDuration
+Idle --> Idle : SetAutoPause
+Idle --> Running : Start
+
+state "Running" as Running
+Running : onEnter ▶ task(tick, autoCancel){ Tick }
+Running : Tick → Finished | Running ◆ Completed
+Running : Pause → Paused
+Running : PauseForLifecycle → Paused
+Running : SetAutoPause → Running
+Running : Reset → Idle
+Running --> Finished : Tick
+Running --> Running : Tick
+Running --> Paused : Pause
+Running --> Paused : PauseForLifecycle
+Running --> Running : SetAutoPause
+Running --> Idle : Reset
+
+state "Paused" as Paused
+Paused : Resume → Running
+Paused : SetAutoPause → Paused
+Paused : Reset → Idle
+Paused --> Running : Resume
+Paused --> Paused : SetAutoPause
+Paused --> Idle : Reset
+
+state "Finished" as Finished
+Finished : Reset → Idle
+Finished --> Idle : Reset
+
+
+@enduml

@@ -1,0 +1,28 @@
+name: Checkout
+initial: Idle
+states:
+  Idle:
+    Begin:
+      transition: [ReviewingOrder]
+  ReviewingOrder:
+    SyncCart:
+      transition: [ReviewingOrder]
+    Confirm:
+      transition: [ProcessingPayment]
+  ProcessingPayment:
+    onEnter:
+      transition: [Done]
+    PaymentSucceeded:
+      transition: [Done]
+      effect: [OrderConfirmed]
+    PaymentFailed:
+      transition: [PaymentFailed]
+      effect: [ShowPaymentError]
+    SyncCart:
+      transition: [ProcessingPayment]
+  PaymentFailed:
+    RetryPayment:
+      transition: [ProcessingPayment]
+  CheckoutState:
+    Cancel:
+      transition: [Idle]

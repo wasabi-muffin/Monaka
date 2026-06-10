@@ -1,0 +1,36 @@
+@startuml Checkout
+hide empty description
+title Checkout
+
+[*] --> Idle
+
+state "CheckoutState" as CheckoutState {
+  CheckoutState : Cancel → Idle
+  CheckoutState --> Idle : Cancel
+
+  state "Idle" as Idle
+  Idle : Begin → ReviewingOrder
+  Idle --> ReviewingOrder : Begin
+
+  state "ReviewingOrder" as ReviewingOrder
+  ReviewingOrder : SyncCart → ReviewingOrder
+  ReviewingOrder : Confirm → ProcessingPayment
+  ReviewingOrder --> ReviewingOrder : SyncCart
+  ReviewingOrder --> ProcessingPayment : Confirm
+
+  state "ProcessingPayment" as ProcessingPayment
+  ProcessingPayment : PaymentSucceeded → Done ◆ OrderConfirmed
+  ProcessingPayment : PaymentFailed → PaymentFailed ◆ ShowPaymentError
+  ProcessingPayment : SyncCart → ProcessingPayment
+  ProcessingPayment --> Done : PaymentSucceeded
+  ProcessingPayment --> PaymentFailed : PaymentFailed
+  ProcessingPayment --> ProcessingPayment : SyncCart
+
+  state "PaymentFailed" as PaymentFailed
+  PaymentFailed : RetryPayment → ProcessingPayment
+  PaymentFailed --> ProcessingPayment : RetryPayment
+
+  state "Done" as Done
+}
+
+@enduml
