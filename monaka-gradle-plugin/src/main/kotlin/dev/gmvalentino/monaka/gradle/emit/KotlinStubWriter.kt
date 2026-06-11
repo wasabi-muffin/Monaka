@@ -108,13 +108,14 @@ class KotlinStubWriter {
         pkg: String?,
         transitions: Map<String, List<String>>,
     ): String = buildString {
-        pkg?.let { appendLine("package $it\n") }
-        if (transitions.isNotEmpty()) {
-            appendLine("import dev.gmvalentino.monaka.core.SelfTransition")
-            appendLine("import dev.gmvalentino.monaka.core.Transition")
+        val hasCatchAllSelfTransition = transitions.any { (key, targets) ->
+            isCatchAll(key, rootName, model.name) && targets.any { isCatchAll(it, rootName, model.name) }
         }
+        pkg?.let { appendLine("package $it\n") }
+        if (hasCatchAllSelfTransition) appendLine("import dev.gmvalentino.monaka.core.SelfTransition")
+        if (transitions.isNotEmpty()) appendLine("import dev.gmvalentino.monaka.core.Transition")
         appendLine("import dev.gmvalentino.monaka.core.State\n")
-        if (transitions.isNotEmpty()) appendLine("@SelfTransition")
+        if (hasCatchAllSelfTransition) appendLine("@SelfTransition")
         appendLine("sealed interface $rootName : State {")
         if (isSingle && model.states.isNotEmpty()) {
             appendLine("    data object ${model.name} : $rootName")
