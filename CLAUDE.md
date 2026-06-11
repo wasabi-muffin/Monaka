@@ -96,11 +96,12 @@ Every `on<>` lambda has `ActionScope<State, Action, Effect, SubState, ActionType
 ```kotlin
 // Pattern 1 — inline suspend (blocks the action queue; one request at a time)
 on<Submit> {
-    val result = loginRepository.login(state.username, state.password)
-    when (result) {
-        is Success -> transition(LoginState.Authenticated(result.user))
-        is Failure -> transition(LoginState.Error(result.message))
-    }
+    runCatching {
+        loginRepository.login(state.username, state.password)
+    }.fold(
+        onSuccess = { transition(LoginState.Authenticated(result.user)) },
+        onFailure = { transition(LoginState.Error(result.message)) },
+    )
 }
 
 // Pattern 2 — fire-and-dispatch (non-blocking)
@@ -223,3 +224,6 @@ private val counterMachine = stateMachine<CounterState, CounterAction, CounterEf
 @Test
 fun increment() = testStore(machine = counterMachine) { … }
 ```
+
+** Documentation: **
+When writing or changing any code, make sure all related KDocs and mkdocs in the `docs/` directory  (for all languages) are updated accordingly.
