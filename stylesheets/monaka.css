@@ -1,0 +1,39 @@
+/* ── Light mode — cream & red bean ─────────────────────────────────────────── */
+[data-md-color-scheme="default"] {
+  /* Header / nav background + link color */
+  --md-primary-fg-color:             #7B2D3E;
+  --md-primary-fg-color--light:      #9B4A5E;
+  --md-primary-fg-color--dark:       #5A1F2D;
+
+  /* Text / icons drawn ON top of the primary-colored header */
+  --md-primary-bg-color:             #F5ECD7;
+  --md-primary-bg-color--light:      rgba(245, 236, 215, 0.7);
+
+  /* Hover / active accent (tabs underline, search highlight, …) */
+  --md-accent-fg-color:              #9E3350;
+  --md-accent-fg-color--transparent: rgba(158, 51, 80, 0.1);
+
+  /* Page and code-block backgrounds */
+  --md-default-bg-color:             #FAF6EE;
+  --md-code-bg-color:                #F0E8D5;
+}
+
+/* ── Dark mode — deep anko ──────────────────────────────────────────────────── */
+[data-md-color-scheme="slate"] {
+  /* Header / nav background + link color (lighter red bean so it reads on dark) */
+  --md-primary-fg-color:             #C4687A;
+  --md-primary-fg-color--light:      #D4889A;
+  --md-primary-fg-color--dark:       #A44A5A;
+
+  /* Text / icons drawn ON top of the primary-colored header */
+  --md-primary-bg-color:             #1C0E13;
+  --md-primary-bg-color--light:      rgba(28, 14, 19, 0.7);
+
+  /* Hover / active accent */
+  --md-accent-fg-color:              #D47888;
+  --md-accent-fg-color--transparent: rgba(212, 120, 136, 0.1);
+
+  /* Page and code-block backgrounds (very dark anko) */
+  --md-default-bg-color:             #1A0D12;
+  --md-code-bg-color:                #26141C;
+}
