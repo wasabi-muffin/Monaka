@@ -1,5 +1,6 @@
 site_name: Monaka
 site_description: A Kotlin Multiplatform MVI state machine library with a type-safe DSL and single-coroutine actor model.
+site_url: https://monaka.gmvalentino.dev
 repo_url: https://github.com/gmvalentino8/monaka
 repo_name: gmvalentino8/monaka
 
