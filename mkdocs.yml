@@ -4,6 +4,52 @@ site_url: https://monaka.gmvalentino.dev
 repo_url: https://github.com/gmvalentino8/monaka
 repo_name: gmvalentino8/monaka
 
+plugins:
+  - search
+  - i18n:
+      docs_structure: suffix
+      fallback_to_default: true
+      reconfigure_material: true
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: ja
+          name: 日本語
+          build: true
+          nav_translations:
+            Home: ホーム
+            Getting Started: はじめに
+            Installation: インストール
+            Quick Start: クイックスタート
+            KSP Setup (KMP): KSP セットアップ (KMP)
+            Guide: ガイド
+            Handlers: ハンドラー
+            Error Handling: エラーハンドリング
+            Lifecycle Hooks: ライフサイクルフック
+            Hierarchical States: 階層的ステート
+            StateMachineStore & Configs: StateMachineStore と設定
+            Plugins: プラグイン
+            Testing: テスト
+            Multi-Machine Coordination: マルチマシン連携
+            Compose Integration: Compose インテグレーション
+            Architecture: アーキテクチャ
+            Samples: サンプル
+            Counter: カウンター
+            Login: ログイン
+            Timer: タイマー
+            Live Feed: ライブフィード
+            Checkout: チェックアウト
+            Gradle Plugin: Gradle プラグイン
+            YAML Generator: YAML ジェネレーター
+            PlantUML Generator: PlantUML ジェネレーター
+            Stub Generator: スタブジェネレーター
+            Reference: リファレンス
+            Store API: Store API
+            KSP Annotations: KSP アノテーション
+            FAQ & Troubleshooting: FAQ とトラブルシューティング
+
 extra_css:
   - stylesheets/monaka.css
 
