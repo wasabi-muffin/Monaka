@@ -99,7 +99,7 @@ public class StateMachineStore<State : StateMarker, Action : ActionMarker, Effec
     public val stateMachine: StateMachine<State, Action, Effect>,
     private val scope: CoroutineScope = defaultCoroutineScope(),
     private val initialState: State? = null,
-    private val plugins: List<Plugin<State, Action, Effect>> = emptyList(),
+    private val plugins: List<Plugin> = emptyList(),
     private val extraBufferCapacity: Int = DEFAULT_BUFFER_CAPACITY,
     private val initializer: (suspend () -> State)? = null,
 ) : Store<State, Action, Effect> by DefaultStore(

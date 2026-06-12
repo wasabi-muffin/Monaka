@@ -50,5 +50,5 @@ public interface StateMachine<State : StateMarker, Action : ActionMarker, Effect
     /** Recovery hooks registered via `onError { }`, keyed by state class. */
     public val errorHandlers: Map<KClass<out State>, StateErrorHandler<State, Action, Effect>>
     /** Observers installed via `install(...)`, invoked in registration order. */
-    public val plugins: List<Plugin<State, Action, Effect>>
+    public val plugins: List<Plugin>
 }

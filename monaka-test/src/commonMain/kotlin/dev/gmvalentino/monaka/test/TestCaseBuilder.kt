@@ -178,9 +178,10 @@ public class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect 
         // the final value is delivered. A SharedFlow with an UNLIMITED buffer retains
         // every emission in arrival order with no conflation.
         val stateTransitions = MutableSharedFlow<State>(extraBufferCapacity = Channel.UNLIMITED)
-        val statePlugin = object : Plugin<State, Action, Effect> {
-            override fun onTransition(fromState: State, toState: State) {
-                stateTransitions.tryEmit(toState)
+        val statePlugin = object : Plugin {
+            override fun onTransition(fromState: StateMarker, toState: StateMarker) {
+                @Suppress("UNCHECKED_CAST")
+                stateTransitions.tryEmit(toState as State)
             }
         }
 

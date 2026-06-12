@@ -81,7 +81,7 @@ public class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Eff
     @PublishedApi
     internal val errorHandlers: LinkedHashMap<KClass<out State>, StateErrorHandler<State, Action, Effect>> = LinkedHashMap()
 
-    internal val plugins: MutableList<Plugin<State, Action, Effect>> = mutableListOf()
+    internal val plugins: MutableList<Plugin> = mutableListOf()
 
     // ── Required configuration ────────────────────────────────────────────────
 
@@ -135,12 +135,12 @@ public class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Eff
     // ── Plugin installation ───────────────────────────────────────────────────
 
     /** Install a single [plugin]. Plugins are invoked in installation order. */
-    public fun install(plugin: Plugin<State, Action, Effect>) {
+    public fun install(plugin: Plugin) {
         plugins.add(plugin)
     }
 
     /** Install multiple [plugins] at once. */
-    public fun install(vararg plugins: Plugin<State, Action, Effect>) {
+    public fun install(vararg plugins: Plugin) {
         this.plugins.addAll(plugins)
     }
 
@@ -157,7 +157,7 @@ public class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Eff
      */
     public fun build(
         initialState: State? = null,
-        extraPlugins: List<Plugin<State, Action, Effect>> = emptyList(),
+        extraPlugins: List<Plugin> = emptyList(),
     ): StateMachine<State, Action, Effect> {
         val snapshotId = id
         val snapshotInitialState: State? = initialState ?: this.initialState

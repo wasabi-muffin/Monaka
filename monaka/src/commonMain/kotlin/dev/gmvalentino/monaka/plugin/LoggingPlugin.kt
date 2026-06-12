@@ -31,35 +31,35 @@ import co.touchlab.kermit.Logger as Kermit
  * [Auth]   EFFECT  : LoginEffect.NavigateToHome
  * ```
  */
-public class LoggingPlugin<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
+public class LoggingPlugin(
     private val tag: String = "Monaka",
     private val logger: Logger = Logger { tag, message -> Kermit.d(tag) { message } },
-) : Plugin<State, Action, Effect> {
+) : Plugin {
 
-    override fun onAction(currentState: State, action: Action) {
+    override fun onAction(currentState: StateMarker, action: ActionMarker) {
         logger.log(tag = tag, message = "[$tag] → ACTION   : $action")
         logger.log(tag = tag, message = "[$tag]   IN STATE : $currentState")
     }
 
-    override fun onTransition(fromState: State, toState: State) {
+    override fun onTransition(fromState: StateMarker, toState: StateMarker) {
         if (fromState != toState) {
             logger.log(tag = tag, message = "[$tag] ← STATE   : $fromState → $toState")
         }
     }
 
-    override fun onEffect(effect: Effect) {
+    override fun onEffect(effect: EffectMarker) {
         logger.log(tag = tag, message = "[$tag]   EFFECT  : $effect")
     }
 
-    override fun onUnhandled(currentState: State, action: Action) {
+    override fun onUnhandled(currentState: StateMarker, action: ActionMarker) {
         logger.log(tag = tag, message = "[$tag] ⚠ UNHANDLED: $action  (state: ${currentState::class.simpleName})")
     }
 
-    override fun onRejected(currentState: State, handlerType: HandlerType<Action>) {
+    override fun onRejected(currentState: StateMarker, handlerType: HandlerType<ActionMarker>) {
         logger.log(tag = tag, message = "[$tag] ✗ REJECTED : $handlerType  (state: ${currentState::class.simpleName})")
     }
 
-    override fun onError(error: Throwable, currentState: State, handlerType: HandlerType<Action>) {
+    override fun onError(error: Throwable, currentState: StateMarker, handlerType: HandlerType<ActionMarker>) {
         logger.log(tag = tag, message = "[$tag] ✗ ERROR    : ${error::class.simpleName}: ${error.message}  (handler: $handlerType)")
     }
 }

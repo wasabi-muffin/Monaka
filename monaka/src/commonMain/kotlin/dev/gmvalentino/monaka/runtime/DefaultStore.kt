@@ -89,7 +89,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     private val updateHandlers: Map<KClass<out State>, StateUpdateHandler<State, Action, Effect>>,
     private val lifecycleHandlers: Map<KClass<out State>, Map<LifecycleEvent, LifecycleHandler<State, Action, Effect>>>,
     private val errorHandlers: Map<KClass<out State>, StateErrorHandler<State, Action, Effect>>,
-    private val plugins: List<Plugin<State, Action, Effect>>,
+    private val plugins: List<Plugin>,
     private val machineScope: CoroutineScope = defaultCoroutineScope(),
     private val extraBufferCapacity: Int = DEFAULT_BUFFER_CAPACITY,
     private val initializer: (suspend () -> State)? = null,

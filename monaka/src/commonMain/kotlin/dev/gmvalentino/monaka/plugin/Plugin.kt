@@ -1,9 +1,9 @@
 package dev.gmvalentino.monaka.plugin
 
-import dev.gmvalentino.monaka.core.Action as ActionMarker
-import dev.gmvalentino.monaka.core.Effect as EffectMarker
+import dev.gmvalentino.monaka.core.Action
+import dev.gmvalentino.monaka.core.Effect
 import dev.gmvalentino.monaka.handler.HandlerType
-import dev.gmvalentino.monaka.core.State as StateMarker
+import dev.gmvalentino.monaka.core.State
 
 /**
  * Observer plugin that can hook into state machine lifecycle events.
@@ -22,7 +22,7 @@ import dev.gmvalentino.monaka.core.State as StateMarker
  * Plugin methods are always called from the single sequential processing coroutine,
  * so no additional synchronisation is needed for plugin-internal mutable state.
  */
-public interface Plugin<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> {
+public interface Plugin {
 
     /**
      * Called just before an action is processed, on the sequential processing coroutine.

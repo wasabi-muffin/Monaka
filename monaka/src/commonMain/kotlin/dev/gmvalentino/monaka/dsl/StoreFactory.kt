@@ -75,7 +75,7 @@ import dev.gmvalentino.monaka.runtime.DefaultStore
 public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
     scope: CoroutineScope = defaultCoroutineScope(),
     initialState: State? = null,
-    plugins: List<Plugin<State, Action, Effect>> = emptyList(),
+    plugins: List<Plugin> = emptyList(),
     extraBufferCapacity: Int = DEFAULT_BUFFER_CAPACITY,
     initializer: (suspend () -> State)? = null,
     builder: StateMachineBuilder<State, Action, Effect>.() -> Unit,
@@ -116,7 +116,7 @@ public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> s
     stateMachine: StateMachine<State, Action, Effect>,
     scope: CoroutineScope = defaultCoroutineScope(),
     initialState: State? = null,
-    plugins: List<Plugin<State, Action, Effect>> = emptyList(),
+    plugins: List<Plugin> = emptyList(),
     extraBufferCapacity: Int = DEFAULT_BUFFER_CAPACITY,
     initializer: (suspend () -> State)? = null,
 ): Store<State, Action, Effect> = DefaultStore(

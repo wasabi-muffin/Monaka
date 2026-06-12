@@ -324,20 +324,22 @@ public final class dev/gmvalentino/monaka/relay/RelayScope {
 }
 
 public final class dev/gmvalentino/monaka/runtime/StoreRegistry {
-	public fun <init> (Lkotlinx/coroutines/CoroutineScope;)V
+	public fun <init> ()V
+	public fun <init> (Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun bind ([Ldev/gmvalentino/monaka/relay/Relay;)V
 	public final fun contains (Lkotlin/reflect/KClass;)Z
 	public final fun get (Lkotlin/reflect/KClass;)Ldev/gmvalentino/monaka/core/Store;
 	public final fun getAll (Lkotlin/reflect/KClass;)Ljava/util/List;
 	public final fun getById (Ljava/lang/String;)Ldev/gmvalentino/monaka/core/Store;
 	public final fun getKeys ()Ljava/util/Set;
-	public final fun install ([Ldev/gmvalentino/monaka/relay/Relay;)V
 	public final fun register (Ldev/gmvalentino/monaka/core/Store;)Ldev/gmvalentino/monaka/core/Store;
+	public final fun unaryPlus (Ldev/gmvalentino/monaka/relay/Relay;)V
 	public final fun unregister (Ldev/gmvalentino/monaka/core/Store;)V
 }
 
 public final class dev/gmvalentino/monaka/runtime/StoreRegistryKt {
 	public static final fun register (Ldev/gmvalentino/monaka/core/Store;Ldev/gmvalentino/monaka/runtime/StoreRegistry;)Ldev/gmvalentino/monaka/core/Store;
-	public static final fun registerScoped (Ldev/gmvalentino/monaka/core/Store;Ldev/gmvalentino/monaka/runtime/StoreRegistry;)Ldev/gmvalentino/monaka/core/Store;
 }
 
 public final class dev/gmvalentino/monaka/scopes/ActionScope : dev/gmvalentino/monaka/scopes/HandlerScope {
