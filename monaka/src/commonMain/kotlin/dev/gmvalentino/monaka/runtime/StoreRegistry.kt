@@ -1,10 +1,12 @@
 package dev.gmvalentino.monaka.runtime
 
-import co.touchlab.kermit.Logger
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
+import dev.gmvalentino.monaka.core.InternalMonakaApi
 import dev.gmvalentino.monaka.core.State as StateMarker
 import dev.gmvalentino.monaka.core.Store
+import dev.gmvalentino.monaka.dsl.store
+import dev.gmvalentino.monaka.plugin.Plugin
 import dev.gmvalentino.monaka.relay.Relay
 import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineScope
@@ -19,13 +21,15 @@ import kotlinx.coroutines.MainScope
  * each identified by its unique [Store.id]. Stores are deregistered individually
  * via [unregister], typically when they are disposed.
  *
- * The registry serves two purposes:
+ * The registry serves three purposes:
  * 1. **Keying** — stores are stored under their [KClass] so they can be retrieved
  *    without holding individual references.
  * 2. **Relaying** — [Relay]s installed via [bind] start observing a
  *    source store as soon as a matching instance is registered. Relay targets are resolved
  *    lazily through the registry at emission time, so a relay reaches whatever target stores
  *    are registered when an event fires. All relay coroutines run in [bridgeScope].
+ * 3. **Global plugins** — [Plugin]s installed via [install] are attached to every store
+ *    currently in the registry and to every store registered in the future.
  *
  * ### Typical usage
  * ```kotlin
@@ -86,14 +90,15 @@ import kotlinx.coroutines.MainScope
  *                    thread used to call [register] and [unregister] (typically `Dispatchers.Main`).
  *                    Pass the same scope that owns the stores so all relay work is canceled together.
  */
+@OptIn(InternalMonakaApi::class)
 public class StoreRegistry(
     private val bridgeScope: CoroutineScope = MainScope(),
     initializer: StoreRegistry.() -> Unit = {},
 ) {
-
     private val stores = LinkedHashMap<KClass<out Store<*, *, *>>, MutableList<Store<*, *, *>>>()
     private val relays = mutableListOf<Relay<*, *, *>>()
     private val relayJobs = HashMap<String, MutableList<Job>>()
+    private val globalPlugins = mutableListOf<Plugin>()
 
     init {
         initializer()
@@ -130,6 +135,30 @@ public class StoreRegistry(
 
     public operator fun Relay<*, *, *>.unaryPlus(): Unit = bind(this)
 
+    // ── Global plugins ────────────────────────────────────────────────────────
+
+    /**
+     * Install one or more [plugins] globally on this registry.
+     *
+     * Each plugin is immediately attached to every store currently registered, and
+     * will be attached to every store registered in the future. Plugins begin receiving
+     * events from the next processed action onward — they do not receive events that
+     * occurred before this call.
+     *
+     * Plugins are invoked in installation order; globally-registered plugins fire after
+     * those supplied directly to a store at construction time.
+     *
+     * Must be called from the same thread used for [register] and [unregister].
+     */
+    public fun install(vararg plugins: Plugin) {
+        plugins.forEach { plugin ->
+            globalPlugins.add(plugin)
+            stores.values.flatten().forEach { store -> store.install(plugin) }
+        }
+    }
+
+    public operator fun Plugin.unaryPlus(): Unit = install(this)
+
     // ── Registration ──────────────────────────────────────────────────────────
 
     /**
@@ -160,6 +189,7 @@ public class StoreRegistry(
                 relayJobs.getOrPut(store.id) { mutableListOf() }.addAll(jobs)
             }
         }
+        globalPlugins.forEach(store::install)
         storeList += store
         store.invokeOnCompletion {
             store.stop()

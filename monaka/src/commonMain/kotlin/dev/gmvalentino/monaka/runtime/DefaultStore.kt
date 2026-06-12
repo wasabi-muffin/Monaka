@@ -89,11 +89,13 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     private val updateHandlers: Map<KClass<out State>, StateUpdateHandler<State, Action, Effect>>,
     private val lifecycleHandlers: Map<KClass<out State>, Map<LifecycleEvent, LifecycleHandler<State, Action, Effect>>>,
     private val errorHandlers: Map<KClass<out State>, StateErrorHandler<State, Action, Effect>>,
-    private val plugins: List<Plugin>,
+    plugins: List<Plugin>,
     private val machineScope: CoroutineScope = defaultCoroutineScope(),
     private val extraBufferCapacity: Int = DEFAULT_BUFFER_CAPACITY,
     private val initializer: (suspend () -> State)? = null,
 ) : Store<State, Action, Effect> {
+    private val plugins: MutableList<Plugin> = plugins.toMutableList()
+
     private enum class Phase { Idle, Running, Cancelled }
 
     private var phase = Phase.Idle
@@ -170,6 +172,10 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
 
     override fun invokeOnCompletion(handler: (cause: Throwable?) -> Unit): DisposableHandle =
         machineScope.coroutineContext.job.invokeOnCompletion(handler)
+
+    override fun install(plugin: Plugin) {
+        plugins.add(plugin)
+    }
 
     private fun whenActive(block: () -> Unit) {
         if (isActive) block()

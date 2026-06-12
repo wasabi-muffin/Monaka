@@ -3,6 +3,7 @@ package dev.gmvalentino.monaka.core
 import dev.gmvalentino.monaka.core.State as StateMarker
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
+import dev.gmvalentino.monaka.plugin.Plugin
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -119,6 +120,14 @@ public interface Store<State : StateMarker, Action : ActionMarker, out Effect : 
     public fun onLifecycleEvent(event: LifecycleEvent): Unit = Unit
 
     /**
+     * Register a [handler] to be invoked when this store's scope completes (including cancellation).
+     *
+     * The handler receives the cancellation cause, or `null` if the scope completed normally.
+     * Use this to observe store lifetime without needing to hold a reference to the underlying scope.
+     */
+    public fun invokeOnCompletion(handler: (cause: Throwable?) -> Unit): DisposableHandle
+
+    /**
      * Fire a state-lifecycle [hook] for the current state directly, without requiring a transition.
      *
      * Enqueued in the same sequential channel as actions and lifecycle events, so it is
@@ -131,10 +140,16 @@ public interface Store<State : StateMarker, Action : ActionMarker, out Effect : 
     public fun triggerStateHook(hook: StateHook<State>): Unit = Unit
 
     /**
-     * Register a [handler] to be invoked when this store's scope completes (including cancellation).
+     * Attach [plugin] to this store after construction.
      *
-     * The handler receives the cancellation cause, or `null` if the scope completed normally.
-     * Use this to observe store lifetime without needing to hold a reference to the underlying scope.
+     * The plugin begins receiving events from the next processed action or hook onward —
+     * it does not receive events that occurred before this call. Plugins are invoked in
+     * installation order; plugins added via this method fire after those supplied at
+     * construction time.
+     *
+     * Primarily intended for [dev.gmvalentino.monaka.runtime.StoreRegistry] global plugin
+     * support. Must be called from the same thread that owns the store's [CoroutineScope].
      */
-    public fun invokeOnCompletion(handler: (cause: Throwable?) -> Unit): DisposableHandle
+    @InternalMonakaApi
+    public fun install(plugin: Plugin): Unit
 }
