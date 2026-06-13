@@ -55,6 +55,15 @@ public class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Eff
     /** Unique identifier for the machine being built. */
     public val id: String = Uuid.random().toString()
 
+    /** Human-readable name for the machine being built. */
+    public var name: String? = null
+        private set
+
+    /** Set a human-readable [name] for this machine. Used by plugins and logging to identify the store. */
+    public fun name(name: String) {
+        this.name = name
+    }
+
     internal var initialState: State? = null
 
     // state-class → (action-class → handler)
@@ -132,18 +141,6 @@ public class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Eff
         builder.errorHandler?.let { errorHandlers[SubState::class] = it }
     }
 
-    // ── Plugin installation ───────────────────────────────────────────────────
-
-    /** Install a single [plugin]. Plugins are invoked in installation order. */
-    public fun install(plugin: Plugin) {
-        plugins.add(plugin)
-    }
-
-    /** Install multiple [plugins] at once. */
-    public fun install(vararg plugins: Plugin) {
-        this.plugins.addAll(plugins)
-    }
-
     // ── Build ─────────────────────────────────────────────────────────────────
 
     /**
@@ -153,13 +150,12 @@ public class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Eff
      *   When both this parameter and the builder's [initialState] call are omitted, the resulting
      *   [StateMachine.initialState] is `null` — the caller must supply a non-null state when
      *   creating the store (e.g. via [store]).
-     * @param extraPlugins Appended **after** any plugins already installed in this builder.
      */
     public fun build(
         initialState: State? = null,
-        extraPlugins: List<Plugin> = emptyList(),
     ): StateMachine<State, Action, Effect> {
         val snapshotId = id
+        val snapshotName = name
         val snapshotInitialState: State? = initialState ?: this.initialState
         val snapshotActionHandlers = actionHandlers.mapValuesTo(LinkedHashMap()) { LinkedHashMap(it.value) }
         val snapshotEnterHandlers = LinkedHashMap(enterHandlers)
@@ -167,9 +163,9 @@ public class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Eff
         val snapshotUpdateHandlers = LinkedHashMap(updateHandlers)
         val snapshotLifecycleHandlers = lifecycleHandlers.mapValuesTo(LinkedHashMap()) { LinkedHashMap(it.value) }
         val snapshotErrorHandlers = LinkedHashMap(errorHandlers)
-        val snapshotPlugins = plugins + extraPlugins
         return object : StateMachine<State, Action, Effect> {
             override val id = snapshotId
+            override val name = snapshotName
             override val initialState: State? = snapshotInitialState
             override val actionHandlers = snapshotActionHandlers
             override val enterHandlers = snapshotEnterHandlers
@@ -177,7 +173,6 @@ public class StateMachineBuilder<State : StateMarker, Action : ActionMarker, Eff
             override val updateHandlers = snapshotUpdateHandlers
             override val lifecycleHandlers = snapshotLifecycleHandlers
             override val errorHandlers = snapshotErrorHandlers
-            override val plugins = snapshotPlugins
         }
     }
 }

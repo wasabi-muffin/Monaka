@@ -111,6 +111,4 @@ class TimerStateMachine : StateMachine<TimerState, TimerAction, TimerEffect> by 
             transition(state.toIdle(durationSeconds = state.totalSeconds))
         }
     }
-
-    install(LoggingPlugin(tag = "Timer"))
 })

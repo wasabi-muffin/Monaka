@@ -250,8 +250,6 @@ class FeedStateMachine(
             transition(FeedState.Idle)
         }
     }
-
-    install(LoggingPlugin(tag = "Feed"))
 })
 
 private const val DEBOUNCE_MS = 300L

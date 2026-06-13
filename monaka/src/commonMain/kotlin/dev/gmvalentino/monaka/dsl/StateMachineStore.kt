@@ -105,6 +105,7 @@ public class StateMachineStore<State : StateMarker, Action : ActionMarker, Effec
 ) : Store<State, Action, Effect> by DefaultStore(
     machineScope = scope,
     id = stateMachine.id,
+    name = stateMachine.name ?: stateMachine::class.simpleName ?: stateMachine.id,
     initialState = initialState ?: stateMachine.initialState ?: error("initialState must be set inside the stateMachine builder or passed as the StateMachineStore constructor argument."),
     actionHandlers = stateMachine.actionHandlers,
     enterHandlers = stateMachine.enterHandlers,
@@ -112,7 +113,7 @@ public class StateMachineStore<State : StateMarker, Action : ActionMarker, Effec
     updateHandlers = stateMachine.updateHandlers,
     lifecycleHandlers = stateMachine.lifecycleHandlers,
     errorHandlers = stateMachine.errorHandlers,
-    plugins = stateMachine.plugins + plugins,
+    plugins = plugins,
     extraBufferCapacity = extraBufferCapacity,
     initializer = initializer,
 )

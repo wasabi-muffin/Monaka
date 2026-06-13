@@ -63,7 +63,5 @@ class NewsListStateMachine(
                 transition(state.toInitial())
             }
         }
-
-        install(LoggingPlugin())
     }
 )

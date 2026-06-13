@@ -5,7 +5,6 @@ import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.InternalMonakaApi
 import dev.gmvalentino.monaka.core.State as StateMarker
 import dev.gmvalentino.monaka.core.Store
-import dev.gmvalentino.monaka.dsl.store
 import dev.gmvalentino.monaka.plugin.Plugin
 import dev.gmvalentino.monaka.relay.Relay
 import kotlin.reflect.KClass
@@ -95,10 +94,12 @@ public class StoreRegistry(
     private val bridgeScope: CoroutineScope = MainScope(),
     initializer: StoreRegistry.() -> Unit = {},
 ) {
+    public class PluginScope(public val store: Store<*, *, *>)
+
     private val stores = LinkedHashMap<KClass<out Store<*, *, *>>, MutableList<Store<*, *, *>>>()
     private val relays = mutableListOf<Relay<*, *, *>>()
     private val relayJobs = HashMap<String, MutableList<Job>>()
-    private val globalPlugins = mutableListOf<Plugin>()
+    private val globalPlugins = mutableListOf<PluginScope.() -> Plugin>()
 
     init {
         initializer()
@@ -150,14 +151,12 @@ public class StoreRegistry(
      *
      * Must be called from the same thread used for [register] and [unregister].
      */
-    public fun install(vararg plugins: Plugin) {
-        plugins.forEach { plugin ->
-            globalPlugins.add(plugin)
-            stores.values.flatten().forEach { store -> store.install(plugin) }
-        }
+    public fun install(plugin: PluginScope.() -> Plugin) {
+        globalPlugins.add(plugin)
+        stores.values.flatten().forEach { store -> store.install(PluginScope(store).plugin()) }
     }
 
-    public operator fun Plugin.unaryPlus(): Unit = install(this)
+    public operator fun Plugin.unaryPlus(): Unit = install { this@unaryPlus }
 
     // ── Registration ──────────────────────────────────────────────────────────
 
@@ -189,7 +188,7 @@ public class StoreRegistry(
                 relayJobs.getOrPut(store.id) { mutableListOf() }.addAll(jobs)
             }
         }
-        globalPlugins.forEach(store::install)
+        globalPlugins.forEach { plugin -> store.install(PluginScope(store).plugin()) }
         storeList += store
         store.invokeOnCompletion {
             store.stop()

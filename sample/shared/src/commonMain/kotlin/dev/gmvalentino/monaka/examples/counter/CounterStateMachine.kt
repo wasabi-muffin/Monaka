@@ -39,7 +39,5 @@ class CounterStateMachine(
                 if (action.success) sideEffect(CounterEffect.ShowMessage("Saved ✓"))
             }
         }
-
-        install(LoggingPlugin(tag = "Counter"))
     }
 )

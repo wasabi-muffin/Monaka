@@ -39,6 +39,9 @@ public interface Store<State : StateMarker, Action : ActionMarker, out Effect : 
     /** Unique identifier for this store instance. Auto-generated as a UUID by default. */
     public val id: String
 
+    /** Human-readable name for this store, set via [dev.gmvalentino.monaka.dsl.StateMachineBuilder.name]. Defaults to an empty string if not set. */
+    public val name: String
+
     /**
      * The current state, exposed as a [StateFlow].
      * Always has a value; the initial emission is the configured initialState.
@@ -63,27 +66,6 @@ public interface Store<State : StateMarker, Action : ActionMarker, out Effect : 
     public val effects: SharedFlow<Effect>
 
     /**
-     * Enqueue an [action] for processing.
-     *
-     * Actions are processed sequentially in the order they are dispatched.
-     * This function is non-suspending and safe to call from any context,
-     * including the main thread.
-     */
-    public fun dispatch(action: Action)
-
-    /**
-     * Stop the store permanently.
-     *
-     * Cancels the internal processing coroutine and all running keyed jobs. Closes the trigger
-     * channel. No further actions will be processed and no new state/effect emissions will occur.
-     *
-     * On Android, prefer tying the state machine's [kotlinx.coroutines.CoroutineScope] to the
-     * ViewModel lifecycle instead of calling this manually — the store stops automatically when
-     * the scope is cancelled.
-     */
-    public fun stop()
-
-    /**
      * Whether this store is still active and processing actions.
      *
      * Returns `false` after [stop] is called or after the store's owning
@@ -91,6 +73,19 @@ public interface Store<State : StateMarker, Action : ActionMarker, out Effect : 
      * Once inactive, [dispatch], [start], [onLifecycleEvent], and [triggerStateHook] are all silent no-ops.
      */
     public val isActive: Boolean get() = true
+
+    /**
+     * Attach [plugin] to this store after construction.
+     *
+     * The plugin begins receiving events from the next processed action or hook onward —
+     * it does not receive events that occurred before this call. Plugins are invoked in
+     * installation order; plugins added via this method fire after those supplied at
+     * construction time.
+     *
+     * Primarily intended for [dev.gmvalentino.monaka.runtime.StoreRegistry] global plugin
+     * support. Must be called from the same thread that owns the store's [CoroutineScope].
+     */
+    public fun install(plugin: Plugin)
 
     /**
      * Start the store by firing the `onEnter` hook for the initial state, if one is registered.
@@ -105,6 +100,27 @@ public interface Store<State : StateMarker, Action : ActionMarker, out Effect : 
      * initial state do not need to call this.
      */
     public fun start(): Unit = Unit
+
+    /**
+     * Stop the store permanently.
+     *
+     * Cancels the internal processing coroutine and all running keyed jobs. Closes the trigger
+     * channel. No further actions will be processed and no new state/effect emissions will occur.
+     *
+     * On Android, prefer tying the state machine's [kotlinx.coroutines.CoroutineScope] to the
+     * ViewModel lifecycle instead of calling this manually — the store stops automatically when
+     * the scope is cancelled.
+     */
+    public fun stop()
+
+    /**
+     * Enqueue an [action] for processing.
+     *
+     * Actions are processed sequentially in the order they are dispatched.
+     * This function is non-suspending and safe to call from any context,
+     * including the main thread.
+     */
+    public fun dispatch(action: Action)
 
     /**
      * Forward an application [LifecycleEvent] into the machine.
@@ -138,18 +154,4 @@ public interface Store<State : StateMarker, Action : ActionMarker, out Effect : 
      */
     @InternalMonakaApi
     public fun triggerStateHook(hook: StateHook<State>): Unit = Unit
-
-    /**
-     * Attach [plugin] to this store after construction.
-     *
-     * The plugin begins receiving events from the next processed action or hook onward —
-     * it does not receive events that occurred before this call. Plugins are invoked in
-     * installation order; plugins added via this method fire after those supplied at
-     * construction time.
-     *
-     * Primarily intended for [dev.gmvalentino.monaka.runtime.StoreRegistry] global plugin
-     * support. Must be called from the same thread that owns the store's [CoroutineScope].
-     */
-    @InternalMonakaApi
-    public fun install(plugin: Plugin): Unit
 }

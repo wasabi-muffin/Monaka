@@ -76,6 +76,4 @@ class LoginStateMachine(
             sideEffect(LoginEffect.NavigateToLogin)
         }
     }
-
-    install(LoggingPlugin(tag = "Login"))
 })

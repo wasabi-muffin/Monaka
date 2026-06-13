@@ -27,11 +27,12 @@ import dev.gmvalentino.monaka.plugin.Plugin
  * @param updateHandlers Hooks fired when the state value changes within the same type.
  * @param lifecycleHandlers Hooks fired for forwarded [LifecycleEvent]s per state class.
  * @param errorHandlers  Recovery hooks fired when a handler or hook throws, keyed by state class.
- * @param plugins        Observers installed in the machine, invoked in registration order.
  */
 public interface StateMachine<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> {
     /** Unique identifier for this configuration, used as the [dev.gmvalentino.monaka.core.Store.id] of created stores. */
     public val id: String
+    /** Human-readable name for this machine, used as the [dev.gmvalentino.monaka.core.Store.name] of created stores. Defaults to an empty string if not set. */
+    public val name: String?
     /**
      * The state the machine starts in before any action is processed, or `null` if the initial
      * state is deferred to the call site.
@@ -49,6 +50,4 @@ public interface StateMachine<State : StateMarker, Action : ActionMarker, Effect
     public val lifecycleHandlers: Map<KClass<out State>, Map<LifecycleEvent, LifecycleHandler<State, Action, Effect>>>
     /** Recovery hooks registered via `onError { }`, keyed by state class. */
     public val errorHandlers: Map<KClass<out State>, StateErrorHandler<State, Action, Effect>>
-    /** Observers installed via `install(...)`, invoked in registration order. */
-    public val plugins: List<Plugin>
 }

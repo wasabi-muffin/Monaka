@@ -9,6 +9,7 @@ import dev.gmvalentino.monaka.examples.news.domain.MockGetNewsDetailsUseCase
 import dev.gmvalentino.monaka.examples.news.domain.MockGetNewsListUseCase
 import dev.gmvalentino.monaka.examples.news.domain.MockMarkAllNewsAsReadUseCase
 import dev.gmvalentino.monaka.examples.news.list.NewsListStateMachine
+import dev.gmvalentino.monaka.plugin.LoggingPlugin
 import dev.gmvalentino.monaka.runtime.StoreRegistry
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.DependencyGraph
@@ -23,6 +24,7 @@ interface NewsGraph : ViewModelGraph {
     @SingleIn(AppScope::class)
     fun provideStoreRegistry(): StoreRegistry = StoreRegistry {
         +NewsDetailsRelay
+        install { LoggingPlugin(tag = store.name) }
     }
 
     @Provides

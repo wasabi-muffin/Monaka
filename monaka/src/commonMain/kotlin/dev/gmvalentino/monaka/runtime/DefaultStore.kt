@@ -82,6 +82,7 @@ import kotlinx.coroutines.launch
 @OptIn(InternalMonakaApi::class)
 internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
     override val id: String,
+    override val name: String,
     initialState: State,
     private val actionHandlers: Map<KClass<out State>, Map<KClass<out Action>, ActionHandler<State, Action, Effect>>>,
     private val enterHandlers: Map<KClass<out State>, StateChangeHandler<State, Action, Effect>>,

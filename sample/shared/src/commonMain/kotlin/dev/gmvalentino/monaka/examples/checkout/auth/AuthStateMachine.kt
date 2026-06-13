@@ -33,6 +33,4 @@ class AuthStateMachine(
     state<AuthState.SignedIn> {
         on<AuthAction.SignOut> { transition(state.toSignedOut()) }
     }
-
-    install(LoggingPlugin(tag = "Auth"))
 })

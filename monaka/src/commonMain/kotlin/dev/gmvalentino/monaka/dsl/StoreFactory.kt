@@ -73,6 +73,7 @@ import dev.gmvalentino.monaka.runtime.DefaultStore
  *                              unless [initialState] is provided.
  */
 public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
+    name: String? = null,
     scope: CoroutineScope = defaultCoroutineScope(),
     initialState: State? = null,
     plugins: List<Plugin> = emptyList(),
@@ -80,17 +81,18 @@ public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> s
     initializer: (suspend () -> State)? = null,
     builder: StateMachineBuilder<State, Action, Effect>.() -> Unit,
 ): Store<State, Action, Effect> {
-    val config = StateMachineBuilder<State, Action, Effect>().apply(builder).build(initialState = initialState, extraPlugins = plugins)
+    val stateMachine = StateMachineBuilder<State, Action, Effect>().apply(builder).build(initialState = initialState)
     return DefaultStore(
-        id = config.id,
-        initialState = config.initialState ?: error("initialState must be set inside the stateMachine builder or passed as the initialState argument to store()."),
-        actionHandlers = config.actionHandlers,
-        enterHandlers = config.enterHandlers,
-        exitHandlers = config.exitHandlers,
-        updateHandlers = config.updateHandlers,
-        lifecycleHandlers = config.lifecycleHandlers,
-        errorHandlers = config.errorHandlers,
-        plugins = config.plugins,
+        id = stateMachine.id,
+        name = name ?: stateMachine.name ?: stateMachine.id,
+        initialState = stateMachine.initialState ?: error("initialState must be set inside the stateMachine builder or passed as the initialState argument to store()."),
+        actionHandlers = stateMachine.actionHandlers,
+        enterHandlers = stateMachine.enterHandlers,
+        exitHandlers = stateMachine.exitHandlers,
+        updateHandlers = stateMachine.updateHandlers,
+        lifecycleHandlers = stateMachine.lifecycleHandlers,
+        errorHandlers = stateMachine.errorHandlers,
+        plugins = plugins,
         machineScope = scope,
         extraBufferCapacity = extraBufferCapacity,
         initializer = initializer,
@@ -114,6 +116,7 @@ public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> s
  */
 public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> store(
     stateMachine: StateMachine<State, Action, Effect>,
+    name: String? = null,
     scope: CoroutineScope = defaultCoroutineScope(),
     initialState: State? = null,
     plugins: List<Plugin> = emptyList(),
@@ -121,6 +124,7 @@ public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> s
     initializer: (suspend () -> State)? = null,
 ): Store<State, Action, Effect> = DefaultStore(
     id = stateMachine.id,
+    name = name ?: stateMachine.name ?: stateMachine::class.simpleName ?: stateMachine.id,
     initialState = initialState ?: stateMachine.initialState ?: error("initialState must be set inside the stateMachine builder or passed as the initialState argument to store()."),
     actionHandlers = stateMachine.actionHandlers,
     enterHandlers = stateMachine.enterHandlers,
@@ -128,7 +132,7 @@ public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> s
     updateHandlers = stateMachine.updateHandlers,
     lifecycleHandlers = stateMachine.lifecycleHandlers,
     errorHandlers = stateMachine.errorHandlers,
-    plugins = stateMachine.plugins + plugins,
+    plugins = plugins,
     machineScope = scope,
     extraBufferCapacity = extraBufferCapacity,
     initializer = initializer,

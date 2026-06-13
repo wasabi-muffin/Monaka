@@ -38,7 +38,5 @@ class NewsDetailsStateMachine(
 
         state<NewsDetailsState.Stable> {
         }
-
-        install(LoggingPlugin())
     }
 )

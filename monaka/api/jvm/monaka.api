@@ -62,8 +62,9 @@ public abstract interface class dev/gmvalentino/monaka/core/Store {
 	public abstract fun getActions ()Lkotlinx/coroutines/flow/SharedFlow;
 	public abstract fun getEffects ()Lkotlinx/coroutines/flow/SharedFlow;
 	public abstract fun getId ()Ljava/lang/String;
+	public abstract fun getName ()Ljava/lang/String;
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun install (Ldev/gmvalentino/monaka/plugin/Plugin;)V
+	public abstract fun install (Ldev/gmvalentino/monaka/plugin/Plugin;)V
 	public abstract fun invokeOnCompletion (Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/DisposableHandle;
 	public fun isActive ()Z
 	public fun onLifecycleEvent (Ldev/gmvalentino/monaka/core/LifecycleEvent;)V
@@ -73,7 +74,6 @@ public abstract interface class dev/gmvalentino/monaka/core/Store {
 }
 
 public final class dev/gmvalentino/monaka/core/Store$DefaultImpls {
-	public static fun install (Ldev/gmvalentino/monaka/core/Store;Ldev/gmvalentino/monaka/plugin/Plugin;)V
 	public static fun isActive (Ldev/gmvalentino/monaka/core/Store;)Z
 	public static fun onLifecycleEvent (Ldev/gmvalentino/monaka/core/Store;Ldev/gmvalentino/monaka/core/LifecycleEvent;)V
 	public static fun start (Ldev/gmvalentino/monaka/core/Store;)V
@@ -120,24 +120,24 @@ public abstract interface class dev/gmvalentino/monaka/dsl/StateMachine {
 	public abstract fun getId ()Ljava/lang/String;
 	public abstract fun getInitialState ()Ldev/gmvalentino/monaka/core/State;
 	public abstract fun getLifecycleHandlers ()Ljava/util/Map;
-	public abstract fun getPlugins ()Ljava/util/List;
+	public abstract fun getName ()Ljava/lang/String;
 	public abstract fun getUpdateHandlers ()Ljava/util/Map;
 }
 
 public final class dev/gmvalentino/monaka/dsl/StateMachineBuilder {
 	public fun <init> ()V
-	public final fun build (Ldev/gmvalentino/monaka/core/State;Ljava/util/List;)Ldev/gmvalentino/monaka/dsl/StateMachine;
-	public static synthetic fun build$default (Ldev/gmvalentino/monaka/dsl/StateMachineBuilder;Ldev/gmvalentino/monaka/core/State;Ljava/util/List;ILjava/lang/Object;)Ldev/gmvalentino/monaka/dsl/StateMachine;
+	public final fun build (Ldev/gmvalentino/monaka/core/State;)Ldev/gmvalentino/monaka/dsl/StateMachine;
+	public static synthetic fun build$default (Ldev/gmvalentino/monaka/dsl/StateMachineBuilder;Ldev/gmvalentino/monaka/core/State;ILjava/lang/Object;)Ldev/gmvalentino/monaka/dsl/StateMachine;
 	public final fun getActionHandlers ()Ljava/util/LinkedHashMap;
 	public final fun getEnterHandlers ()Ljava/util/LinkedHashMap;
 	public final fun getErrorHandlers ()Ljava/util/LinkedHashMap;
 	public final fun getExitHandlers ()Ljava/util/LinkedHashMap;
 	public final fun getId ()Ljava/lang/String;
 	public final fun getLifecycleHandlers ()Ljava/util/LinkedHashMap;
+	public final fun getName ()Ljava/lang/String;
 	public final fun getUpdateHandlers ()Ljava/util/LinkedHashMap;
 	public final fun initialState (Ldev/gmvalentino/monaka/core/State;)V
-	public final fun install (Ldev/gmvalentino/monaka/plugin/Plugin;)V
-	public final fun install ([Ldev/gmvalentino/monaka/plugin/Plugin;)V
+	public final fun name (Ljava/lang/String;)V
 }
 
 public final class dev/gmvalentino/monaka/dsl/StateMachineFactoryKt {
@@ -151,6 +151,7 @@ public final class dev/gmvalentino/monaka/dsl/StateMachineStore : dev/gmvalentin
 	public fun getActions ()Lkotlinx/coroutines/flow/SharedFlow;
 	public fun getEffects ()Lkotlinx/coroutines/flow/SharedFlow;
 	public fun getId ()Ljava/lang/String;
+	public fun getName ()Ljava/lang/String;
 	public fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	public final fun getStateMachine ()Ldev/gmvalentino/monaka/dsl/StateMachine;
 	public fun install (Ldev/gmvalentino/monaka/plugin/Plugin;)V
@@ -336,11 +337,17 @@ public final class dev/gmvalentino/monaka/runtime/StoreRegistry {
 	public final fun getAll (Lkotlin/reflect/KClass;)Ljava/util/List;
 	public final fun getById (Ljava/lang/String;)Ldev/gmvalentino/monaka/core/Store;
 	public final fun getKeys ()Ljava/util/Set;
-	public final fun install ([Ldev/gmvalentino/monaka/plugin/Plugin;)V
+	public final fun install (Lkotlin/jvm/functions/Function1;)V
 	public final fun register (Ldev/gmvalentino/monaka/core/Store;)Ldev/gmvalentino/monaka/core/Store;
 	public final fun unaryPlus (Ldev/gmvalentino/monaka/plugin/Plugin;)V
 	public final fun unaryPlus (Ldev/gmvalentino/monaka/relay/Relay;)V
 	public final fun unregister (Ldev/gmvalentino/monaka/core/Store;)V
+}
+
+public final class dev/gmvalentino/monaka/runtime/StoreRegistry$PluginScope {
+	public fun <init> (Ldev/gmvalentino/monaka/core/Store;)V
+	public final fun getName ()Ljava/lang/String;
+	public final fun getStore ()Ldev/gmvalentino/monaka/core/Store;
 }
 
 public final class dev/gmvalentino/monaka/runtime/StoreRegistryKt {

@@ -46,6 +46,4 @@ class CartStateMachine(
     state<CartState> {
         on<CartAction.Clear> { transition(CartState.Empty) }
     }
-
-    install(LoggingPlugin(tag = "Cart"))
 })
