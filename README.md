@@ -22,11 +22,14 @@ Effects are one-shot: they are emitted on a `SharedFlow` with no replay, so late
 ## Setup
 
 ```kotlin
-// build.gradle.kts — core library
-implementation("dev.gmvalentino:monaka:<version>")
+// Core library
+implementation("dev.gmvalentino.monaka:monaka:<version>")
 
-// build.gradle.kts — test DSL (commonTest source set)
-testImplementation("dev.gmvalentino:monaka-test:<version>")
+// Compose Multiplatform helpers (rememberStore, toViewStore, handleEffects, bindLifecycle, render)
+implementation("dev.gmvalentino.monaka:monaka-compose:<version>")
+
+// Test DSL — add to commonTest
+testImplementation("dev.gmvalentino.monaka:monaka-test:<version>")
 ```
 
 ---
@@ -164,7 +167,7 @@ the runtime should do. The lambda itself returns `Unit`; doing nothing is a sile
 | `reject()` | Mark the action as rejected. **Terminal** — subsequent `transition`, `sideEffect`, `dispatch`, `task`, and `cancel` calls become no-ops. Plugins notified via `onRejected`. |
 | `guard { predicate }` | Short-circuit all subsequent verbs if `predicate` returns false. Unlike `reject()`, pre-guard recordings are preserved and plugins are not notified. |
 | `dispatch(action)` | Enqueue an action for later processing. |
-| `task { }` / `task("key") { }` | Fire-and-forget coroutine (optionally keyed for cancellation/debounce). |
+| `task { }` / `task("key") { }` | Fire-and-forget coroutine (optionally keyed for cancellation/debounce). Uncaught exceptions inside the block are **not** forwarded to plugins — catch and dispatch an error action instead. |
 | `cancel("key")` | Cancel the keyed coroutine. |
 
 ### First-write-wins for `transition`
@@ -410,7 +413,8 @@ Each registered machine is automatically wired to matching sources/targets. Rela
 
 ## Compose / multiplatform integration
 
-These helpers live in `sample/shared` and are available as patterns to copy into your own project.
+Add `monaka-compose` to your module (see [Setup](#setup)). All helpers live in
+`dev.gmvalentino.monaka.compose` and work in `commonMain` on Android, iOS, and JVM.
 
 ### Lifecycle forwarding
 
@@ -457,6 +461,89 @@ class MyViewModel(repo: MyRepository) : ViewModel() {
 ```
 
 The store is automatically cancelled when `viewModelScope` is cleared.
+
+---
+
+## Testing
+
+Add `monaka-test` to your `commonTest` source set (see [Setup](#setup)).
+
+The DSL requires a `StateMachine<S, A, E>` value built with `stateMachine { }`. If your
+production code uses `store { }` inline (e.g. inside a ViewModel), mirror the handlers in a
+separate `stateMachine { }` for testing:
+
+```kotlin
+// Production
+class CounterViewModel : ViewModel() {
+    val store = store<CounterState, CounterAction, CounterEffect>(viewModelScope) {
+        initialState(CounterState(0))
+        state<CounterState> {
+            on<CounterAction.Increment> { transition(state.copy(count = state.count + 1)) }
+        }
+    }
+}
+
+// Test — same handlers, no scope
+private val counterMachine = stateMachine<CounterState, CounterAction, CounterEffect> {
+    initialState(CounterState(0))
+    state<CounterState> {
+        on<CounterAction.Increment> { transition(state.copy(count = state.count + 1)) }
+    }
+}
+```
+
+If your machine is a `StateMachineStore` class, pass it directly to `testStore`.
+
+### Writing tests
+
+```kotlin
+@Test
+fun loginFlow() = testStore(machine = LoginStateMachine(fakeRepo)) {
+    testCase("happy-path login") {
+        given(LoginState.Typing(username = "alice", password = "secret"))
+
+        trigger(LoginAction.Submit) {
+            expectState<LoginState.Submitting>()
+            expectState<LoginState.Authenticated> { state.username == "alice" }
+            expectEffect(LoginEffect.NavigateToHome)
+        }
+
+        trigger(LoginAction.Logout) {
+            expectState<LoginState.Idle>()
+            expectEffect(LoginEffect.NavigateToLogin)
+        }
+    }
+
+    testCase("each case gets a fresh store") {
+        given(LoginState.Typing("bob", "pass"))
+        trigger(LoginAction.Submit) {
+            expectState<LoginState.Submitting>()
+        }
+    }
+}
+```
+
+`testStore` wraps `runTest`, so tests run under virtual time with no real delays.
+
+### DSL reference
+
+| Call | Meaning |
+|---|---|
+| `given(state)` | Override the machine's initial state. Call before the first `trigger`. |
+| `trigger(action) { }` | Dispatch an action; assert in the block. |
+| `trigger(LifecycleEvent) { }` | Forward a lifecycle event; assert in the block. |
+| `trigger(StateHook) { }` | Fire a state lifecycle hook manually. |
+| `advanceTime(duration) { }` | Advance virtual time and assert on timed work. |
+| `expectState<T> { predicate }` | Assert next state is `T` matching the optional predicate. |
+| `expectEffect(e)` | Assert next effect equals `e`. |
+| `expectNoEffects()` | Assert no effect is pending. |
+| `expectAction(a)` | Assert next handler-initiated dispatch equals `a`. |
+| `skipState()` / `skipEffect()` / `skipAction()` | Consume the next emission without asserting. |
+| `finish()` | Skip the automatic idle check for the rest of this test case. |
+
+At the end of every test case, `testStore` automatically asserts that all three streams
+(states, effects, handler actions) are drained. Opt out with `testCase("…", exhaustive = false)`
+or call `finish()` mid-body.
 
 ---
 

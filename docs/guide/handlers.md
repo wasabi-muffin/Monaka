@@ -44,6 +44,22 @@ on<LoginAction.Submit> {
 }
 ```
 
+!!! warning "Exception handling in `task { }`"
+    Uncaught exceptions thrown inside a `task` body propagate to the coroutine scope and are
+    **not** forwarded to plugins via `onError`. To route task errors through the machine's error
+    handling, catch inside the block and dispatch a dedicated error action:
+
+    ```kotlin
+    on<LoginAction.Submit> {
+        task("login") {
+            runCatching { repo.login(state.username, state.password) }
+                .onSuccess { dispatch(LoginAction.LoginSucceeded(it.user)) }
+                .onFailure { dispatch(LoginAction.LoginFailed(it.message ?: "Unknown error")) }
+        }
+        transition(LoginState.Submitting)
+    }
+    ```
+
 ### Keyed jobs (debounce / cancel)
 
 Passing a string key to `task` cancels any running job with the same key before launching a new
@@ -108,7 +124,7 @@ open socket, a scoped DI component) that can be cancelled independently of the m
 | `reject()` | Mark the action as rejected. **Terminal** — all subsequent verb calls become no-ops, **and any effects accumulated before this call are also discarded**. Plugins are notified via `onRejected`. |
 | `guard { predicate }` | Short-circuit all subsequent verbs if `predicate` returns `false`. Unlike `reject()`, pre-guard recordings are **preserved** and plugins are not notified. |
 | `dispatch(action)` | Enqueue an action on the store's channel for later processing. |
-| `task { }` / `task("key") { }` | Launch a fire-and-forget coroutine, optionally keyed for cancellation. |
+| `task { }` / `task("key") { }` | Launch a fire-and-forget coroutine, optionally keyed for cancellation. Uncaught exceptions inside the block are **not** forwarded to plugins — catch and dispatch an error action instead. |
 | `cancel("key")` | Cancel the running job with the given key. No-op if no job is running. |
 
 ### First-write-wins for `transition`

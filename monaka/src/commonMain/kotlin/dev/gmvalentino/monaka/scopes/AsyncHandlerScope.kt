@@ -42,6 +42,11 @@ public abstract class AsyncHandlerScope<State : StateMarker, Action : ActionMark
      *
      * When [autoCancel] is true, the job is canceled on the next state-type change
      * (before the corresponding `onExit` hook fires). No-op if [reject] has already been called.
+     *
+     * **Exception handling:** uncaught exceptions thrown inside [block] propagate to
+     * [coroutineScope] and are **not** forwarded to plugins via `onError`. To route
+     * task errors through the machine's error handling, catch inside [block] and call
+     * [TaskScope.dispatch] with a dedicated error action instead.
      */
     public fun task(
         autoCancel: Boolean = false,
@@ -63,6 +68,10 @@ public abstract class AsyncHandlerScope<State : StateMarker, Action : ActionMark
      * Use for debounce and "latest wins" patterns. When [autoCancel] is true, the job is
      * additionally canceled (and its key unregistered) on the next state-type change.
      * No-op if [reject] or [guard] has already been called.
+     *
+     * **Exception handling:** same as the unkeyed overload — uncaught exceptions inside
+     * [block] are **not** forwarded to plugins. Catch and dispatch an error action to
+     * route failures through the machine's error handling.
      */
     public fun task(
         key: String,

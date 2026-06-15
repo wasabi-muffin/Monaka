@@ -12,5 +12,5 @@ object Config {
     val javaVersion = JavaVersion.VERSION_11
     val jvmTarget = JvmTarget.JVM_11
     val kotlinApiVersion = KotlinVersion.KOTLIN_2_2
-    val kotlinLanguageVersion = KotlinVersion.KOTLIN_2_4
+    val kotlinLanguageVersion = KotlinVersion.KOTLIN_2_3
 }

@@ -39,6 +39,21 @@ on<LoginAction.Submit> {
 }
 ```
 
+!!! warning "`task { }` 内の例外処理"
+    `task` ブロック内でキャッチされない例外はコルーチンスコープに伝播し、プラグインの `onError` には**転送されません**。
+    マシンのエラー処理を通じてタスクのエラーをルーティングするには、ブロック内でキャッチしてエラーアクションをディスパッチしてください：
+
+    ```kotlin
+    on<LoginAction.Submit> {
+        task("login") {
+            runCatching { repo.login(state.username, state.password) }
+                .onSuccess { dispatch(LoginAction.LoginSucceeded(it.user)) }
+                .onFailure { dispatch(LoginAction.LoginFailed(it.message ?: "不明なエラー")) }
+        }
+        transition(LoginState.Submitting)
+    }
+    ```
+
 ### キー付きジョブ（デバウンス / キャンセル）
 
 `task` に文字列キーを渡すと、新しいジョブを起動する前に同じキーで実行中のジョブをキャンセルします。
@@ -69,7 +84,7 @@ on<SearchAction.Clear> {
 | `reject()` | アクションを拒否としてマーク。**終端** — 以降のすべての動詞呼び出しが無効化され、**この呼び出し前に蓄積されたエフェクトも破棄されます**。プラグインは `onRejected` で通知されます。 |
 | `guard { predicate }` | `predicate` が `false` を返した場合、以降のすべての動詞を短絡。`reject()` と異なり、ガード前の記録は**保持**され、プラグインへの通知もありません。 |
 | `dispatch(action)` | 後で処理するためにアクションをストアのチャンネルにエンキュー。 |
-| `task { }` / `task("key") { }` | ファイアアンドフォーゲットのコルーチンを起動。オプションでキャンセル用のキーを指定可能。 |
+| `task { }` / `task("key") { }` | ファイアアンドフォーゲットのコルーチンを起動。オプションでキャンセル用のキーを指定可能。ブロック内でキャッチされない例外はプラグインに転送**されません** — 代わりにキャッチしてエラーアクションをディスパッチしてください。 |
 | `cancel("key")` | 指定したキーで実行中のジョブをキャンセル。実行中のジョブがなければ無操作。 |
 
 ### `transition` は最初の書き込みが優先
