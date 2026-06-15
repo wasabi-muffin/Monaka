@@ -12,7 +12,7 @@ import dev.gmvalentino.monaka.core.Store
 @Immutable
 public data class ViewStore<State : StateMarker, Action : ActionMarker>(
     val state: State,
-    val dispatch: (Action) -> Unit = {},
+    val dispatch: (Action) -> Unit,
 )
 
 @Composable
