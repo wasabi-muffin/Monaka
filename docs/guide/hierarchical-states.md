@@ -88,7 +88,7 @@ An action dispatched while in `AuthState.SignedIn.Active` is resolved in this or
 2. `state<AuthState.SignedIn>` block
 3. `state<AuthState>` block
 
-Register a handler at the level where the behaviour logically belongs.
+Register a handler at the level where the behavior logically belongs.
 
 ---
 

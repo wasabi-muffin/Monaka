@@ -19,7 +19,7 @@ All helpers live in the `dev.gmvalentino.monaka.compose` package.
 ## `rememberStore` — composition-scoped store
 
 On non-Android targets (or when you prefer the store tied to composition lifetime rather than a
-ViewModel), use `rememberStore` to create a store that is cancelled when the composable leaves
+ViewModel), use `rememberStore` to create a store that is canceled when the composable leaves
 the composition:
 
 ```kotlin
@@ -28,7 +28,7 @@ fun CounterScreen() {
     val store = rememberStore { scope ->
         CounterStateMachine(scope, counterRepository)
     }
-    // store is cancelled automatically when this composable is disposed
+    // store is canceled automatically when this composable is disposed
 }
 ```
 
@@ -213,7 +213,7 @@ fun LoginScreen(
 
 To wire a ViewModel-owned store into a `StoreRegistry`, call `store(…, scope = viewModelScope)`
 and chain `.register(registry)`. The `register` call attaches an `invokeOnCompletion` handler
-so the store is automatically unregistered when `viewModelScope` is cancelled:
+so the store is automatically unregistered when `viewModelScope` is canceled:
 
 ```kotlin
 class AppViewModel(

@@ -59,9 +59,28 @@ public interface Store<State : StateMarker, Action : ActionMarker, out Effect : 
     /**
      * One-shot side effects, exposed as a [SharedFlow] with no replay.
      *
-     * Late subscribers will not receive effects that were emitted before they
-     * started collecting. Both this flow and [actions] are created with
-     * [DEFAULT_BUFFER_CAPACITY] slots so that fast producers don't block state processing.
+     * Late subscribers will not receive effects that were emitted before they started collecting.
+     *
+     * **Subscription ordering:** collecting [state] implicitly calls [start], which fires the
+     * initial `onEnter` hook. Any effects emitted by that hook are lost if no subscriber has
+     * attached to [effects] yet. Always subscribe to [effects] **before** subscribing to [state],
+     * or call [start] explicitly only after all subscribers are attached:
+     *
+     * ```kotlin
+     * // Safe — effects subscriber is attached before start() triggers onEnter
+     * launch { store.effects.collect { handle(it) } }
+     * launch { store.state.collect { render(it) } }
+     *
+     * // Also safe — explicit start() after both collectors are ready
+     * launch { store.effects.collect { handle(it) } }
+     * launch { store.state.collect { render(it) } }
+     * store.start()
+     * ```
+     *
+     * **Backpressure:** if no subscriber is consuming effects and the internal buffer fills up,
+     * the processing coroutine will suspend until space is available, pausing all state
+     * transitions. Ensure at least one subscriber consumes effects promptly, or increase
+     * `extraBufferCapacity` at store construction time.
      */
     public val effects: SharedFlow<Effect>
 
@@ -69,10 +88,10 @@ public interface Store<State : StateMarker, Action : ActionMarker, out Effect : 
      * Whether this store is still active and processing actions.
      *
      * Returns `false` after [stop] is called or after the store's owning
-     * [kotlinx.coroutines.CoroutineScope] is cancelled externally (e.g. a cleared ViewModel scope).
+     * [kotlinx.coroutines.CoroutineScope] is canceled externally (e.g. a cleared ViewModel scope).
      * Once inactive, [dispatch], [start], [onLifecycleEvent], and [triggerStateHook] are all silent no-ops.
      */
-    public val isActive: Boolean get() = true
+    public val isActive: Boolean
 
     /**
      * Attach [plugin] to this store after construction.
@@ -83,7 +102,7 @@ public interface Store<State : StateMarker, Action : ActionMarker, out Effect : 
      * construction time.
      *
      * Primarily intended for [dev.gmvalentino.monaka.runtime.StoreRegistry] global plugin
-     * support. Must be called from the same thread that owns the store's [CoroutineScope].
+     * support. Must be called from the same thread that owns the store's [kotlinx.coroutines.CoroutineScope].
      */
     public fun install(plugin: Plugin)
 
@@ -107,9 +126,15 @@ public interface Store<State : StateMarker, Action : ActionMarker, out Effect : 
      * Cancels the internal processing coroutine and all running keyed jobs. Closes the trigger
      * channel. No further actions will be processed and no new state/effect emissions will occur.
      *
+     * **Important:** [stop] does **not** cancel the owning [kotlinx.coroutines.CoroutineScope],
+     * so callbacks registered via [invokeOnCompletion] do **not** fire when [stop] is called
+     * directly. Those callbacks are attached to the scope's job and only fire on scope
+     * cancellation. If you stop a store early and it is registered in a `StoreRegistry`, call
+     * `unregister` manually — otherwise the registry retains a stale reference.
+     *
      * On Android, prefer tying the state machine's [kotlinx.coroutines.CoroutineScope] to the
      * ViewModel lifecycle instead of calling this manually — the store stops automatically when
-     * the scope is cancelled.
+     * the scope is canceled, and [invokeOnCompletion] fires as expected.
      */
     public fun stop()
 
@@ -136,10 +161,16 @@ public interface Store<State : StateMarker, Action : ActionMarker, out Effect : 
     public fun onLifecycleEvent(event: LifecycleEvent): Unit = Unit
 
     /**
-     * Register a [handler] to be invoked when this store's scope completes (including cancellation).
+     * Register a [handler] to be invoked when this store's owning [kotlinx.coroutines.CoroutineScope]
+     * is canceled.
      *
      * The handler receives the cancellation cause, or `null` if the scope completed normally.
      * Use this to observe store lifetime without needing to hold a reference to the underlying scope.
+     *
+     * **Important:** this callback fires on **scope cancellation only** — it does **not** fire
+     * when [stop] is called directly. [stop] cancels the internal processing coroutine but leaves
+     * the owning scope intact. If you need cleanup in both cases, either cancel the scope instead
+     * of calling [stop], or unregister manually after [stop].
      */
     public fun invokeOnCompletion(handler: (cause: Throwable?) -> Unit): DisposableHandle
 

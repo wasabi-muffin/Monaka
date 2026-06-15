@@ -13,7 +13,7 @@ transition.
 
 | Hook | When it fires |
 |---|---|
-| `onEnter { }` | The machine just entered this state type (from a different type). Does **not** fire for the initial state. |
+| `onEnter { }` | The machine just entered this state type. Fires once for the **initial state** when `start()` is called, then on every subsequent transition into this type from a different state type. |
 | `onExit { }` | The machine is about to leave this state type. |
 | `onUpdate { }` | The state type stayed the same but the value changed (e.g. a data class field was updated). |
 

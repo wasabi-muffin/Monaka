@@ -6,7 +6,7 @@ sealed interface FeedAction : Action {
     data class QueryChanged(val query: String) : FeedAction
 
     // ── Internal — dispatched from background coroutines ──────────────────────
-    /** Carries the query so stale results from a cancelled job can be discarded. */
+    /** Carries the query so stale results from a canceled job can be discarded. */
     data class SearchCompleted(val query: String, val items: List<FeedItem>) : FeedAction
 
     /** Carries a [generation] counter so old retry results are discarded. */

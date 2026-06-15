@@ -21,7 +21,7 @@ A `StoreRegistry` is a keyed collection of `Store` instances. It has three jobs:
 val registry = StoreRegistry(bridgeScope = viewModelScope)
 ```
 
-Pass the same scope that owns the stores so relay collector coroutines are cancelled together
+Pass the same scope that owns the stores so relay collector coroutines are canceled together
 with everything else when the ViewModel is cleared.
 
 ### Global plugins
@@ -138,7 +138,7 @@ AuthStore(authMachine, viewModelScope).register(registry)
 CartStore(cartMachine, viewModelScope).register(registry)
 ```
 
-Cleanup is triggered when the owning `CoroutineScope` is cancelled (e.g. `viewModelScope`
+Cleanup is triggered when the owning `CoroutineScope` is canceled (e.g. `viewModelScope`
 cleared on Android) — `register` attaches an `invokeOnCompletion` callback that calls `stop()`
 and removes the store from the registry when the scope completes.
 
@@ -286,7 +286,7 @@ emission checks `targets.any { it in registry }` before invoking the handler. If
 has a registered instance the handler body is skipped entirely.
 
 Custom `Relay` implementations that do not override `Relay.targets` retain the previous
-behaviour: the handler always fires regardless of whether any target is currently registered.
+behavior: the handler always fires regardless of whether any target is currently registered.
 
 ---
 

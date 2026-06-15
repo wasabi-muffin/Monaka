@@ -87,7 +87,7 @@ class TaskTest {
             assertEquals(TState.Done, awaitItem())
             cancelAndIgnoreRemainingEvents()
         }
-        assertEquals(false, firstTaskRan) // first task was cancelled before completing
+        assertEquals(false, firstTaskRan) // first task was canceled before completing
     }
 
     @Test
@@ -128,14 +128,14 @@ class TaskTest {
 
     @Test
     fun autoCancel_cancelsJobOnStateTypeChange() = runTest {
-        var autoCancelledTaskCompleted = false
+        var autoCanceledTaskCompleted = false
         val store = store<TState, TAction, TEffect>(scope = backgroundScope) {
             initialState(TState.Idle)
             state<TState.Idle> {
                 on<TAction.Start> {
                     task(autoCancel = true) {
                         delay(500)
-                        autoCancelledTaskCompleted = true
+                        autoCanceledTaskCompleted = true
                         dispatch(TAction.Finish("done"))
                     }
                     transition(TState.Loading)
@@ -149,13 +149,13 @@ class TaskTest {
         store.state.test {
             awaitItem() // Idle
             store.dispatch(TAction.Start)
-            assertEquals(TState.Loading, awaitItem()) // autoCancel task cancelled on Idle→Loading
+            assertEquals(TState.Loading, awaitItem()) // autoCancel task canceled on Idle→Loading
             store.dispatch(TAction.Cancel)
             assertEquals(TState.Done, awaitItem())
             delay(600)
             cancelAndIgnoreRemainingEvents()
         }
-        assertEquals(false, autoCancelledTaskCompleted)
+        assertEquals(false, autoCanceledTaskCompleted)
     }
 
     @Test

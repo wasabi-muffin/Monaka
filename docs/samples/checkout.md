@@ -122,7 +122,7 @@ class AppViewModel(
         authRepository = authRepo,
         cartRepository = cartRepo,
         paymentRepository = paymentRepo,
-        scope = viewModelScope,   // relay coroutines live here; cancelled on clear
+        scope = viewModelScope,   // relay coroutines live here; canceled on clear
     )
 
     val authStore     get() = coordinator.registry.get(AuthStore::class)
@@ -158,7 +158,7 @@ action should happen in response to a specific event rather than continuously wh
 ### `register` and automatic cleanup
 
 `register` attaches an `invokeOnCompletion` callback that stops and unregisters the store when
-its owning `CoroutineScope` is cancelled. When each store owns its own `viewModelScope`, calling
+its owning `CoroutineScope` is canceled. When each store owns its own `viewModelScope`, calling
 `register` is all that is needed — no manual cleanup required:
 
 ```kotlin

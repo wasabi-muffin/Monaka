@@ -112,7 +112,7 @@ Yellow --> Red : Next
 
 ### Description lines
 
-Description lines carry behaviour detail and use the format:
+Description lines carry behavior detail and use the format:
 
 ```
 StateName : trigger → target ◆ Effect1, Effect2

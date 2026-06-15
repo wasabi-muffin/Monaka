@@ -125,7 +125,7 @@ public class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect 
     /**
      * Advance virtual time by [duration] and run [block] to assert on subsequent emissions.
      *
-     * Use this to drive time-based behaviour such as `delay`-backed tickers or debounces
+     * Use this to drive time-based behavior such as `delay`-backed tickers or debounces
      * that live inside `task { }` handlers. Unlike [trigger], no action is dispatched —
      * the store advances purely because time passed.
      *

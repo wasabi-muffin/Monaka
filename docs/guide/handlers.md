@@ -86,7 +86,7 @@ state-type change, just before `onExit` fires:
 ```kotlin
 on<LoginAction.Submit> {
     task("login", autoCancel = true) {
-        // cancelled automatically if the state type changes before this finishes
+        // canceled automatically if the state type changes before this finishes
         dispatch(LoginAction.LoginSucceeded(repo.login(state.username, state.password)))
     }
     transition(LoginState.Submitting)
@@ -97,10 +97,10 @@ on<LoginAction.Submit> {
 
 By default, `task { }` launches inside `machineScope` — the coroutine scope tied to the
 store's lifetime. Pass a shorter-lived scope to automatically cancel the task when that scope
-is cancelled, independently of state-type changes or explicit `cancel()` calls:
+is canceled, independently of state-type changes or explicit `cancel()` calls:
 
 ```kotlin
-// Keyed task scoped to the current request's scope — cancelled when the request completes
+// Keyed task scoped to the current request's scope — canceled when the request completes
 on<DownloadAction.Start> {
     task("download", coroutineScope = requestScope) {
         val bytes = fileRepository.download(state.url)
@@ -111,13 +111,13 @@ on<DownloadAction.Start> {
 ```
 
 This is useful when a task's lifecycle is tied to an external resource (a network call, an
-open socket, a scoped DI component) that can be cancelled independently of the machine.
+open socket, a scoped DI component) that can be canceled independently of the machine.
 
 ---
 
 ## Handler verbs
 
-| Verb | Behaviour |
+| Verb | Behavior |
 |---|---|
 | `transition(newState)` | Record the next state. **First call wins** — subsequent calls in the same handler are silent no-ops. |
 | `sideEffect(e1, e2, …)` | Append effects; emitted in call order. If no `transition()` is recorded, state remains unchanged (effect-only handler). |

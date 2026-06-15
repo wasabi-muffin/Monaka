@@ -54,7 +54,7 @@
 ## `Store` ライフサイクル
 
 ```
-Idle ──▶ Running ──▶ Cancelled
+Idle ──▶ Running ──▶ Canceled
 ```
 
 - **Idle** — ストアは構築済みだが `start()` はまだ呼ばれていません。

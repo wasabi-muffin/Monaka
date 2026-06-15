@@ -51,7 +51,7 @@ internal class DefaultRelay<SourceState : StateMarker, SourceAction : ActionMark
     /**
      * Runs [block] only when at least one declared target class has a registered instance.
      * If [targets] is empty (no dispatch has occurred yet) the block always runs, preserving
-     * the original behaviour before any target class is discovered.
+     * the original behavior before any target class is discovered.
      */
     private fun ifTargetsPresent(
         registry: StoreRegistry,

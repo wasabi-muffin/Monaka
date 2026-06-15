@@ -14,7 +14,7 @@ import dev.gmvalentino.monaka.runtime.DefaultStore
  * Create and start a [Store] using the declarative DSL.
  *
  * The machine begins processing actions immediately when [scope] is active.
- * Cancelling [scope] (or calling [Store.stop]) stops the machine.
+ * Canceling [scope] (or calling [Store.stop]) stops the machine.
  *
  * ### Minimal example
  * ```kotlin
@@ -45,7 +45,7 @@ import dev.gmvalentino.monaka.runtime.DefaultStore
  * ```
  *
  * @param scope                 The [CoroutineScope] that drives action processing. On Android,
- *                              pass `viewModelScope` so the machine is automatically cancelled
+ *                              pass `viewModelScope` so the machine is automatically canceled
  *                              when the ViewModel is cleared.
  * @param name                  When non-null, overrides the name set via [StateMachineBuilder.name].
  *                              Exposed as [dev.gmvalentino.monaka.core.Store.name] on the running store.

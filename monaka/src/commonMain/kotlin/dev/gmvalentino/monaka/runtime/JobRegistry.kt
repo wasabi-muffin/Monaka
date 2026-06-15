@@ -29,7 +29,7 @@ internal class JobRegistry {
      * untracked, fire-and-forget work), launch [block] in [scope], register the new [Job]
      * under [key], and return it.
      *
-     * When [autoCancel] is true, the job is additionally cancelled and its key unregistered
+     * When [autoCancel] is true, the job is additionally canceled and its key unregistered
      * by [cancelAutoCancellable] on the next state-type change. Anonymous (UUID-keyed) jobs
      * remove themselves from the registry on completion so the map does not grow unbounded.
      */
@@ -71,7 +71,7 @@ internal class JobRegistry {
 
     /**
      * Cancel every tracked [Job] and clear the registry.
-     * Called when the machine itself is cancelled.
+     * Called when the machine itself is canceled.
      */
     fun cancelAll() {
         keyed.values.forEach { it.job.cancel() }

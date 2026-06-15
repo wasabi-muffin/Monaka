@@ -100,7 +100,7 @@ import dev.gmvalentino.monaka.runtime.DefaultStore
  *   [dev.gmvalentino.monaka.core.DEFAULT_BUFFER_CAPACITY].
  * - [initializer]: optional suspend function called once before the first action is processed.
  *   Use this to restore persisted state from an async source (e.g. `DataStore`, a database).
- *   See [dev.gmvalentino.monaka.dsl.store] for full documentation and error-handling behaviour.
+ *   See [dev.gmvalentino.monaka.dsl.store] for full documentation and error-handling behavior.
  */
 public class StateMachineStore<State : StateMarker, Action : ActionMarker, Effect : EffectMarker>(
     /** The immutable [StateMachine] configuration this store is backed by. */

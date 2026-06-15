@@ -445,7 +445,7 @@ fun MyScreen() {
     val store = rememberStore { scope ->
         MyStateMachine(scope, myRepository)
     }
-    // store is tied to the composition — cancelled when the composable leaves
+    // store is tied to the composition — canceled when the composable leaves
 }
 ```
 
@@ -460,7 +460,7 @@ class MyViewModel(repo: MyRepository) : ViewModel() {
 }
 ```
 
-The store is automatically cancelled when `viewModelScope` is cleared.
+The store is automatically canceled when `viewModelScope` is cleared.
 
 ---
 

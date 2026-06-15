@@ -2,7 +2,7 @@
 
 Monaka provides two patterns for structuring larger machines: **`StateMachineStore`** (a named
 class with an inline DSL) and **`stateMachine { }`** (a reusable configuration value). Both
-produce the same runtime behaviour — the choice is about code organisation.
+produce the same runtime behavior — the choice is about code organization.
 
 ---
 

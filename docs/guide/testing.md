@@ -142,7 +142,7 @@ All assertions are called inside a `trigger { … }` block on the implicit `Asse
 
 ### States
 
-| Method | Behaviour |
+| Method | Behavior |
 |---|---|
 | `expectState(state)` | Assert next state equals `state`. |
 | `expectState<T> { predicate }` | Assert next state is an instance of `T` and matches the optional predicate. Access the typed state via `state`. |
@@ -155,7 +155,7 @@ expectState<LoginState.Authenticated> { state.username == "alice" }
 
 ### Effects
 
-| Method | Behaviour |
+| Method | Behavior |
 |---|---|
 | `expectEffect(effect)` | Assert next effect equals `effect`. |
 | `expectEffect<T> { predicate }` | Assert next effect is an instance of `T` and matches the optional predicate. Access the typed effect via `effect`. |
@@ -167,7 +167,13 @@ expectState<LoginState.Authenticated> { state.username == "alice" }
 These assert on actions that a **handler** dispatched internally (via `ActionScope.dispatch` or
 from inside `task { }`). Actions dispatched by the test itself are filtered out.
 
-| Method | Behaviour |
+> **Note:** the filter matches external actions by type equality in arrival order. If your test
+> dispatches action `X` and a handler *also immediately* re-dispatches the same action value `X`,
+> the handler's dispatch is incorrectly attributed as "external" and swallowed. In this rare case,
+> restructure the handler to dispatch a distinct action type, or use `skipAction()` to skip the
+> ambiguous emission.
+
+| Method | Behavior |
 |---|---|
 | `expectAction(action)` | Assert next handler action equals `action`. |
 | `expectAction<T> { predicate }` | Assert next handler action is an instance of `T` matching the optional predicate. |

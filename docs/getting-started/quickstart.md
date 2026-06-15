@@ -84,7 +84,7 @@ class CounterViewModel : ViewModel() {
 }
 ```
 
-The store is cancelled automatically when `viewModelScope` is cleared.
+The store is canceled automatically when `viewModelScope` is cleared.
 
 ## Compose Multiplatform — composition-scoped store
 
@@ -97,6 +97,6 @@ fun CounterScreen() {
     val store = rememberStore { scope ->
         CounterStateMachine(scope, counterRepository)
     }
-    // store is cancelled when the composable leaves the composition
+    // store is canceled when the composable leaves the composition
 }
 ```

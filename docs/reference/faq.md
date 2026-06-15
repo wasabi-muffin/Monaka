@@ -141,14 +141,14 @@ usually happens when a ViewModel is recreated and tries to re-register a store t
 unregistered from the previous instance.
 
 Use `register` — it attaches an `invokeOnCompletion` callback that automatically unregisters
-the store when the owning scope is cancelled, so no manual cleanup is needed when the ViewModel
+the store when the owning scope is canceled, so no manual cleanup is needed when the ViewModel
 is cleared:
 
 ```kotlin
 AuthStore(authMachine, viewModelScope).register(registry)
 ```
 
-If you stop a store explicitly before its scope is cancelled, unregister it manually:
+If you stop a store explicitly before its scope is canceled, unregister it manually:
 
 ```kotlin
 store.stop()

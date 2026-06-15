@@ -72,7 +72,7 @@ the polling is intentionally state-scoped to `Active`.
 ### Pattern 3 — Fire-and-forget analytics (unkeyed, machine lifetime)
 
 Analytics tracking uses an unkeyed `task { }`. Unkeyed tasks are not stored in the registry —
-they run until they finish regardless of state changes, and cannot be cancelled by the machine:
+they run until they finish regardless of state changes, and cannot be canceled by the machine:
 
 ```kotlin
 on<FeedAction.ItemViewed> {

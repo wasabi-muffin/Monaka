@@ -49,7 +49,7 @@ public interface Relay<SourceState : StateMarker, SourceAction : ActionMarker, S
      * For relays built with the [relay] DSL this set is populated automatically: every
      * [RelayScope.dispatch] call records its target class here on first emission, so no manual
      * declaration is needed. Custom [Relay] implementations that do not override this property
-     * retain the previous behaviour — the handler always fires regardless of target availability.
+     * retain the previous behavior — the handler always fires regardless of target availability.
      */
     public val targets: Set<KClass<out Store<*, *, *>>> get() = emptySet()
 

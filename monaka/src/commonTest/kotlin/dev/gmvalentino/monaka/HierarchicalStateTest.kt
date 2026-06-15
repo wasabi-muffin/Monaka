@@ -24,7 +24,7 @@ private sealed interface HAction : Action {
 }
 
 private sealed interface HEffect : Effect {
-    data object Cancelled : HEffect
+    data object Canceled : HEffect
 }
 
 class HierarchicalStateTest {
@@ -80,7 +80,7 @@ class HierarchicalStateTest {
             }
             state<HState> {
                 on<HAction.Cancel> {
-                    sideEffect(HEffect.Cancelled)
+                    sideEffect(HEffect.Canceled)
                     transition(HState.Idle)
                 }
             }

@@ -63,13 +63,25 @@ fires the first time a subscriber attaches.
 ### `effects: SharedFlow<Effect>`
 
 One-shot side effects, exposed as a `SharedFlow` with `replay = 0`. Late subscribers miss effects
-emitted before they subscribed. Use `handleEffects { }` (see
-[Compose integration](../guide/compose.md)) or attach your collector before the first dispatch
-to avoid missing emissions.
+emitted before they subscribed.
+
+**Subscription ordering warning:** collecting `state` implicitly calls `start()`, which fires the
+initial `onEnter` hook. Any effects emitted by that hook are lost if no subscriber is attached to
+`effects` yet. Always subscribe to `effects` **before** subscribing to `state`, or call `start()`
+explicitly only after all subscribers are attached:
 
 ```kotlin
-store.effects.collect { effect -> handle(effect) }
+// Safe — effects subscriber is ready before state collection triggers start()
+launch { store.effects.collect { handle(it) } }
+launch { store.state.collect { render(it) } }
 ```
+
+For Compose, use `handleEffects { }` from `monaka-compose` — it wires up subscription ordering
+automatically. See [Compose integration](../guide/compose.md).
+
+**Backpressure:** if no subscriber is consuming effects and the internal buffer fills up, the
+processing coroutine suspends and all state transitions stall. Ensure at least one subscriber
+consumes effects promptly.
 
 ---
 
@@ -90,7 +102,7 @@ store.actions.collect { action -> logger.d("dispatched: $action") }
 ### `isActive: Boolean`
 
 `true` while the store is processing actions; `false` after `stop()` is called or the owning
-`CoroutineScope` is cancelled. All write operations (`dispatch`, `onLifecycleEvent`) are silent
+`CoroutineScope` is canceled. All write operations (`dispatch`, `onLifecycleEvent`) are silent
 no-ops when `isActive` is `false`.
 
 ```kotlin
@@ -98,6 +110,9 @@ if (store.isActive) {
     store.dispatch(MyAction.Sync)
 }
 ```
+
+Note: `isActive` is an abstract property on the `Store` interface — custom `Store` implementations
+must provide a concrete override. Forgetting to do so is a compile-time error.
 
 ---
 
@@ -152,8 +167,8 @@ Closes the trigger channel. All subsequent calls to `dispatch` and `onLifecycleE
 silent no-ops.
 
 Note that `stop()` does **not** fire callbacks registered via `invokeOnCompletion` — those are
-attached to the owning `CoroutineScope` and only fire when the scope is cancelled. If you stop a
-store early (before its scope is cancelled) and the store is registered in a `StoreRegistry`, call
+attached to the owning `CoroutineScope` and only fire when the scope is canceled. If you stop a
+store early (before its scope is canceled) and the store is registered in a `StoreRegistry`, call
 `unregister` manually:
 
 ```kotlin
@@ -205,7 +220,7 @@ the builder DSL for plugins that are always needed.
 
 ### `invokeOnCompletion(handler: (Throwable?) -> Unit): DisposableHandle`
 
-Register a callback that fires when the store's owning `CoroutineScope` is cancelled. The handler
+Register a callback that fires when the store's owning `CoroutineScope` is canceled. The handler
 receives the cancellation cause, or `null` for normal completion. Useful for observing store
 lifetime without holding a reference to the underlying scope:
 
@@ -218,11 +233,11 @@ val handle = store.invokeOnCompletion { cause ->
 handle.dispose()
 ```
 
-The callback fires when the store's owning `CoroutineScope` is cancelled (e.g. `viewModelScope`
+The callback fires when the store's owning `CoroutineScope` is canceled (e.g. `viewModelScope`
 cleared on Android). It does **not** fire when `stop()` is called directly — `stop()` only
 cancels the internal processing coroutine, not the scope.
 
 This is how `StoreRegistry.register` implements auto-unregistration: it attaches an
 `invokeOnCompletion` handler that calls `stop()` and `unregister` when the owning scope is
-cancelled. If you call `stop()` directly before the scope is cancelled, call
+canceled. If you call `stop()` directly before the scope is canceled, call
 `registry.unregister(store)` manually to remove it from the registry.

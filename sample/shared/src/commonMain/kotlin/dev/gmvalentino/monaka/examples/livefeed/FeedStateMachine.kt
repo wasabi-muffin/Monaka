@@ -12,8 +12,8 @@ import dev.gmvalentino.monaka.plugin.LoggingPlugin
  *
  * ### Task lifecycle
  *
- * All keyed tasks (`task(key) { }`) must be explicitly cancelled via `cancel(key)`,
- * unless they were started with `autoCancel = true` (cancelled by the runtime on the
+ * All keyed tasks (`task(key) { }`) must be explicitly canceled via `cancel(key)`,
+ * unless they were started with `autoCancel = true` (canceled by the runtime on the
  * next state-type change). Use `onExit { cancel("key") }` to clean up on state exit,
  * or call `cancel(key)` directly in the action handler that triggers the transition
  * (e.g. cancelling "poll" before moving to `Failed`).
@@ -41,7 +41,7 @@ import dev.gmvalentino.monaka.plugin.LoggingPlugin
  * [FeedAction.GoLive] uses `task("poll")` to start a polling loop.
  * [FeedAction.PauseLive] calls `cancel("poll")` to stop it — both happen inside
  * `Active`, so explicit cancel is needed here. If the machine leaves `Active`
- * entirely (e.g. `SearchFailed` → `Failed`), the poll is cancelled automatically.
+ * entirely (e.g. `SearchFailed` → `Failed`), the poll is canceled automatically.
  *
  * ```
  * GoLive  →  task("poll") { while (true) { delay(5s); dispatch(NewItems(...)) } }
@@ -193,7 +193,7 @@ class FeedStateMachine(
     state<FeedState.Failed> {
 
         // Pattern 4 — exponential back-off retry
-        // Note: "poll" is explicitly cancelled in the SearchFailed handler before this state is entered.
+        // Note: "poll" is explicitly canceled in the SearchFailed handler before this state is entered.
         on<FeedAction.Retry> {
             val backoffMs = minOf(BASE_BACKOFF_MS shl state.retryCount, MAX_BACKOFF_MS)
             val nextGeneration = state.retryCount + 1

@@ -46,6 +46,25 @@ install(LoggingPlugin(tag = "Auth") { tag, message -> Log.d(tag, message) })
 
 ---
 
+## 例外の安全性
+
+プラグインのコールバックは独立して実行されます — 個々のプラグイン内でスローされた例外はキャッチされ破棄されるため、処理コルーチンをクラッシュさせたり他のプラグインの実行を妨げたりしません。
+これはつまり、問題のあるプラグインはサイレントに失敗するということです。CI やデバッグビルドなどでプラグインの失敗を検知したい場合は、プラグイン内で明示的なエラーハンドリングを追加してください:
+
+```kotlin
+class SafeAnalyticsPlugin : Plugin {
+    override fun onTransition(fromState: State, toState: State) {
+        runCatching {
+            analytics.track(fromState, toState)
+        }.onFailure { error ->
+            logger.e("AnalyticsPlugin failed", error)
+        }
+    }
+}
+```
+
+---
+
 ## カスタムプラグインの作成
 
 `Plugin` インターフェースを実装し、必要なコールバックのみをオーバーライドします:

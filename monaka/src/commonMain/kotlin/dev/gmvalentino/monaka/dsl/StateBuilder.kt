@@ -77,7 +77,9 @@ public class StateBuilder<State : StateMarker, SubState : State, Action : Action
      * and [HandlerScope.task]. Handlers that don't need
      * these — i.e., pure state transitions — simply ignore the receiver.
      *
-     * If [ActionType] is registered more than once, the last registration wins.
+     * If [ActionType] is registered more than once, the last registration wins. Multiple
+     * registrations for the same action type in one `state<T>` block are unusual and most
+     * likely indicate a copy-paste error.
      */
     public inline fun <reified ActionType : Action> on(
         noinline handler: suspend ActionScope<State, Action, Effect, SubState, ActionType>.() -> Unit,
@@ -109,7 +111,9 @@ public class StateBuilder<State : StateMarker, SubState : State, Action : Action
      * }
      * ```
      *
-     * Note: [onEnter] does **not** fire for the initial state — only on transitions.
+     * Note: [onEnter] fires once for the **initial state** when [dev.gmvalentino.monaka.core.Store.start]
+     * is called (or implicitly, when the first subscriber collects [dev.gmvalentino.monaka.core.Store.state]).
+     * It then fires again on every subsequent transition *into* [SubState] from a different state type.
      */
     public fun onEnter(block: suspend StateChangeScope<State, Action, Effect, SubState>.() -> Unit) {
         enterHandler = {
@@ -122,7 +126,7 @@ public class StateBuilder<State : StateMarker, SubState : State, Action : Action
      * Register a hook that fires whenever the machine transitions **out of** [SubState]
      * to a different state type.
      *
-     * Use this for cleanup — cancelling jobs, releasing resources, or flushing pending work.
+     * Use this for cleanup — canceling jobs, releasing resources, or flushing pending work.
      *
      * ```kotlin
      * state<MyState.Active> {

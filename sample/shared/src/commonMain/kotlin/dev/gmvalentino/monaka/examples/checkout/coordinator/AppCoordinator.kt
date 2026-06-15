@@ -51,7 +51,7 @@ import dev.gmvalentino.monaka.runtime.register
  *
  * ### Lifecycle
  * All relay coroutines run in [scope]. Pass `viewModelScope` so they are
- * cancelled automatically when the ViewModel is cleared.
+ * canceled automatically when the ViewModel is cleared.
  *
  * ### Usage in a ViewModel
  * ```kotlin

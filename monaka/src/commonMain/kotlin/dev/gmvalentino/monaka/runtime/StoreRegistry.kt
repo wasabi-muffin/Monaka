@@ -50,7 +50,7 @@ import kotlinx.coroutines.MainScope
  *
  * ### Store lifetime and cleanup
  * Registered stores are **automatically** stopped and unregistered when the store's owning
- * [CoroutineScope] is cancelled (e.g. `viewModelScope` cleared on Android). [register] attaches
+ * [CoroutineScope] is canceled (e.g. `viewModelScope` cleared on Android). [register] attaches
  * an [Store.invokeOnCompletion] callback that calls [Store.stop] and [unregister] when the scope
  * completes.
  *
@@ -79,8 +79,8 @@ import kotlinx.coroutines.MainScope
  * keeps running. Once any instance of a previously-seen target class is registered again, the
  * handler resumes firing normally on the next emission.
  *
- * This behaviour applies automatically to relays built with the [relay] DSL. Custom [Relay]
- * implementations that leave [Relay.targets] empty retain the previous behaviour: the handler
+ * This behavior applies automatically to relays built with the [dev.gmvalentino.monaka.relay.relay] DSL. Custom [Relay]
+ * implementations that leave [Relay.targets] empty retain the previous behavior: the handler
  * always fires regardless of target availability.
  *
  * ### Threading
@@ -201,9 +201,9 @@ public class StoreRegistry(
      * target [store]'s class need no wiring, since they resolve targets lazily at emission time.
      *
      * The store is automatically stopped and unregistered when its owning [CoroutineScope] is
-     * cancelled (e.g. `viewModelScope` cleared). This is implemented via [Store.invokeOnCompletion],
+     * canceled (e.g. `viewModelScope` cleared). This is implemented via [Store.invokeOnCompletion],
      * which fires on scope cancellation. Calling [Store.stop] directly does **not** trigger this
-     * hook — call [unregister] manually if you stop the store before its scope is cancelled.
+     * hook — call [unregister] manually if you stop the store before its scope is canceled.
      */
     public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> register(
         store: Store<State, Action, Effect>,

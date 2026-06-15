@@ -49,6 +49,27 @@ install(LoggingPlugin(tag = "Auth") { tag, message -> Log.d(tag, message) })
 
 ---
 
+## Exception safety
+
+Plugin callbacks are isolated — an exception thrown inside any single plugin is caught and
+discarded so it cannot crash the processing coroutine or prevent other plugins from running.
+This means a misbehaving plugin fails silently. If you need to observe plugin failures (e.g.
+in CI or debug builds), add explicit error handling inside your plugin:
+
+```kotlin
+class SafeAnalyticsPlugin : Plugin {
+    override fun onTransition(fromState: State, toState: State) {
+        runCatching {
+            analytics.track(fromState, toState)
+        }.onFailure { error ->
+            logger.e("AnalyticsPlugin failed", error)
+        }
+    }
+}
+```
+
+---
+
 ## Writing a custom plugin
 
 Implement the `Plugin` interface and override only the callbacks you need:

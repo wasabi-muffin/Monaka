@@ -13,7 +13,7 @@ import dev.gmvalentino.monaka.core.State
  * implementations fast. For expensive work (e.g., network analytics), launch a
  * separate coroutine inside the plugin.
  *
- * Install plugins via [dev.gmvalentino.monaka.dsl.StateMachineBuilder.install], or globally
+ * Install plugins via [dev.gmvalentino.monaka.core.Store.install], or globally
  * via [dev.gmvalentino.monaka.runtime.StoreRegistry.install].
  *
  * ### Execution order
@@ -21,7 +21,7 @@ import dev.gmvalentino.monaka.core.State
  *
  * ### Thread safety
  * Plugin methods are always called from the single sequential processing coroutine,
- * so no additional synchronisation is needed for plugin-internal mutable state.
+ * so no additional synchronization is needed for plugin-internal mutable state.
  */
 public interface Plugin {
 

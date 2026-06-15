@@ -26,7 +26,6 @@ import dev.gmvalentino.monaka.scopes.StateUpdateScope
 import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DisposableHandle
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -73,7 +72,7 @@ import kotlinx.coroutines.launch
  *
  * ### Store lifetime and cleanup
  * Callbacks registered via [invokeOnCompletion] are attached to [machineScope]'s job. They fire
- * when [machineScope] is cancelled (e.g. `viewModelScope` cleared on Android). Calling [stop]
+ * when [machineScope] is canceled (e.g. `viewModelScope` cleared on Android). Calling [stop]
  * directly cancels the internal processing coroutine and closes the trigger channel, but does
  * **not** cancel [machineScope], so [invokeOnCompletion] handlers do **not** fire on an explicit
  * [stop] call. To receive cleanup notifications in both cases, cancel the owning scope rather
@@ -97,7 +96,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
 ) : Store<State, Action, Effect> {
     private val plugins: MutableList<Plugin> = plugins.toMutableList()
 
-    private enum class Phase { Idle, Running, Cancelled }
+    private enum class Phase { Idle, Running, Canceled }
 
     private var phase = Phase.Idle
 
@@ -131,7 +130,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         job.invokeOnCompletion { stop() }
     }
 
-    override val isActive: Boolean get() = phase != Phase.Cancelled
+    override val isActive: Boolean get() = phase != Phase.Canceled
     override val state: StateFlow<State> = _state
         .onStart { start() }
         .stateIn(scope = machineScope, started = SharingStarted.Lazily, initialValue = _state.value)
@@ -165,7 +164,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     }
 
     override fun stop() {
-        phase = Phase.Cancelled
+        phase = Phase.Canceled
         jobRegistry.cancelAll()
         processingJob.cancel()
         triggers.close()
@@ -182,17 +181,30 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         if (isActive) block()
     }
 
+    // ── Plugin invocation ─────────────────────────────────────────────────────
+
+    /**
+     * Invokes [block] on every installed plugin, catching and discarding any exception thrown by
+     * an individual plugin so that a misbehaving plugin cannot cancel the processing coroutine or
+     * prevent other plugins from running.
+     */
+    private inline fun invokePlugins(block: Plugin.() -> Unit) {
+        plugins.forEach { plugin ->
+            runCatching { plugin.block() }
+        }
+    }
+
     // ── Processing ────────────────────────────────────────────────────────────
 
     private suspend fun processAction(action: Action) {
         _actions.tryEmit(action)
-        plugins.forEach { it.onAction(currentState = currentState, action = action) }
+        invokePlugins { onAction(currentState = currentState, action = action) }
         val handlerType = HandlerType.Action(action = action)
         resolver.resolveActionHandler(state = currentState, action = action)?.handle(
             handlerType = handlerType,
             scope = actionScope(state = currentState, action = action),
             state = currentState,
-        ) ?: plugins.forEach { it.onUnhandled(currentState = currentState, action = action) }
+        ) ?: invokePlugins { onUnhandled(currentState = currentState, action = action) }
     }
 
     private suspend fun processLifecycleEvent(event: LifecycleEvent) {
@@ -241,13 +253,13 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         runCatching {
             _state.value = initializer()
         }.onFailure { error ->
-            plugins.forEach { it.onError(error = error, currentState = currentState, handlerType = HandlerType.Restore) }
+            invokePlugins { onError(error = error, currentState = currentState, handlerType = HandlerType.Restore) }
         }
         processStateHook(hook = StateHook.OnEnter)
     }
 
     private suspend fun processEffects(effects: List<Effect>) = effects.forEach { effect ->
-        plugins.forEach { it.onEffect(effect = effect) }
+        invokePlugins { onEffect(effect = effect) }
         _effects.emit(value = effect)
     }
 
@@ -281,7 +293,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     ) {
         val toState = transition.state
         _state.value = toState
-        plugins.forEach { it.onTransition(fromState = fromState, toState = toState) }
+        invokePlugins { onTransition(fromState = fromState, toState = toState) }
         processEffects(effects = transition.effects)
         when {
             toState::class != fromState::class -> processStateChange(fromState = fromState, toState = toState)
@@ -290,7 +302,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
     }
 
     private fun processRejected(fromState: State, handlerType: HandlerType<Action>) {
-        plugins.forEach { it.onRejected(currentState = fromState, handlerType = handlerType) }
+        invokePlugins { onRejected(currentState = fromState, handlerType = handlerType) }
     }
 
     /**
@@ -349,10 +361,10 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
             }.onSuccess { result ->
                 processResult(fromState = state, result = result, handlerType = handlerType)
             }.onFailure {
-                plugins.forEach { it.onError(error = throwable, currentState = state, handlerType = handlerType) }
+                invokePlugins { onError(error = throwable, currentState = state, handlerType = handlerType) }
             }
         } else {
-            plugins.forEach { it.onError(error = throwable, currentState = state, handlerType = handlerType) }
+            invokePlugins { onError(error = throwable, currentState = state, handlerType = handlerType) }
         }
     }
 
