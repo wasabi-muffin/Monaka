@@ -41,7 +41,7 @@ import co.touchlab.kermit.Logger as Kermit
  */
 public class LoggingPlugin(
     private val tag: String = "Monaka",
-    private val logger: Logger = Logger { tag, message -> Kermit.d(tag) { message } },
+    private val logger: Logger = Logger { tag, message -> Kermit.d(tag = tag) { message } },
 ) : Plugin {
 
     override fun onAction(currentState: StateMarker, action: ActionMarker) {

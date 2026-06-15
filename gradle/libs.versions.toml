@@ -22,34 +22,34 @@ turbine = "1.2.1"
 kotest = "6.1.11"
 
 # Logging
-kermit = "2.0.4"
+kermit = "2.1.0"
 
 # Annotation processing
-ksp        = "2.3.9"
-kotlinpoet = "2.2.0"
+ksp = "2.3.9"
+kotlinpoet = "2.3.0"
 
 # Publishing
-vanniktech-publish = "0.31.0"
-binary-compatibility-validator = "0.17.0"
+vanniktech-publish = "0.36.0"
+binary-compatibility-validator = "0.18.1"
 
 [libraries]
 # Gradle plugin artifacts
-gradle-android = { module =  "com.android.tools.build:gradle", version.ref = "android" }
-gradle-kotlin = { module =  "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-gradle-compose-multiplatform = { module =  "org.jetbrains.compose:compose-gradle-plugin", version.ref = "compose" }
+gradle-android = { module = "com.android.tools.build:gradle", version.ref = "android" }
+gradle-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+gradle-compose-multiplatform = { module = "org.jetbrains.compose:compose-gradle-plugin", version.ref = "compose" }
 
 # Coroutines
-kotlinx-coroutines-core = { module =  "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
-kotlinx-coroutines-android = { module =  "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
-kotlinx-coroutines-test = { module =  "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
 # Metro
 metro-viewmodel-compose = { module = "dev.zacsweers.metro:metrox-viewmodel-compose", version.ref = "metro" }
 
 # Multiplatform
-kotlinx-datetime = { module =  "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
-lifecycle-runtime-compose = { module =  "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
-lifecycle-viewmodel-compose = { module =  "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
+lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
+lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 lifecycle-viewmodel-navigation = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycle" }
 navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 
@@ -62,23 +62,23 @@ compose-material3 = { module = "org.jetbrains.compose.material3:material3", vers
 compose-material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "compose-material-icons" }
 
 # AndroidX
-androidx-core-ktx = { module =  "androidx.core:core-ktx", version.ref = "android-core" }
-androidx-activity-compose = { module =  "androidx.activity:activity-compose", version.ref = "activity-compose" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "android-core" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
 
 # Logger
-log-kermit = { module = "co.touchlab:kermit", version.ref = "kermit"}
+log-kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 
 # Testing
-turbine = { module =  "app.cash.turbine:turbine", version.ref = "turbine" }
-kotest-assertions = { module =  "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+kotest-assertions = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 
 # Annotation processing
-ksp-api        = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
+ksp-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
 
 # Publishing
 gradle-vanniktech-publish = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "vanniktech-publish" }
-kotlinpoet     = { module = "com.squareup:kotlinpoet",                        version.ref = "kotlinpoet" }
-kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp",                    version.ref = "kotlinpoet" }
+kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
+kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoet" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android" }

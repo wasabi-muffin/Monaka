@@ -11,6 +11,6 @@ object Config {
     const val TARGET_SDK = 36
     val javaVersion = JavaVersion.VERSION_11
     val jvmTarget = JvmTarget.JVM_11
-    val kotlinApiVersion = KotlinVersion.KOTLIN_2_0
+    val kotlinApiVersion = KotlinVersion.KOTLIN_2_2
     val kotlinLanguageVersion = KotlinVersion.KOTLIN_2_4
 }
