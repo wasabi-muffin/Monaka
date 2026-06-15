@@ -17,6 +17,12 @@ public class RelayScope<out Event> @PublishedApi internal constructor(
     /** The matched source event (state, effect, or action) that triggered this relay block. */
     public val event: Event,
     @PublishedApi internal val registry: StoreRegistry,
+    /**
+     * Internal callback invoked on every [dispatch] call to record the target class in the
+     * enclosing [DefaultRelay.targets] set. `null` for custom [Relay] implementations that
+     * construct [RelayScope] directly.
+     */
+    internal val trackTarget: ((KClass<out Store<*, *, *>>) -> Unit)? = null,
 ) {
     /**
      * Relay [action] to registered instances of the store class [target].
@@ -33,6 +39,8 @@ public class RelayScope<out Event> @PublishedApi internal constructor(
      * ```
      */
     public fun <A : ActionMarker> dispatch(target: KClass<out Store<*, A, *>>, action: A, id: String? = null) {
+        @Suppress("UNCHECKED_CAST")
+        trackTarget?.invoke(target as KClass<out Store<*, *, *>>)
         @Suppress("UNCHECKED_CAST")
         val targets = registry.getAll(kClass = target as KClass<out Store<StateMarker, A, EffectMarker>>)
         targets.forEach { store ->

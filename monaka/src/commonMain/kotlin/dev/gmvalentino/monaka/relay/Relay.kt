@@ -38,6 +38,22 @@ public interface Relay<SourceState : StateMarker, SourceAction : ActionMarker, S
     public val source: KClass<out Store<SourceState, SourceAction, SourceEffect>>
 
     /**
+     * The [Store] classes this relay may dispatch actions to.
+     *
+     * When non-empty, the relay handler is **skipped** on any emission where none of these
+     * classes has a registered instance in the [StoreRegistry] — preventing spurious handler
+     * work (and any side effects inside the handler) when all targets are temporarily absent.
+     * The collector coroutine itself keeps running; the handler resumes firing on the next
+     * emission once any declared target class is registered again.
+     *
+     * For relays built with the [relay] DSL this set is populated automatically: every
+     * [RelayScope.dispatch] call records its target class here on first emission, so no manual
+     * declaration is needed. Custom [Relay] implementations that do not override this property
+     * retain the previous behaviour — the handler always fires regardless of target availability.
+     */
+    public val targets: Set<KClass<out Store<*, *, *>>> get() = emptySet()
+
+    /**
      * Wire [source] to [registry] by launching collector coroutines in [scope].
      *
      * Returns the launched [Job]s so the registry can cancel them when the source

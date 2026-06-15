@@ -72,18 +72,23 @@ import kotlinx.coroutines.MainScope
  * registry.unregister(store)
  * ```
  *
+ * ### Relay handler skipping
+ * Relay collector coroutines are keyed by their source store and run for the full lifetime of
+ * that source. When a target store class has no registered instances, the relay handler is
+ * **skipped** for that emission rather than dispatching into the void — the coroutine itself
+ * keeps running. Once any instance of a previously-seen target class is registered again, the
+ * handler resumes firing normally on the next emission.
+ *
+ * This behaviour applies automatically to relays built with the [relay] DSL. Custom [Relay]
+ * implementations that leave [Relay.targets] empty retain the previous behaviour: the handler
+ * always fires regardless of target availability.
+ *
  * ### Threading
  * [StoreRegistry] is **not thread-safe**. All calls to [register], [unregister], [bind],
  * [install], and [get]/[getAll] must be made from the same thread — typically the main thread
  * on Android and iOS. Pass a [bridgeScope] confined to that same thread (e.g. `viewModelScope`, which
  * runs on `Dispatchers.Main`) so relay collector coroutines also access the registry on the
  * main thread. Violating this contract can cause lost updates or `ConcurrentModificationException`.
- *
- * ### Known limitations
- * Relay collector coroutines are keyed by their *source* store. When a target store is
- * unregistered, any relay that was dispatching to it keeps collecting from the source and
- * simply dispatches into an empty result — a no-op per emission. Jobs are only canceled
- * when the source store itself is unregistered.
  *
  * @param bridgeScope The scope used for all relay coroutines. Must be confined to the same
  *                    thread used to call [register] and [unregister] (typically `Dispatchers.Main`).
@@ -223,7 +228,7 @@ public class StoreRegistry(
     }
 
     /**
-     * Remove [store] from the registry and cancel any relay collectors observing it.
+     * Remove [store] from the registry and cancel any relay collectors observing it as a source.
      *
      * Identified by [Store.id], so the exact instance must be passed.
      * Does nothing if the store is not currently registered.

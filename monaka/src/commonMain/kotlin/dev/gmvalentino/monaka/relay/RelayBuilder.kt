@@ -28,6 +28,14 @@ public class RelayBuilder<SourceState : StateMarker, SourceAction : ActionMarker
     internal val actionHandlers: MutableList<(SourceAction, StoreRegistry) -> Unit> = mutableListOf()
 
     /**
+     * Accumulates the target store classes observed across all [RelayScope.dispatch] calls.
+     * Shared with [DefaultRelay] after [build] so that the registry can suspend relay jobs
+     * when all targets disappear and resume them when any target comes back.
+     */
+    @PublishedApi
+    internal val observedTargets: MutableSet<KClass<out Store<*, *, *>>> = mutableSetOf()
+
+    /**
      * React to source states of type [S]. The block runs with a [RelayScope] whose
      * [RelayScope.event] is the matched state.
      *
@@ -36,7 +44,11 @@ public class RelayBuilder<SourceState : StateMarker, SourceAction : ActionMarker
      * ```
      */
     public inline fun <reified S : SourceState> state(crossinline block: RelayScope<S>.() -> Unit) {
-        stateHandlers.add { state, registry -> (state as? S)?.let { RelayScope(event = it, registry = registry).block() } }
+        stateHandlers.add { state, registry ->
+            (state as? S)?.let { s ->
+                RelayScope(event = s, registry = registry, trackTarget = { kClass -> observedTargets.add(kClass) }).block()
+            }
+        }
     }
 
     /**
@@ -48,7 +60,11 @@ public class RelayBuilder<SourceState : StateMarker, SourceAction : ActionMarker
      * ```
      */
     public inline fun <reified E : SourceEffect> effect(crossinline block: RelayScope<E>.() -> Unit) {
-        effectHandlers.add { effect, registry -> (effect as? E)?.let { RelayScope(event = it, registry = registry).block() } }
+        effectHandlers.add { effect, registry ->
+            (effect as? E)?.let { e ->
+                RelayScope(event = e, registry = registry, trackTarget = { kClass -> observedTargets.add(kClass) }).block()
+            }
+        }
     }
 
     /**
@@ -60,7 +76,11 @@ public class RelayBuilder<SourceState : StateMarker, SourceAction : ActionMarker
      * ```
      */
     public inline fun <reified A : SourceAction> action(crossinline block: RelayScope<A>.() -> Unit) {
-        actionHandlers.add { action, registry -> (action as? A)?.let { RelayScope(event = it, registry = registry).block() } }
+        actionHandlers.add { action, registry ->
+            (action as? A)?.let { a ->
+                RelayScope(event = a, registry = registry, trackTarget = { kClass -> observedTargets.add(kClass) }).block()
+            }
+        }
     }
 
     @PublishedApi
@@ -68,6 +88,7 @@ public class RelayBuilder<SourceState : StateMarker, SourceAction : ActionMarker
         from: KClass<out Store<SourceState, SourceAction, SourceEffect>>,
     ): Relay<SourceState, SourceAction, SourceEffect> = DefaultRelay(
         source = from,
+        observedTargets = observedTargets,
         stateHandler = stateHandlers.mergeOrNull(),
         effectHandler = effectHandlers.mergeOrNull(),
         actionHandler = actionHandlers.mergeOrNull(),
