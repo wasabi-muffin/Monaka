@@ -18,14 +18,30 @@ A unique identifier for this store instance. Auto-generated as a UUID by default
 dispatch(CartStore::class, CartAction.Clear, id = specificCartId)
 ```
 
-You can read the `id` to log or correlate store activity:
+---
+
+### `name: String`
+
+A human-readable name for this store. Set via the `name(…)` call in the builder DSL:
 
 ```kotlin
-install(object : Plugin<MyState, MyAction, MyEffect> {
-    override fun onTransition(fromState: MyState, toState: MyState) {
-        logger.d("store[$id] $fromState → $toState")
-    }
-})
+val store = store<MyState, MyAction, MyEffect>(scope) {
+    name("Login")
+    initialState(MyState.Idle)
+    // …
+}
+```
+
+For stores created via `StateMachineStore` subclasses, `name` defaults to the subclass's simple
+class name (e.g., `"LoginStateMachine"`) when not explicitly set. For inline `store { }` calls,
+it defaults to an empty string unless set.
+
+`name` is surfaced in `StoreRegistry.PluginScope` to make per-store plugin tagging ergonomic:
+
+```kotlin
+StoreRegistry(viewModelScope) {
+    install { LoggingPlugin(tag = name) }   // name = store.name ?: class.simpleName ?: id
+}
 ```
 
 ---
@@ -173,6 +189,17 @@ transition. Annotated `@InternalMonakaApi` — calling it outside of test infras
 `@OptIn(InternalMonakaApi::class)`. In practice this is handled automatically by `:monaka-test`,
 which calls it on your behalf via `trigger(StateHook.OnEnter) { … }`. See
 [Testing](../guide/testing.md#triggerstatehooke--) for usage.
+
+---
+
+### `install(plugin: Plugin)`
+
+Attach a plugin to this store after construction. The plugin begins receiving events from the
+next processed action onward — events that occurred before this call are not replayed.
+
+This is primarily used by `StoreRegistry` to apply global plugins retroactively to
+already-registered stores. Calling it directly is possible but unusual; prefer `install(…)` in
+the builder DSL for plugins that are always needed.
 
 ---
 

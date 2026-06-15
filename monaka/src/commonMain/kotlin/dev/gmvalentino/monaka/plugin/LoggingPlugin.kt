@@ -15,20 +15,28 @@ import co.touchlab.kermit.Logger as Kermit
  *
  * Install example:
  * ```kotlin
- * stateMachine<State, Action, Effect>(scope) {
+ * store<State, Action, Effect>(scope) {
  *     // …
  *     install(LoggingPlugin(tag = "Auth"))
  *     // with custom logger:
- *     install(LoggingPlugin(tag = "Auth") { message -> Log.d("Monaka", message) })
+ *     install(LoggingPlugin(tag = "Auth") { tag, message -> Log.d(tag, message) })
+ * }
+ * ```
+ *
+ * Or globally via [dev.gmvalentino.monaka.runtime.StoreRegistry] to tag each store by name:
+ * ```kotlin
+ * StoreRegistry(viewModelScope) {
+ *     install { LoggingPlugin(tag = name) }
  * }
  * ```
  *
  * Sample output:
  * ```
- * [Auth] → ACTION   : LoginAction.Submit
- * [Auth]   IN STATE : LoginState.Typing(username=alice, password=***)
- * [Auth] ← STATE   : LoginState.Typing → LoginState.Loading
- * [Auth]   EFFECT  : LoginEffect.NavigateToHome
+ * [ACTION]     LoginAction.Submit
+ * [TRANSITION] LoginState.Submitting
+ * [EFFECT]     LoginEffect.NavigateToHome
+ * [UNHANDLED]  LoginAction.Logout  (state: Authenticated)
+ * [ERROR]      IllegalStateException: token expired  (handler: Hook.Enter)
  * ```
  */
 public class LoggingPlugin(

@@ -6,6 +6,41 @@ produce the same runtime behaviour — the choice is about code organisation.
 
 ---
 
+## Store name
+
+Every store has a `name: String` property. Set it in the builder with `name(…)`:
+
+```kotlin
+val store = store<MyState, MyAction, MyEffect>(scope) {
+    name("Login")
+    initialState(MyState.Idle)
+    // …
+}
+println(store.name)  // "Login"
+```
+
+For `StateMachineStore` subclasses and named classes that delegate `StateMachine` by class,
+`name` defaults automatically to the subclass's simple class name when not set explicitly:
+
+```kotlin
+class LoginStateMachine(…) : StateMachine<…> by stateMachine(builder = { … })
+// store(LoginStateMachine(…), scope).name == "LoginStateMachine"
+
+class LoginStore(…) : StateMachineStore<…>(machine, scope)
+// loginStore.name == "LoginStore"
+```
+
+This makes `name` especially useful for global `StoreRegistry` plugins that want to tag log
+output per store:
+
+```kotlin
+StoreRegistry(viewModelScope) {
+    install { LoggingPlugin(tag = name) }
+}
+```
+
+---
+
 ## `store { }` — inline anonymous machine
 
 The simplest form. The machine lives entirely inside the `store` call, typically inside a

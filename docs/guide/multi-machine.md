@@ -8,12 +8,14 @@ coupling lives in one place — the coordinator — and each machine stays obliv
 
 ## StoreRegistry
 
-A `StoreRegistry` is a keyed collection of `Store` instances. It has two jobs:
+A `StoreRegistry` is a keyed collection of `Store` instances. It has three jobs:
 
 1. **Keying** — stores are stored under their `KClass` so any relay can dispatch into them
    without needing a direct reference.
 2. **Relaying** — relays installed via `bind(…)` start observing a source store as soon as
    a matching instance is registered.
+3. **Global plugins** — plugins installed via `install { … }` are attached to every store
+   currently in the registry and to every store registered in the future.
 
 ```kotlin
 val registry = StoreRegistry(bridgeScope = viewModelScope)
@@ -21,6 +23,34 @@ val registry = StoreRegistry(bridgeScope = viewModelScope)
 
 Pass the same scope that owns the stores so relay collector coroutines are cancelled together
 with everything else when the ViewModel is cleared.
+
+### Global plugins
+
+Attach a plugin to every store — including stores registered later — using `install`. The
+factory lambda runs once per store and receives a `PluginScope` with access to that store:
+
+```kotlin
+val registry = StoreRegistry(viewModelScope) {
+    install { LoggingPlugin(tag = name) }   // name = best-available store name
+}
+```
+
+`PluginScope.name` resolves to the store's explicit name (set via `name(…)` in the builder),
+then its class simple name, then its `id` as a last resort. Use `name` rather than
+`store.name` to get this fallback chain automatically.
+
+To share a single stateless plugin instance across all stores:
+
+```kotlin
+StoreRegistry(viewModelScope) {
+    +MyStatelessPlugin()
+}
+```
+
+See [Plugins — Global plugins via StoreRegistry](plugins.md#global-plugins-via-storeregistry) for
+the full reference.
+
+---
 
 ### Threading
 

@@ -77,13 +77,21 @@ import dev.gmvalentino.monaka.runtime.DefaultStore
  * class LoginStateMachine(
  *     scope: CoroutineScope,
  *     savedState: LoginState? = null,
- *     extraPlugins: List<Plugin<LoginState, LoginAction, LoginEffect>> = emptyList(),
- * ) : StateMachine<LoginState, LoginAction, LoginEffect>(
+ *     extraPlugins: List<Plugin> = emptyList(),
+ * ) : StateMachineStore<LoginState, LoginAction, LoginEffect>(
+ *     stateMachine = loginMachine,
  *     scope = scope,
  *     initialState = savedState,
  *     plugins = extraPlugins,
  * ) { … }
  * ```
+ *
+ * ### `name` defaulting
+ * [dev.gmvalentino.monaka.core.Store.name] defaults to the subclass's simple class name when
+ * the [StateMachine] configuration does not set an explicit name via
+ * [dev.gmvalentino.monaka.dsl.StateMachineBuilder.name]. For example, a subclass named
+ * `LoginStateMachine` will expose `name == "LoginStateMachine"` without any extra configuration.
+ * An explicit `name(…)` call in the builder always takes precedence.
  *
  * - [initialState]: when non-null, replaces the state set by [dev.gmvalentino.monaka.dsl.StateMachineBuilder.initialState].
  * - [plugins]: appended **after** any plugins installed inside the `init` block.

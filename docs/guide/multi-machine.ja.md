@@ -10,7 +10,25 @@
 val registry = StoreRegistry(bridgeScope = viewModelScope)
 ```
 
-**スレッドセーフティ:** `StoreRegistry` はスレッドセーフではありません。`register`・`unregister`・`bind`・`get`/`getAll` へのすべての呼び出しは同じスレッドから行う必要があります。
+`StoreRegistry` は次の3つの役割を持ちます:
+
+1. **キーイング** — ストアを `KClass` で管理し、直接参照なしにディスパッチできます。
+2. **リレー** — `bind(…)` でインストールされたリレーは、一致するストアが登録された時点で監視を開始します。
+3. **グローバルプラグイン** — `install { … }` でインストールされたプラグインは、現在のすべてのストアと将来登録されるすべてのストアにアタッチされます。
+
+### グローバルプラグイン
+
+`install` を使って、すべてのストア（後から登録されるものも含む）にプラグインをアタッチします:
+
+```kotlin
+val registry = StoreRegistry(viewModelScope) {
+    install { LoggingPlugin(tag = name) }   // name = 最善の識別子
+}
+```
+
+`PluginScope.name` は、ストアの明示的な名前、クラスのシンプル名、`id` の順でフォールバックします。詳細は [プラグイン — StoreRegistry によるグローバルプラグイン](plugins.ja.md#storeregistry-によるグローバルプラグイン) を参照してください。
+
+**スレッドセーフティ:** `StoreRegistry` はスレッドセーフではありません。`register`・`unregister`・`bind`・`install`・`get`/`getAll` へのすべての呼び出しは同じスレッドから行う必要があります。
 
 ---
 

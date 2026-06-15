@@ -13,7 +13,8 @@ import dev.gmvalentino.monaka.core.State
  * implementations fast. For expensive work (e.g., network analytics), launch a
  * separate coroutine inside the plugin.
  *
- * Install plugins via [dev.gmvalentino.monaka.dsl.StateMachineBuilder.install].
+ * Install plugins via [dev.gmvalentino.monaka.dsl.StateMachineBuilder.install], or globally
+ * via [dev.gmvalentino.monaka.runtime.StoreRegistry.install].
  *
  * ### Execution order
  * Plugins are called in installation order for every hook.

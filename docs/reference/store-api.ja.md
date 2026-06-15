@@ -10,6 +10,27 @@
 
 このストアインスタンスの一意識別子。デフォルトで UUID として自動生成されます。
 
+### `name: String`
+
+ストアの人間が読める名前。ビルダー DSL の `name(…)` 呼び出しで設定します:
+
+```kotlin
+val store = store<MyState, MyAction, MyEffect>(scope) {
+    name("Login")
+    initialState(MyState.Idle)
+}
+```
+
+`StateMachineStore` のサブクラスでは、明示的に設定されていない場合、クラスのシンプル名（例: `"LoginStateMachine"`）がデフォルトになります。インラインの `store { }` 呼び出しでは、設定しない限り空文字列になります。
+
+`name` は `StoreRegistry.PluginScope` で公開され、ストアごとのプラグインタグ付けを容易にします:
+
+```kotlin
+StoreRegistry(viewModelScope) {
+    install { LoggingPlugin(tag = name) }
+}
+```
+
 ### `state: StateFlow<State>`
 
 現在のステート。`StateFlow` として公開されます。常に値を保持します。
@@ -51,6 +72,12 @@ store.state.collect { state -> render(state) }
 ### `onLifecycleEvent(event: LifecycleEvent)`
 
 アプリライフサイクルイベントをマシンに転送します。
+
+### `install(plugin: Plugin)`
+
+構築後にプラグインをストアにアタッチします。プラグインは次に処理されるアクション以降からイベントを受け取り始めます。
+
+主に `StoreRegistry` がグローバルプラグインを既存のストアに遡って適用するために使用されます。
 
 ### `invokeOnCompletion(handler: (Throwable?) -> Unit): DisposableHandle`
 

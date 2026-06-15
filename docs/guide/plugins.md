@@ -34,12 +34,11 @@ install(LoggingPlugin(tag = "Auth"))
 Sample output:
 
 ```
-[Auth] → ACTION   : LoginAction.Submit
-[Auth]   IN STATE : LoginState.Typing(username=alice, password=secret)
-[Auth] ← STATE   : LoginState.Typing → LoginState.Submitting
-[Auth]   EFFECT  : LoginEffect.NavigateToHome
-[Auth] ⚠ UNHANDLED: Action(Logout)  (state: Authenticated)
-[Auth] ✗ ERROR    : IllegalStateException: token expired  (handler: Hook.Enter)
+[ACTION]     LoginAction.Submit
+[TRANSITION] LoginState.Submitting
+[EFFECT]     LoginEffect.NavigateToHome
+[UNHANDLED]  LoginAction.Logout  (state: Authenticated)
+[ERROR]      IllegalStateException: token expired  (handler: Hook.Enter)
 ```
 
 To redirect output to a platform logger (Logcat, NSLog, SLF4J, etc.), pass a custom `Logger`:
@@ -52,33 +51,23 @@ install(LoggingPlugin(tag = "Auth") { tag, message -> Log.d(tag, message) })
 
 ## Writing a custom plugin
 
-Implement the `Plugin<S, A, E>` interface and override only the callbacks you need:
+Implement the `Plugin` interface and override only the callbacks you need:
 
 ```kotlin
-class AnalyticsPlugin : Plugin<MyState, MyAction, MyEffect> {
+class AnalyticsPlugin : Plugin {
 
-    override fun onTransition(
-        fromState: MyState,
-        toState: MyState,
-    ) {
+    override fun onTransition(fromState: State, toState: State) {
         analytics.track(
             event = "state_transition",
             properties = mapOf("from" to fromState::class.simpleName, "to" to toState::class.simpleName),
         )
     }
 
-    override fun onRejected(
-        currentState: MyState,
-        handlerType: HandlerType<MyAction>,
-    ) {
+    override fun onRejected(currentState: State, handlerType: HandlerType<Action>) {
         analytics.track("action_rejected")
     }
 
-    override fun onError(
-        error: Throwable,
-        currentState: MyState,
-        handlerType: HandlerType<MyAction>,
-    ) {
+    override fun onError(error: Throwable, currentState: State, handlerType: HandlerType<Action>) {
         crashReporter.log(error)
     }
 }
@@ -104,12 +93,127 @@ async work:
 class MetricsPlugin(
     private val scope: CoroutineScope,
     private val metricsClient: MetricsClient,
-) : Plugin<MyState, MyAction, MyEffect> {
+) : Plugin {
 
-    override fun onTransition(fromState: MyState, toState: MyState) {
+    override fun onTransition(fromState: State, toState: State) {
         scope.launch {
             metricsClient.record(fromState, toState)
         }
     }
 }
 ```
+
+---
+
+## `plugin { }` DSL
+
+For ad-hoc plugins that don't need a named class, use the `plugin { }` builder. Register only
+the hooks you need:
+
+```kotlin
+install(plugin {
+    onAction {
+        println("→ $action in $currentState")
+    }
+    onTransition {
+        println("$fromState → $toState")
+    }
+    onError {
+        crashReporter.record(error)
+    }
+})
+```
+
+Each hook receives a typed scope that exposes the relevant properties by name:
+
+| Hook | Scope properties |
+|---|---|
+| `onAction { }` | `currentState`, `action` |
+| `onEffect { }` | `effect` |
+| `onTransition { }` | `fromState`, `toState` |
+| `onUnhandled { }` | `currentState`, `action` |
+| `onRejected { }` | `currentState`, `handlerType` |
+| `onError { }` | `error`, `currentState`, `handlerType` |
+
+### Type-filtered hooks
+
+Pass a type argument to receive only events matching that specific type. The scope's typed
+property is cast to that type, so no explicit cast is needed inside the block:
+
+```kotlin
+install(plugin {
+    onAction<LoginAction.Submit> {
+        analytics.trackLogin(action.username)   // action: LoginAction.Submit
+    }
+    onEffect<LoginEffect.NavigateToHome> {
+        navigator.navigate(effect.destination)  // effect: LoginEffect.NavigateToHome
+    }
+    onTransition<LoginState.Authenticated> {
+        println("entered: $toState")            // toState: LoginState.Authenticated
+    }
+    onError<NetworkException> {
+        logger.warn("network: ${error.message}") // error: NetworkException
+    }
+})
+```
+
+Multiple registrations of the same hook are supported and fire in registration order:
+
+```kotlin
+install(plugin {
+    onTransition<LoginState.Loading>  { analytics.track("loading") }
+    onTransition<LoginState.Error>    { analytics.track("error") }
+})
+```
+
+---
+
+## Global plugins via `StoreRegistry`
+
+To attach a plugin to every store in the registry — both existing and future — use
+`StoreRegistry.install`. The factory lambda receives a `PluginScope` with access to the
+target store, so each store gets its own plugin instance:
+
+```kotlin
+val registry = StoreRegistry(viewModelScope) {
+    install { LoggingPlugin(tag = store.name) }
+}
+```
+
+`PluginScope` exposes:
+
+| Property | Value |
+|---|---|
+| `store` | The `Store` instance the plugin is being attached to. |
+| `name` | The store's explicit name if set, otherwise its class simple name, otherwise its `id`. |
+
+Use `name` (not `store.name`) to get the best available identifier:
+
+```kotlin
+StoreRegistry(viewModelScope) {
+    install { LoggingPlugin(tag = name) }           // "NewsListStore", "AuthStore", etc.
+}
+```
+
+The `plugin { }` DSL works naturally here for inline per-store plugins:
+
+```kotlin
+StoreRegistry(viewModelScope) {
+    install {
+        plugin {
+            onTransition { println("[${name}] $fromState → $toState") }
+        }
+    }
+}
+```
+
+To share a single plugin instance across all stores (for stateless plugins), use `+`:
+
+```kotlin
+StoreRegistry(viewModelScope) {
+    +MyStatelessPlugin()
+}
+```
+
+Plugins installed via the registry fire **after** any plugins installed directly on the store
+at construction time, in installation order.

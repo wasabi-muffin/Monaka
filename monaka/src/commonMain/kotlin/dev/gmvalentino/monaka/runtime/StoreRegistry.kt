@@ -74,8 +74,8 @@ import kotlinx.coroutines.MainScope
  *
  * ### Threading
  * [StoreRegistry] is **not thread-safe**. All calls to [register], [unregister], [bind],
- * and [get]/[getAll] must be made from the same thread — typically the main thread on Android
- * and iOS. Pass a [bridgeScope] confined to that same thread (e.g. `viewModelScope`, which
+ * [install], and [get]/[getAll] must be made from the same thread — typically the main thread
+ * on Android and iOS. Pass a [bridgeScope] confined to that same thread (e.g. `viewModelScope`, which
  * runs on `Dispatchers.Main`) so relay collector coroutines also access the registry on the
  * main thread. Violating this contract can cause lost updates or `ConcurrentModificationException`.
  *
@@ -94,7 +94,18 @@ public class StoreRegistry(
     private val bridgeScope: CoroutineScope = MainScope(),
     initializer: StoreRegistry.() -> Unit = {},
 ) {
-    public class PluginScope(public val store: Store<*, *, *>)
+    /**
+     * Receiver scope passed to the plugin factory lambda in [install].
+     *
+     * @property store The store the plugin is being attached to.
+     * @property name  The best available human-readable name for the store: [Store.name] if
+     *   explicitly set, otherwise [store]'s class simple name, otherwise [Store.id].
+     *   Use this rather than [store].[Store.name] directly to get automatic fallback.
+     */
+    public class PluginScope(public val store: Store<*, *, *>) {
+        /** The store's explicit name if set, otherwise its class simple name, otherwise its id. */
+        public val name: String = store.name.ifEmpty { store::class.simpleName ?: store.id }
+    }
 
     private val stores = LinkedHashMap<KClass<out Store<*, *, *>>, MutableList<Store<*, *, *>>>()
     private val relays = mutableListOf<Relay<*, *, *>>()
@@ -139,15 +150,29 @@ public class StoreRegistry(
     // ── Global plugins ────────────────────────────────────────────────────────
 
     /**
-     * Install one or more [plugins] globally on this registry.
+     * Install a plugin factory globally on this registry.
      *
-     * Each plugin is immediately attached to every store currently registered, and
-     * will be attached to every store registered in the future. Plugins begin receiving
-     * events from the next processed action onward — they do not receive events that
-     * occurred before this call.
+     * The [plugin] factory is called once per store — once immediately for every store currently
+     * registered, and again for every store registered in the future — producing an independent
+     * plugin instance for each store. The factory receives a [PluginScope] that exposes the
+     * target [PluginScope.store] and a computed [PluginScope.name].
      *
-     * Plugins are invoked in installation order; globally-registered plugins fire after
-     * those supplied directly to a store at construction time.
+     * ```kotlin
+     * StoreRegistry(viewModelScope) {
+     *     install { LoggingPlugin(tag = name) }
+     *     install {
+     *         plugin {
+     *             onTransition { println("[$name] $fromState → $toState") }
+     *         }
+     *     }
+     * }
+     * ```
+     *
+     * Plugins begin receiving events from the next processed action onward — events that
+     * occurred before this call are not replayed.
+     *
+     * Globally-registered plugins fire **after** any plugins installed directly on the store
+     * at construction time, in installation order.
      *
      * Must be called from the same thread used for [register] and [unregister].
      */

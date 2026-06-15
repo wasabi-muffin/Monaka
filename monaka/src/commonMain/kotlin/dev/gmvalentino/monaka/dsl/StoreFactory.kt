@@ -47,6 +47,8 @@ import dev.gmvalentino.monaka.runtime.DefaultStore
  * @param scope                 The [CoroutineScope] that drives action processing. On Android,
  *                              pass `viewModelScope` so the machine is automatically cancelled
  *                              when the ViewModel is cleared.
+ * @param name                  When non-null, overrides the name set via [StateMachineBuilder.name].
+ *                              Exposed as [dev.gmvalentino.monaka.core.Store.name] on the running store.
  * @param initialState          When non-null, replaces the state set by [StateMachineBuilder.initialState].
  * @param plugins               Appended **after** any plugins installed inside [builder].
  * @param extraBufferCapacity `extraBufferCapacity` for the effects (and actions) [kotlinx.coroutines.flow.SharedFlow].

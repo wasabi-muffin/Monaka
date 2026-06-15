@@ -4,6 +4,35 @@ Monaka では、大規模なマシンを構造化するパターンとして **`
 
 ---
 
+## ストア名
+
+すべてのストアは `name: String` プロパティを持ちます。ビルダーで `name(…)` を使って設定します:
+
+```kotlin
+val store = store<MyState, MyAction, MyEffect>(scope) {
+    name("Login")
+    initialState(MyState.Idle)
+}
+println(store.name)  // "Login"
+```
+
+`StateMachineStore` のサブクラスや `StateMachine` を委譲した名前付きクラスでは、明示的に設定されていない場合、`name` はサブクラスのシンプルクラス名に自動的にデフォルト設定されます:
+
+```kotlin
+class LoginStateMachine(…) : StateMachine<…> by stateMachine(builder = { … })
+// store(LoginStateMachine(…), scope).name == "LoginStateMachine"
+```
+
+これにより、ストアごとのログ出力にタグを付けたいグローバル `StoreRegistry` プラグインで特に役立ちます:
+
+```kotlin
+StoreRegistry(viewModelScope) {
+    install { LoggingPlugin(tag = name) }
+}
+```
+
+---
+
 ## `store { }` — インライン匿名マシン
 
 ```kotlin

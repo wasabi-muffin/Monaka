@@ -20,6 +20,7 @@ import dev.gmvalentino.monaka.plugin.Plugin
  * [dev.gmvalentino.monaka.core.Store]. Separating configuration from execution allows the
  * same configuration to be inspected, stored, or used to create multiple machines.
  *
+ * @param name           Human-readable name for the machine, used as [dev.gmvalentino.monaka.core.Store.name] on created stores.
  * @param initialState   The state the machine starts in.
  * @param actionHandlers Registered `on<>` handlers keyed by state class → action class.
  * @param enterHandlers  Hooks fired when the machine transitions *into* a state type.
