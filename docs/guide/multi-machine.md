@@ -272,6 +272,24 @@ class AppViewModel(
 
 ---
 
+## Relay handler skipping
+
+When a target store class has no registered instances, the relay **skips its handler** for
+that emission rather than calling `dispatch` into the void. The collector coroutine itself
+keeps running; the handler resumes firing on the next emission once any declared target class
+is registered again.
+
+The registry tracks which target classes each relay dispatches to automatically — no extra
+configuration is needed. The first time a relay fires and calls `dispatch(TargetStore::class, …)`,
+`TargetStore::class` is recorded in the relay's internal target set. From that point on, every
+emission checks `targets.any { it in registry }` before invoking the handler. If no target class
+has a registered instance the handler body is skipped entirely.
+
+Custom `Relay` implementations that do not override `Relay.targets` retain the previous
+behaviour: the handler always fires regardless of whether any target is currently registered.
+
+---
+
 ## Implementing `Relay` directly
 
 The `relay { }` DSL covers most cases. When you need injected dependencies or more complex
@@ -282,6 +300,10 @@ class AuthRelay(
     private val analytics: AnalyticsClient,
 ) : Relay<AuthState, AuthAction, AuthEffect> {
     override val source = AuthStore::class
+
+    // Declare targets so the registry can suspend/resume this relay automatically
+    // when CartStore instances are added or removed.
+    override val targets: Set<KClass<out Store<*, *, *>>> = setOf(CartStore::class)
 
     override fun apply(
         source: Store<*, *, *>,
@@ -299,3 +321,8 @@ class AuthRelay(
     )
 }
 ```
+
+Override `targets` with the store classes your `apply` implementation dispatches to. The
+handler-skipping guard in `DefaultRelay` uses this set automatically for DSL-built relays; for
+custom implementations you are responsible for reading `targets` (or the registry directly)
+inside your own collector.
