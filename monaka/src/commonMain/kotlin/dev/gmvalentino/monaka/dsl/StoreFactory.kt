@@ -137,4 +137,3 @@ public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> s
     extraBufferCapacity = extraBufferCapacity,
     initializer = initializer,
 )
-

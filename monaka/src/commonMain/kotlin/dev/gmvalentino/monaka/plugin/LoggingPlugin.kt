@@ -37,30 +37,29 @@ public class LoggingPlugin(
 ) : Plugin {
 
     override fun onAction(currentState: StateMarker, action: ActionMarker) {
-        logger.log(tag = tag, message = "[$tag] → ACTION   : $action")
-        logger.log(tag = tag, message = "[$tag]   IN STATE : $currentState")
+        logger.log(tag = tag, message = "[ACTION]     $action")
     }
 
     override fun onTransition(fromState: StateMarker, toState: StateMarker) {
         if (fromState != toState) {
-            logger.log(tag = tag, message = "[$tag] ← STATE   : $fromState → $toState")
+            logger.log(tag = tag, message = "[TRANSITION] $toState")
         }
     }
 
     override fun onEffect(effect: EffectMarker) {
-        logger.log(tag = tag, message = "[$tag]   EFFECT  : $effect")
+        logger.log(tag = tag, message = "[EFFECT]     $effect")
     }
 
     override fun onUnhandled(currentState: StateMarker, action: ActionMarker) {
-        logger.log(tag = tag, message = "[$tag] ⚠ UNHANDLED: $action  (state: ${currentState::class.simpleName})")
+        logger.log(tag = tag, message = "[UNHANDLED]  $action  (state: ${currentState::class.simpleName})")
     }
 
     override fun onRejected(currentState: StateMarker, handlerType: HandlerType<ActionMarker>) {
-        logger.log(tag = tag, message = "[$tag] ✗ REJECTED : $handlerType  (state: ${currentState::class.simpleName})")
+        logger.log(tag = tag, message = "[REJECTED]   $handlerType  (state: ${currentState::class.simpleName})")
     }
 
     override fun onError(error: Throwable, currentState: StateMarker, handlerType: HandlerType<ActionMarker>) {
-        logger.log(tag = tag, message = "[$tag] ✗ ERROR    : ${error::class.simpleName}: ${error.message}  (handler: $handlerType)")
+        logger.log(tag = tag, message = "[ERROR]      ${error::class.simpleName}: ${error.message}  (handler: $handlerType)")
     }
 }
 
