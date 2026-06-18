@@ -16,7 +16,7 @@ import dev.gmvalentino.monaka.plugin.LoggingPlugin
  * unless they were started with `autoCancel = true` (canceled by the runtime on the
  * next state-type change). Use `onExit { cancel("key") }` to clean up on state exit,
  * or call `cancel(key)` directly in the action handler that triggers the transition
- * (e.g. cancelling "poll" before moving to `Failed`).
+ * (e.g. canceling "poll" before moving to `Failed`).
  *
  * ---
  *

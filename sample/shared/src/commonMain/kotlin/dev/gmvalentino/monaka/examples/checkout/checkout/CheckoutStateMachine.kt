@@ -1,6 +1,7 @@
 package dev.gmvalentino.monaka.examples.checkout.checkout
 
 import dev.gmvalentino.monaka.dsl.StateMachine
+import dev.gmvalentino.monaka.dsl.StateMachineBuilder
 import dev.gmvalentino.monaka.dsl.stateMachine
 import dev.gmvalentino.monaka.examples.checkout.data.PaymentRepository
 import dev.gmvalentino.monaka.plugin.LoggingPlugin
@@ -10,11 +11,7 @@ class CheckoutStateMachine(
 ) : StateMachine<CheckoutState, CheckoutAction, CheckoutEffect> by stateMachine(builder = {
     initialState(CheckoutState.Idle)
 
-    state<CheckoutState.Idle> {
-        on<CheckoutAction.Begin> {
-            transition(state.toReviewingOrder(userId = action.userId, items = action.items, total = action.total))
-        }
-    }
+    handleIdle()
 
     state<CheckoutState.ReviewingOrder> {
         on<CheckoutAction.SyncCart> {
@@ -56,3 +53,11 @@ class CheckoutStateMachine(
         on<CheckoutAction.Cancel> { transition(CheckoutState.Idle) }
     }
 })
+
+private fun StateMachineBuilder<CheckoutState, CheckoutAction, CheckoutEffect>.handleIdle() {
+    state<CheckoutState.Idle> {
+        on<CheckoutAction.Begin> {
+            transition(state.toReviewingOrder(userId = action.userId, items = action.items, total = action.total))
+        }
+    }
+}

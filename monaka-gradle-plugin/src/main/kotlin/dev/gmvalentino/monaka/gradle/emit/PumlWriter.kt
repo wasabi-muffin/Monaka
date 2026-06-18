@@ -6,7 +6,7 @@ import dev.gmvalentino.monaka.gradle.model.*
  * Writes a PlantUML state diagram from a [MachineModel].
  *
  * Format conventions:
- *  - Description lines (`State : trigger → target ◆ effects`) carry all behaviour detail.
+ *  - Description lines (`State : trigger → target ◆ effects`) carry all behavior detail.
  *  - Arrows (`State --> target : trigger`) carry only routing — no effects.
  *  - `onEnter` with an immediate transition uses a dashed arrow; `onEnter` with a task uses
  *    a description line only (the transition happens later when the task dispatches an action).

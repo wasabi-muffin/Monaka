@@ -160,7 +160,7 @@ on<SearchAction.Clear> {
 Handlers are **statements**, not expressions — call these methods on the scope to record what
 the runtime should do. The lambda itself returns `Unit`; doing nothing is a silent no-op.
 
-| Verb | Behaviour |
+| Verb | Behavior |
 |---|---|
 | `transition(newState)` | Record the new state. **First call wins** — later calls in the same handler are ignored. |
 | `sideEffect(effect1, effect2)` | Append effects to be emitted in call order, after the state change (if any). |

@@ -235,7 +235,7 @@ class TimerStateMachineTest {
             given(TimerState.Running(remainingSeconds = 5, totalSeconds = 5, autoPause = false))
 
             // Start the ticker via OnEnter, then leave Running via a Pause action.
-            // The keyed task("tick", autoCancel = true) must be cancelled by the runtime
+            // The keyed task("tick", autoCancel = true) must be canceled by the runtime
             // on the state-type change so no further Tick actions reach the queue.
             trigger(StateHook.OnEnter)
             trigger(TimerAction.Pause) {

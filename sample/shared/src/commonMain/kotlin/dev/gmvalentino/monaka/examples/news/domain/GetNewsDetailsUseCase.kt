@@ -18,7 +18,7 @@ internal class MockGetNewsDetailsUseCase : GetNewsDetailsUseCase {
                         "Highlights include faster compilation on all targets, improved type inference for generic lambdas, " +
                         "and a new @ExperimentalStdlibApi graduation for several APIs that have been in preview. " +
                         "The release also closes several long-standing issues in the K2 compiler pipeline, " +
-                        "reducing the gap between JVM and Native behaviour in edge cases.",
+                        "reducing the gap between JVM and Native behavior in edge cases.",
             )
 
             2 -> NewsDetails(
