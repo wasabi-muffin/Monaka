@@ -1,7 +1,7 @@
 package dev.gmvalentino.monaka.gradle
 
 import dev.gmvalentino.monaka.gradle.parser.YamlParser
-import dev.gmvalentino.monaka.gradle.write.PumlWriter
+import dev.gmvalentino.monaka.gradle.writer.PumlWriter
 import java.io.File
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
@@ -16,7 +16,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
 @DisableCachingByDefault(because = "outputs may be written to source directories")
-abstract class GenerateStateMachinePumlTask : DefaultTask() {
+abstract class GeneratePumlTask : DefaultTask() {
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)

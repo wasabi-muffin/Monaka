@@ -1,10 +1,11 @@
-package dev.gmvalentino.monaka.gradle.write
+package dev.gmvalentino.monaka.gradle.writer
 
 import dev.gmvalentino.monaka.gradle.model.HandlerModel
 import dev.gmvalentino.monaka.gradle.model.HookModel
 import dev.gmvalentino.monaka.gradle.model.MachineModel
 import dev.gmvalentino.monaka.gradle.model.StateNode
 import dev.gmvalentino.monaka.gradle.model.TaskModel
+import kotlin.collections.iterator
 
 class YamlWriter {
 
@@ -66,7 +67,7 @@ class YamlWriter {
         val pad = "    "
         val transitions = reachableTransitions(hook)
 
-        val hasContent = hook.task != null || transitions.isNotEmpty() || hook.effects.isNotEmpty() || hook.dispatch != null
+        val hasContent = hook.task != null || transitions.isNotEmpty() || hook.effects.isNotEmpty() || hook.dispatches.isNotEmpty()
         if (!hasContent) {
             appendLine("$pad$key: {}")
         } else {
@@ -74,7 +75,7 @@ class YamlWriter {
             hook.task?.let { append(writeTask(it, "$pad  ")) }
             if (transitions.isNotEmpty()) appendLine("$pad  transition: ${inlineList(transitions)}")
             if (hook.effects.isNotEmpty()) appendLine("$pad  effect: ${inlineList(hook.effects)}")
-            hook.dispatch?.let { appendLine("$pad  dispatch: ${inlineList(listOf(it))}") }
+            if (hook.dispatches.isNotEmpty()) appendLine("$pad  dispatch: ${inlineList(hook.dispatches)}")
         }
     }
 
@@ -90,16 +91,15 @@ class YamlWriter {
     // ── Handler ───────────────────────────────────────────────────────────────
 
     private fun writeHandler(name: String, handler: HandlerModel): String = buildString {
-        val pad = "    "
-        val empty = handler.task == null && handler.transitions.isEmpty() && handler.effects.isEmpty() && handler.dispatch == null
+        val empty = handler.task == null && handler.transitions.isEmpty() && handler.effects.isEmpty() && handler.dispatches.isEmpty()
         if (empty) {
-            appendLine("$pad$name: {}")
+            appendLine("$PADDING$name: {}")
         } else {
-            appendLine("$pad$name:")
-            handler.task?.let { append(writeTask(it, "$pad  ")) }
-            if (handler.transitions.isNotEmpty()) appendLine("$pad  transition: ${inlineList(handler.transitions)}")
-            if (handler.effects.isNotEmpty()) appendLine("$pad  effect: ${inlineList(handler.effects)}")
-            handler.dispatch?.let { appendLine("$pad  dispatch: ${inlineList(listOf(it))}") }
+            appendLine("$PADDING$name:")
+            handler.task?.let { append(writeTask(it, "$PADDING  ")) }
+            if (handler.transitions.isNotEmpty()) appendLine("$PADDING  transition: ${inlineList(handler.transitions)}")
+            if (handler.effects.isNotEmpty()) appendLine("$PADDING  effect: ${inlineList(handler.effects)}")
+            if (handler.dispatches.isNotEmpty()) appendLine("$PADDING  dispatch: ${inlineList(handler.dispatches)}")
         }
     }
 
@@ -122,4 +122,8 @@ class YamlWriter {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private fun inlineList(items: List<String>): String = "[ ${items.joinToString(", ")} ]"
+
+    companion object {
+        private const val PADDING = "    "
+    }
 }

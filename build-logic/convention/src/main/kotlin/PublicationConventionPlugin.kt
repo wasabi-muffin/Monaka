@@ -2,7 +2,6 @@ import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
-import org.gradle.plugins.signing.SigningExtension
 
 /**
  * Configures Maven publishing for publishable KMP library modules.

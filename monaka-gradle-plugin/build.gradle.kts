@@ -12,6 +12,8 @@ mavenPublishing {
 
 dependencies {
     compileOnly(gradleApi())
+    implementation(libs.kotlin.compiler.embeddable)
+    implementation(libs.snakeyaml)
     testImplementation(gradleApi())
     testImplementation(kotlin("test"))
 }

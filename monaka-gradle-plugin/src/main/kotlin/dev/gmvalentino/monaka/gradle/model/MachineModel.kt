@@ -19,7 +19,7 @@ data class HookModel(
     val task: TaskModel? = null,
     val effects: List<String> = emptyList(),
     val cancel: String? = null,
-    val dispatch: String? = null,
+    val dispatches: List<String> = emptyList(),
     val transitions: List<String> = emptyList(),
 )
 
@@ -27,7 +27,7 @@ data class HandlerModel(
     val transitions: List<String> = emptyList(),
     val effects: List<String> = emptyList(),
     val reject: Boolean = false,
-    val dispatch: String? = null,
+    val dispatches: List<String> = emptyList(),
     val cancel: String? = null,
     val task: TaskModel? = null,
 )

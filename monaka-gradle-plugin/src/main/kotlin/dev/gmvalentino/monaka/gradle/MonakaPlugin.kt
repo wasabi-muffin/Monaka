@@ -13,7 +13,7 @@ class MonakaPlugin : Plugin<Project> {
 
         target.tasks.register(
             "generateMonakaYaml",
-            GenerateStateMachineYamlTask::class.java,
+            GenerateYamlTask::class.java,
         ) { task ->
             task.group = "monaka"
             task.description = "Generates YAML documentation from stateMachine { } DSL blocks."
@@ -28,7 +28,7 @@ class MonakaPlugin : Plugin<Project> {
 
         target.tasks.register(
             "generateMonakaPuml",
-            GenerateStateMachinePumlTask::class.java,
+            GeneratePumlTask::class.java,
         ) { task ->
             task.group = "monaka"
             task.description = "Generates PlantUML state diagrams from YAML state machine definitions."
@@ -55,7 +55,7 @@ class MonakaPlugin : Plugin<Project> {
 
         target.tasks.register(
             "generateMonakaStubs",
-            GenerateStubsFromYamlTask::class.java,
+            GenerateStubsTask::class.java,
         ) { task ->
             task.group = "monaka"
             task.description = "Generates Kotlin stub files (State, Action, Effect, StateMachine) from YAML definitions."

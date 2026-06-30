@@ -3,26 +3,26 @@ initial: Idle
 states:
   Idle:
     Begin:
-      transition: [ReviewingOrder]
+      transition: [ ReviewingOrder ]
   ReviewingOrder:
     SyncCart:
-      transition: [ReviewingOrder]
+      transition: [ ReviewingOrder ]
     Confirm:
-      transition: [ProcessingPayment]
+      transition: [ ProcessingPayment ]
   ProcessingPayment:
     onEnter:
-      transition: [Done]
+      transition: [ Done ]
     PaymentSucceeded:
-      transition: [Done]
-      effect: [OrderConfirmed]
+      transition: [ Done ]
+      effect: [ OrderConfirmed ]
     PaymentFailed:
-      transition: [PaymentFailed]
-      effect: [ShowPaymentError]
+      transition: [ PaymentFailed ]
+      effect: [ ShowPaymentError ]
     SyncCart:
-      transition: [ProcessingPayment]
+      transition: [ ProcessingPayment ]
   PaymentFailed:
     RetryPayment:
-      transition: [ProcessingPayment]
+      transition: [ ProcessingPayment ]
   CheckoutState:
     Cancel:
-      transition: [Idle]
+      transition: [ Idle ]

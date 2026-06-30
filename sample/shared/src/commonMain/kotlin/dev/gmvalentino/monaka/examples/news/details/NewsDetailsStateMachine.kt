@@ -3,7 +3,6 @@ package dev.gmvalentino.monaka.examples.news.details
 import dev.gmvalentino.monaka.dsl.StateMachine
 import dev.gmvalentino.monaka.dsl.stateMachine
 import dev.gmvalentino.monaka.examples.news.domain.GetNewsDetailsUseCase
-import dev.gmvalentino.monaka.plugin.LoggingPlugin
 
 class NewsDetailsStateMachine(
     getNewsDetailsUseCase: GetNewsDetailsUseCase,
@@ -25,7 +24,7 @@ class NewsDetailsStateMachine(
             onEnter {
                 runCatching { getNewsDetailsUseCase(id = state.id) }.fold(
                     onSuccess = { transition(state.toStable(newsDetails = it)) },
-                    onFailure = { transition(state.toError(error = it)) }
+                    onFailure = { transition(state.toError(error = it)) },
                 )
             }
         }

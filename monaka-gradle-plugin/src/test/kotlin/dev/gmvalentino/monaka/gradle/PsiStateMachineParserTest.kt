@@ -1,16 +1,16 @@
 package dev.gmvalentino.monaka.gradle
 
 import org.junit.Test
-import dev.gmvalentino.monaka.gradle.write.YamlWriter
-import dev.gmvalentino.monaka.gradle.parser.KtSourceParser
+import dev.gmvalentino.monaka.gradle.writer.YamlWriter
+import dev.gmvalentino.monaka.gradle.parser.PsiStateMachineParser
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class KtSourceParserTest {
+class PsiStateMachineParserTest {
 
-    private val parser = KtSourceParser()
+    private val parser = PsiStateMachineParser()
     private val emitter = YamlWriter()
 
     // ── Form 1: explicit type args on stateMachine<S,A,E> { } ────────────────
@@ -394,6 +394,67 @@ class KtSourceParserTest {
 
         assertTrue(yaml.contains("dispatch: [ Validate ]"), "Expected dispatch: [ Validate ] in:\n$yaml")
         assertTrue(yaml.contains("transition: [ Loading ]"))
+    }
+
+    // ── StateMachineBuilder extension functions ───────────────────────────────
+
+    @Test
+    fun `follows StateMachineBuilder extension functions`() {
+        val src = """
+            class CheckoutStateMachine(repo: PaymentRepository)
+                : StateMachine<CheckoutState, CheckoutAction, CheckoutEffect>
+                by stateMachine(builder = {
+                    initialState(CheckoutState.Idle)
+                    handleIdle()
+                    state<CheckoutState.ReviewingOrder> {
+                        on<CheckoutAction.Confirm> { transition(CheckoutState.ProcessingPayment) }
+                    }
+                })
+
+            private fun StateMachineBuilder<CheckoutState, CheckoutAction, CheckoutEffect>.handleIdle() {
+                state<CheckoutState.Idle> {
+                    on<CheckoutAction.Begin> { transition(CheckoutState.ReviewingOrder) }
+                }
+            }
+        """.trimIndent()
+
+        val model = parser.parseFiles(listOf(writeTempFile("Checkout.kt", src))).first().second
+        assertNotNull(model.states["Idle"], "Idle should be present — registered via extracted handleIdle()")
+        assertEquals("ReviewingOrder", model.states["Idle"]?.on?.get("Begin")?.transitions?.firstOrNull())
+        assertNotNull(model.states["ReviewingOrder"])
+        assertEquals("ProcessingPayment", model.states["ReviewingOrder"]?.on?.get("Confirm")?.transitions?.firstOrNull())
+    }
+
+    @Test
+    fun `follows cross-file StateMachineBuilder extension functions`() {
+        val mainSrc = """
+            class OrderStateMachine
+                : StateMachine<OrderState, OrderAction, OrderEffect>
+                by stateMachine(builder = {
+                    initialState(OrderState.Idle)
+                    registerCommonHandlers()
+                    state<OrderState.Placed> {
+                        on<OrderAction.Ship> { transition(OrderState.Shipped) }
+                    }
+                })
+        """.trimIndent()
+
+        val helperSrc = """
+            fun StateMachineBuilder<OrderState, OrderAction, OrderEffect>.registerCommonHandlers() {
+                state<OrderState.Idle> {
+                    on<OrderAction.Place> { transition(OrderState.Placed) }
+                }
+            }
+        """.trimIndent()
+
+        val models = parser.parseFiles(
+            listOf(writeTempFile("Order.kt", mainSrc), writeTempFile("OrderHelpers.kt", helperSrc))
+        ).map { it.second }
+
+        val model = models.first { it.name == "Order" }
+        assertNotNull(model.states["Idle"], "Idle should be present — registered via cross-file extension")
+        assertEquals("Placed", model.states["Idle"]?.on?.get("Place")?.transitions?.firstOrNull())
+        assertNotNull(model.states["Placed"])
     }
 
     // ── Real sample files ─────────────────────────────────────────────────────

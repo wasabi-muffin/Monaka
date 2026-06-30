@@ -1,6 +1,7 @@
-package dev.gmvalentino.monaka.gradle.write
+package dev.gmvalentino.monaka.gradle.writer
 
 import dev.gmvalentino.monaka.gradle.model.*
+import kotlin.collections.iterator
 
 /**
  * Writes a PlantUML state diagram from a [MachineModel].
@@ -142,8 +143,7 @@ class PumlWriter {
                     // (mirrors YamlWriter.reachableTransitions so output is consistent).
                     val targets = reachableTransitions(hook)
                     if (targets.isNotEmpty()) {
-                        val targetStr = if (targets.size == 1) targets.first()
-                                        else targets.joinToString(" | ", "[", "]")
+                        val targetStr = if (targets.size == 1) targets.first() else targets.joinToString(" | ", "[", "]")
                         descLines += "$indent$name : onEnter → $targetStr${formatEffects(hook.effects)}"
                         targets.forEach { arrowLines += "$indent$name -[dashed]-> $it : onEnter" }
                     }
@@ -160,8 +160,7 @@ class PumlWriter {
                 else -> {
                     val targets = reachableTransitions(hook)
                     if (targets.isNotEmpty()) {
-                        val targetStr = if (targets.size == 1) targets.first()
-                                        else targets.joinToString(" | ", "[", "]")
+                        val targetStr = if (targets.size == 1) targets.first() else targets.joinToString(" | ", "[", "]")
                         descLines += "$indent$name : onExit → $targetStr${formatEffects(hook.effects)}"
                         targets.forEach { arrowLines += "$indent$name --> $it : onExit" }
                     }

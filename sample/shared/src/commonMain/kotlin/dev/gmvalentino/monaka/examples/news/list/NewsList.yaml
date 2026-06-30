@@ -3,21 +3,24 @@ initial: Initial
 states:
   Initial:
     LoadInitial:
-      transition: [InitialLoading]
+      transition: [ InitialLoading ]
   InitialLoading:
     onEnter:
-      transition: [Stable.Initial, InitialError]
+      transition: [ Stable.Initial, InitialError ]
   InitialError:
     Error.ClickRetry:
-      transition: [InitialLoading]
+      transition: [ InitialLoading ]
+  Stable:
+    OnUpdateRead:
+      transition: [ Stable ]
   Stable.Initial:
     ClickNews:
-      effect: [NavigateNewsDetails]
+      effect: [ NavigateNewsDetails ]
     ClickReadAll:
-      transition: [Stable.Loading]
+      transition: [ Loading ]
   Stable.Loading:
     onEnter:
-      transition: [Stable.Initial, Stable.Error]
+      transition: [ Initial, Error ]
   Stable.Error:
     Error.ClickOk:
-      transition: [Stable.Initial]
+      transition: [ Initial ]

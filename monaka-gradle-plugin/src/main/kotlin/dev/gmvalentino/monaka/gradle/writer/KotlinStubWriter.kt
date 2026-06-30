@@ -1,7 +1,8 @@
-package dev.gmvalentino.monaka.gradle.write
+package dev.gmvalentino.monaka.gradle.writer
 
 import dev.gmvalentino.monaka.gradle.StubStyle
 import dev.gmvalentino.monaka.gradle.model.*
+import kotlin.collections.iterator
 
 class KotlinStubWriter {
 
@@ -291,7 +292,7 @@ class KotlinStubWriter {
             appendLine("${pad}    transition(${stateTransitionExpr(sourcePath, target, rootName, isSingle, machineName)})")
         }
         hook.effects.forEach { appendLine("${pad}    sideEffect($effectName.$it)") }
-        hook.dispatch?.let { appendLine("${pad}    dispatch($it)") }
+        hook.dispatches.forEach { appendLine("${pad}    dispatch($it)") }
         appendLine("${pad}}")
     }
 
@@ -315,7 +316,7 @@ class KotlinStubWriter {
                 appendLine("$pad    transition(${stateTransitionExpr(sourcePath, target, rootName, isSingle, machineName)})")
             }
             handler.effects.forEach { appendLine("$pad    sideEffect($effectName.$it)") }
-            handler.dispatch?.let { appendLine("$pad    dispatch($actionName.$it)") }
+            handler.dispatches.forEach { appendLine("$pad    dispatch($actionName.$it)") }
         }
         appendLine("$pad}")
     }
