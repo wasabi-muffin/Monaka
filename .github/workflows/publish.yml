@@ -17,7 +17,9 @@ jobs:
       - name: Build, test and API check
         run: ./gradlew build apiCheck
       - name: Publish to MavenCentral
-        run: ./gradlew publishToMavenCentral --no-configuration-cache
+        run: |
+          ./gradlew publishToMavenCentral --no-configuration-cache
+          ./gradlew -p monaka-gradle-plugin publishToMavenCentral --no-configuration-cache
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
