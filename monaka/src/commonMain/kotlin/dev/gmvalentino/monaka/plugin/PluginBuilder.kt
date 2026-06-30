@@ -65,12 +65,12 @@ public class PluginBuilder {
     @PublishedApi internal val onErrorHandlers: MutableList<(Throwable, State, HandlerType<Action>) -> Unit> = mutableListOf()
     private val onRejectedHandlers: MutableList<(State, HandlerType<Action>) -> Unit> = mutableListOf()
 
-    public class ActionScope<out A : Action>(public val currentState: State, public val action: A)
-    public class EffectScope<out E : Effect>(public val effect: E)
-    public class TransitionScope<out S : State>(public val fromState: State, public val toState: S)
-    public class UnhandledScope<out A : Action>(public val currentState: State, public val action: A)
-    public class ErrorScope<out E : Throwable>(public val error: E, public val currentState: State, public val handlerType: HandlerType<Action>)
-    public class RejectedScope(public val currentState: State, public val handlerType: HandlerType<Action>)
+    public class ActionScope<out A : Action> @PublishedApi internal constructor(public val currentState: State, public val action: A)
+    public class EffectScope<out E : Effect> @PublishedApi internal constructor(public val effect: E)
+    public class TransitionScope<out S : State> @PublishedApi internal constructor(public val fromState: State, public val toState: S)
+    public class UnhandledScope<out A : Action> @PublishedApi internal constructor(public val currentState: State, public val action: A)
+    public class ErrorScope<out E : Throwable> @PublishedApi internal constructor(public val error: E, public val currentState: State, public val handlerType: HandlerType<Action>)
+    public class RejectedScope internal constructor(public val currentState: State, public val handlerType: HandlerType<Action>)
 
     /** Register a callback for [Plugin.onAction], fired for every action. */
     public fun onAction(block: ActionScope<Action>.() -> Unit) {

@@ -23,7 +23,7 @@ import dev.gmvalentino.monaka.core.State as StateMarker
  * a `HandlerResult.Transition<SubState, SpecificEffect>` is assignable where a
  * `HandlerResult<ParentState, ParentEffect>` is expected.
  */
-public sealed interface HandlerResult<out State : StateMarker, out Effect : EffectMarker> {
+internal sealed interface HandlerResult<out State : StateMarker, out Effect : EffectMarker> {
 
     /**
      * A successful transition: move to [state] and emit [effects].

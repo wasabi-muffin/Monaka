@@ -169,48 +169,6 @@ public final class dev/gmvalentino/monaka/dsl/StoreFactoryKt {
 	public static synthetic fun store$default (Ljava/lang/String;Lkotlinx/coroutines/CoroutineScope;Ldev/gmvalentino/monaka/core/State;Ljava/util/List;ILkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/gmvalentino/monaka/core/Store;
 }
 
-public abstract interface class dev/gmvalentino/monaka/handler/HandlerResult {
-}
-
-public final class dev/gmvalentino/monaka/handler/HandlerResult$Done : dev/gmvalentino/monaka/handler/HandlerResult {
-	public static final field INSTANCE Ldev/gmvalentino/monaka/handler/HandlerResult$Done;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/gmvalentino/monaka/handler/HandlerResult$Rejected : dev/gmvalentino/monaka/handler/HandlerResult {
-	public static final field INSTANCE Ldev/gmvalentino/monaka/handler/HandlerResult$Rejected;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/gmvalentino/monaka/handler/HandlerResult$SideEffect : dev/gmvalentino/monaka/handler/HandlerResult {
-	public fun <init> (Ljava/util/List;)V
-	public final fun component1 ()Ljava/util/List;
-	public final fun copy (Ljava/util/List;)Ldev/gmvalentino/monaka/handler/HandlerResult$SideEffect;
-	public static synthetic fun copy$default (Ldev/gmvalentino/monaka/handler/HandlerResult$SideEffect;Ljava/util/List;ILjava/lang/Object;)Ldev/gmvalentino/monaka/handler/HandlerResult$SideEffect;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getEffects ()Ljava/util/List;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/gmvalentino/monaka/handler/HandlerResult$Transition : dev/gmvalentino/monaka/handler/HandlerResult {
-	public fun <init> (Ldev/gmvalentino/monaka/core/State;Ljava/util/List;)V
-	public synthetic fun <init> (Ldev/gmvalentino/monaka/core/State;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ldev/gmvalentino/monaka/core/State;
-	public final fun component2 ()Ljava/util/List;
-	public final fun copy (Ldev/gmvalentino/monaka/core/State;Ljava/util/List;)Ldev/gmvalentino/monaka/handler/HandlerResult$Transition;
-	public static synthetic fun copy$default (Ldev/gmvalentino/monaka/handler/HandlerResult$Transition;Ldev/gmvalentino/monaka/core/State;Ljava/util/List;ILjava/lang/Object;)Ldev/gmvalentino/monaka/handler/HandlerResult$Transition;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getEffects ()Ljava/util/List;
-	public final fun getState ()Ldev/gmvalentino/monaka/core/State;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
 public abstract interface class dev/gmvalentino/monaka/handler/HandlerType {
 }
 
@@ -335,7 +293,6 @@ public final class dev/gmvalentino/monaka/plugin/PluginBuilder$ErrorScope {
 }
 
 public final class dev/gmvalentino/monaka/plugin/PluginBuilder$RejectedScope {
-	public fun <init> (Ldev/gmvalentino/monaka/core/State;Ldev/gmvalentino/monaka/handler/HandlerType;)V
 	public final fun getCurrentState ()Ldev/gmvalentino/monaka/core/State;
 	public final fun getHandlerType ()Ldev/gmvalentino/monaka/handler/HandlerType;
 }
@@ -406,7 +363,6 @@ public final class dev/gmvalentino/monaka/runtime/StoreRegistry {
 }
 
 public final class dev/gmvalentino/monaka/runtime/StoreRegistry$PluginScope {
-	public fun <init> (Ldev/gmvalentino/monaka/core/Store;)V
 	public final fun getName ()Ljava/lang/String;
 	public final fun getStore ()Ldev/gmvalentino/monaka/core/Store;
 }

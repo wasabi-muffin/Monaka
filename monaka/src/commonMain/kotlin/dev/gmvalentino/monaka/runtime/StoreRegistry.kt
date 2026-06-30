@@ -107,7 +107,7 @@ public class StoreRegistry(
      *   explicitly set, otherwise [store]'s class simple name, otherwise [Store.id].
      *   Use this rather than [store].[Store.name] directly to get automatic fallback.
      */
-    public class PluginScope(public val store: Store<*, *, *>) {
+    public class PluginScope internal constructor(public val store: Store<*, *, *>) {
         /** The store's explicit name if set, otherwise its class simple name, otherwise its id. */
         public val name: String = store.name.ifEmpty { store::class.simpleName ?: store.id }
     }

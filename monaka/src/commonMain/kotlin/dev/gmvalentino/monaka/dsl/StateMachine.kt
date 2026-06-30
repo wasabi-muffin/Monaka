@@ -1,5 +1,6 @@
 package dev.gmvalentino.monaka.dsl
 
+import dev.gmvalentino.monaka.core.InternalMonakaApi
 import dev.gmvalentino.monaka.core.LifecycleEvent
 import dev.gmvalentino.monaka.handler.ActionHandler
 import dev.gmvalentino.monaka.handler.LifecycleHandler
@@ -41,20 +42,26 @@ public interface StateMachine<State : StateMarker, Action : ActionMarker, Effect
     public val initialState: State?
 
     /** Registered `on<>` handlers, keyed by state class then action class. */
+    @InternalMonakaApi
     public val actionHandlers: Map<KClass<out State>, Map<KClass<out Action>, ActionHandler<State, Action, Effect>>>
 
     /** Hooks registered via `onEnter { }`, keyed by state class. */
+    @InternalMonakaApi
     public val enterHandlers: Map<KClass<out State>, StateChangeHandler<State, Action, Effect>>
 
     /** Hooks registered via `onExit { }`, keyed by state class. */
+    @InternalMonakaApi
     public val exitHandlers: Map<KClass<out State>, StateChangeHandler<State, Action, Effect>>
 
     /** Hooks registered via `onUpdate { }`, keyed by state class. */
+    @InternalMonakaApi
     public val updateHandlers: Map<KClass<out State>, StateUpdateHandler<State, Action, Effect>>
 
     /** Hooks registered via `onResume { }` etc., keyed by state class then lifecycle event. */
+    @InternalMonakaApi
     public val lifecycleHandlers: Map<KClass<out State>, Map<LifecycleEvent, LifecycleHandler<State, Action, Effect>>>
 
     /** Recovery hooks registered via `onError { }`, keyed by state class. */
+    @InternalMonakaApi
     public val errorHandlers: Map<KClass<out State>, StateErrorHandler<State, Action, Effect>>
 }

@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalUuidApi::class)
+@file:OptIn(ExperimentalUuidApi::class, InternalMonakaApi::class)
 
 package dev.gmvalentino.monaka.dsl
 
@@ -14,6 +14,7 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
+import dev.gmvalentino.monaka.core.InternalMonakaApi
 import dev.gmvalentino.monaka.core.State as StateMarker
 
 /**
