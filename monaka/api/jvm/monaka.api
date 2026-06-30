@@ -66,7 +66,7 @@ public abstract interface class dev/gmvalentino/monaka/core/Store {
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun install (Ldev/gmvalentino/monaka/plugin/Plugin;)V
 	public abstract fun invokeOnCompletion (Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/DisposableHandle;
-	public fun isActive ()Z
+	public abstract fun isActive ()Z
 	public fun onLifecycleEvent (Ldev/gmvalentino/monaka/core/LifecycleEvent;)V
 	public fun start ()V
 	public abstract fun stop ()V
@@ -74,7 +74,6 @@ public abstract interface class dev/gmvalentino/monaka/core/Store {
 }
 
 public final class dev/gmvalentino/monaka/core/Store$DefaultImpls {
-	public static fun isActive (Ldev/gmvalentino/monaka/core/Store;)Z
 	public static fun onLifecycleEvent (Ldev/gmvalentino/monaka/core/Store;Ldev/gmvalentino/monaka/core/LifecycleEvent;)V
 	public static fun start (Ldev/gmvalentino/monaka/core/Store;)V
 	public static fun triggerStateHook (Ldev/gmvalentino/monaka/core/Store;Ldev/gmvalentino/monaka/core/StateHook;)V
@@ -360,6 +359,11 @@ public final class dev/gmvalentino/monaka/plugin/PluginBuilderKt {
 public abstract interface class dev/gmvalentino/monaka/relay/Relay {
 	public abstract fun apply (Ldev/gmvalentino/monaka/core/Store;Ldev/gmvalentino/monaka/runtime/StoreRegistry;Lkotlinx/coroutines/CoroutineScope;)Ljava/util/List;
 	public abstract fun getSource ()Lkotlin/reflect/KClass;
+	public fun getTargets ()Ljava/util/Set;
+}
+
+public final class dev/gmvalentino/monaka/relay/Relay$DefaultImpls {
+	public static fun getTargets (Ldev/gmvalentino/monaka/relay/Relay;)Ljava/util/Set;
 }
 
 public final class dev/gmvalentino/monaka/relay/RelayBuilder {
@@ -367,6 +371,7 @@ public final class dev/gmvalentino/monaka/relay/RelayBuilder {
 	public final fun build (Lkotlin/reflect/KClass;)Ldev/gmvalentino/monaka/relay/Relay;
 	public final fun getActionHandlers ()Ljava/util/List;
 	public final fun getEffectHandlers ()Ljava/util/List;
+	public final fun getObservedTargets ()Ljava/util/Set;
 	public final fun getStateHandlers ()Ljava/util/List;
 }
 
@@ -375,7 +380,8 @@ public final class dev/gmvalentino/monaka/relay/RelayFactoryKt {
 }
 
 public final class dev/gmvalentino/monaka/relay/RelayScope {
-	public fun <init> (Ljava/lang/Object;Ldev/gmvalentino/monaka/runtime/StoreRegistry;)V
+	public fun <init> (Ljava/lang/Object;Ldev/gmvalentino/monaka/runtime/StoreRegistry;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Ljava/lang/Object;Ldev/gmvalentino/monaka/runtime/StoreRegistry;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun dispatch (Lkotlin/reflect/KClass;Ldev/gmvalentino/monaka/core/Action;Ljava/lang/String;)V
 	public static synthetic fun dispatch$default (Ldev/gmvalentino/monaka/relay/RelayScope;Lkotlin/reflect/KClass;Ldev/gmvalentino/monaka/core/Action;Ljava/lang/String;ILjava/lang/Object;)V
 	public final fun getEvent ()Ljava/lang/Object;

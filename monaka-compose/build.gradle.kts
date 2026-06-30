@@ -5,6 +5,14 @@ plugins {
     alias(libs.plugins.monaka.publication)
 }
 
+mavenPublishing {
+    pom {
+        description.set(
+            "Compose Multiplatform helpers for Monaka: rememberStore, toViewStore, handleEffects, render, and lifecycle binding.",
+        )
+    }
+}
+
 kotlin {
     android {
         namespace = "dev.gmvalentino.monaka.compose"
@@ -14,10 +22,8 @@ kotlin {
 
     jvm()
 
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64(),
-    )
+    iosArm64()
+    iosSimulatorArm64()
 
     sourceSets {
         commonMain.dependencies {
@@ -28,6 +34,16 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(libs.kotlinx.coroutines.android)
+        }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
+        // Compose UI tests run on the JVM (desktop) target only — they need the
+        // host Skia renderer (compose.desktop.currentOs), which the plain jvm()
+        // KMP target does not pull in on its own.
+        jvmTest.dependencies {
+            implementation(libs.compose.ui.test)
+            implementation(compose.desktop.currentOs)
         }
     }
 }
