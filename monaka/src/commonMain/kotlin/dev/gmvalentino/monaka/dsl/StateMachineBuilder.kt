@@ -2,6 +2,7 @@
 
 package dev.gmvalentino.monaka.dsl
 
+import dev.gmvalentino.monaka.core.InternalMonakaApi
 import dev.gmvalentino.monaka.core.LifecycleEvent
 import dev.gmvalentino.monaka.handler.ActionHandler
 import dev.gmvalentino.monaka.handler.LifecycleHandler
@@ -14,7 +15,6 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
-import dev.gmvalentino.monaka.core.InternalMonakaApi
 import dev.gmvalentino.monaka.core.State as StateMarker
 
 /**

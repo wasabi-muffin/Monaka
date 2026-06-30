@@ -3,6 +3,7 @@
 package dev.gmvalentino.monaka.dsl
 
 import dev.gmvalentino.monaka.core.DEFAULT_BUFFER_CAPACITY
+import dev.gmvalentino.monaka.core.InternalMonakaApi
 import dev.gmvalentino.monaka.core.Store
 import dev.gmvalentino.monaka.plugin.Plugin
 import dev.gmvalentino.monaka.runtime.DefaultStore
@@ -10,7 +11,6 @@ import dev.gmvalentino.monaka.runtime.defaultCoroutineScope
 import kotlinx.coroutines.CoroutineScope
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
-import dev.gmvalentino.monaka.core.InternalMonakaApi
 import dev.gmvalentino.monaka.core.State as StateMarker
 
 /**
