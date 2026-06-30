@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Questions & discussions
+    url: https://github.com/wasabi-muffin/Monaka/discussions
+    about: Ask questions, share ideas, and discuss usage. Please don't open an issue for support questions.
+  - name: 📚 Documentation
+    url: https://monaka.gmvalentino.dev
+    about: Read the full guide before filing an issue.
+  - name: 🔒 Report a security vulnerability
+    url: https://github.com/wasabi-muffin/Monaka/security/advisories/new
+    about: Please report security issues privately — do not open a public issue.
