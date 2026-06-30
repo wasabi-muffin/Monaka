@@ -15,6 +15,7 @@ package dev.gmvalentino.monaka.core
 public sealed interface StateHook<out S> {
     /** Trigger the `onEnter` hook for the current state. */
     public data object OnEnter : StateHook<Nothing>
+
     /** Trigger the `onExit` hook for the current state. */
     public data object OnExit : StateHook<Nothing>
 

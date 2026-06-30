@@ -1,12 +1,12 @@
 package dev.gmvalentino.monaka.relay
 
+import dev.gmvalentino.monaka.core.Store
+import dev.gmvalentino.monaka.dsl.MonakaDsl
+import dev.gmvalentino.monaka.runtime.StoreRegistry
 import kotlin.reflect.KClass
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.State as StateMarker
-import dev.gmvalentino.monaka.core.Store
-import dev.gmvalentino.monaka.dsl.MonakaDsl
-import dev.gmvalentino.monaka.runtime.StoreRegistry
 
 /**
  * Builder for [Relay]. Configure which source events should be relayed to other stores.
@@ -99,6 +99,5 @@ public class RelayBuilder<SourceState : StateMarker, SourceAction : ActionMarker
      * runs all of them in order, or returns `null` when the list is empty (so no collector
      * coroutine is launched for that channel).
      */
-    private fun <Source> List<(Source, StoreRegistry) -> Unit>.mergeOrNull(): ((Source, StoreRegistry) -> Unit)? =
-        if (isEmpty()) null else { event, registry -> forEach { handler -> handler(event, registry) } }
+    private fun <Source> List<(Source, StoreRegistry) -> Unit>.mergeOrNull(): ((Source, StoreRegistry) -> Unit)? = if (isEmpty()) null else { event, registry -> forEach { handler -> handler(event, registry) } }
 }

@@ -1,12 +1,12 @@
 package dev.gmvalentino.monaka.test
 
+import dev.gmvalentino.monaka.core.Store
+import dev.gmvalentino.monaka.dsl.StateMachine
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.State as StateMarker
-import dev.gmvalentino.monaka.core.Store
-import dev.gmvalentino.monaka.dsl.StateMachine
 
 /**
  * Run one or more test cases against [machine].

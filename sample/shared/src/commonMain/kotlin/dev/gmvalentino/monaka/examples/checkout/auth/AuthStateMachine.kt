@@ -3,7 +3,6 @@ package dev.gmvalentino.monaka.examples.checkout.auth
 import dev.gmvalentino.monaka.dsl.StateMachine
 import dev.gmvalentino.monaka.dsl.stateMachine
 import dev.gmvalentino.monaka.examples.checkout.data.AuthRepository
-import dev.gmvalentino.monaka.plugin.LoggingPlugin
 
 class AuthStateMachine(
     authRepository: AuthRepository,

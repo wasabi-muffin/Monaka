@@ -81,9 +81,9 @@ class TaskTest {
         store.state.test {
             awaitItem() // Idle
             store.dispatch(TAction.Debounce) // starts first job (delay 200 from T=0)
-            delay(100)                        // T=100ms — first job still running
+            delay(100) // T=100ms — first job still running
             store.dispatch(TAction.Debounce) // cancels first, starts second (delay 200 from T=100)
-            delay(201)                        // T=301ms — second job completes
+            delay(201) // T=301ms — second job completes
             assertEquals(TState.Done, awaitItem())
             cancelAndIgnoreRemainingEvents()
         }

@@ -1,11 +1,11 @@
 package dev.gmvalentino.monaka.scopes
 
+import dev.gmvalentino.monaka.dsl.MonakaDsl
+import dev.gmvalentino.monaka.runtime.JobRegistry
 import kotlinx.coroutines.CoroutineScope
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.State as StateMarker
-import dev.gmvalentino.monaka.dsl.MonakaDsl
-import dev.gmvalentino.monaka.runtime.JobRegistry
 
 /**
  * Implicit receiver available inside application lifecycle hooks

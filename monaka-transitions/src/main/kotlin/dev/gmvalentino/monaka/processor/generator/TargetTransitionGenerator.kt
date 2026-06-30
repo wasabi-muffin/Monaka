@@ -110,7 +110,7 @@ internal object TargetTransitionGenerator {
      *   MyUiState.Loading → MyUiState.Stable        :  toStable          (flat, unchanged)
      */
     private fun buildFunctionName(source: KSClassDeclaration, target: KSClassDeclaration): String {
-        val sourceParents = source.enclosingChain()          // e.g. ["AppState"] for AppState.Loading
+        val sourceParents = source.enclosingChain() // e.g. ["AppState"] for AppState.Loading
         val targetChain = target.enclosingChain() + target.simpleName.asString() // e.g. ["AppState","Auth","SigningIn"]
         val prefixLen = sourceParents.zip(targetChain).takeWhile { (a, b) -> a == b }.size
         val nameParts = targetChain.drop(prefixLen)

@@ -1,7 +1,7 @@
 package dev.gmvalentino.monaka.examples.checkout.data
 
-import kotlinx.coroutines.delay
 import dev.gmvalentino.monaka.examples.checkout.data.User
+import kotlinx.coroutines.delay
 
 interface AuthRepository {
     suspend fun signIn(username: String, password: String): User

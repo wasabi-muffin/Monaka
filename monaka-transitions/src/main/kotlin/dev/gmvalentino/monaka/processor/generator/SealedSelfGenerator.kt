@@ -119,10 +119,12 @@ internal object SealedSelfGenerator {
             .toList()
 
         val sharedArgs = sharedProps.joinToString(", ") { prop ->
-            val n = prop.simpleName.asString(); "$n = $n"
+            val n = prop.simpleName.asString()
+            "$n = $n"
         }
         val ownArgs = ownProps.joinToString(", ") { prop ->
-            val n = prop.simpleName.asString(); "$n = this.$n"
+            val n = prop.simpleName.asString()
+            "$n = this.$n"
         }
         val allArgs = listOfNotNull(sharedArgs.ifEmpty { null }, ownArgs.ifEmpty { null })
             .joinToString(", ")

@@ -26,7 +26,7 @@ public typealias Handler<Scope> = suspend Scope.() -> Unit
  * (keyed on the exact runtime class of state and action).
  */
 internal typealias ActionHandler<State, Action, Effect> =
-        suspend ActionScope<State, Action, Effect, State, Action>.() -> Unit
+    suspend ActionScope<State, Action, Effect, State, Action>.() -> Unit
 
 /**
  * Type-erased state change hook stored in the hook registries.
@@ -36,7 +36,7 @@ internal typealias ActionHandler<State, Action, Effect> =
  * the exact runtime class of the state).
  */
 internal typealias StateChangeHandler<State, Action, Effect> =
-        suspend StateChangeScope<State, Action, Effect, State>.() -> Unit
+    suspend StateChangeScope<State, Action, Effect, State>.() -> Unit
 
 /**
  * Type-erased *update* hook — fired when the state value changes but its type does not.
@@ -44,7 +44,7 @@ internal typealias StateChangeHandler<State, Action, Effect> =
  * Receives both the old and new states, erased to [Any].
  */
 internal typealias StateUpdateHandler<State, Action, Effect> =
-        suspend StateUpdateScope<State, Action, Effect, State>.() -> Unit
+    suspend StateUpdateScope<State, Action, Effect, State>.() -> Unit
 
 /**
  * Type-erased lifecycle event hook — fired when an application
@@ -52,7 +52,7 @@ internal typealias StateUpdateHandler<State, Action, Effect> =
  * in the registered state.
  */
 internal typealias LifecycleHandler<State, Action, Effect> =
-        suspend LifecycleScope<State, Action, Effect, State>.() -> Unit
+    suspend LifecycleScope<State, Action, Effect, State>.() -> Unit
 
 /**
  * Type-erased error recovery hook — fired when any handler or hook throws an exception
@@ -62,4 +62,4 @@ internal typealias LifecycleHandler<State, Action, Effect> =
  * user-defined error handler type names in import lists.
  */
 internal typealias StateErrorHandler<State, Action, Effect> =
-        suspend ErrorScope<State, Action, Effect, State>.() -> Unit
+    suspend ErrorScope<State, Action, Effect, State>.() -> Unit

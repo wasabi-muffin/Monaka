@@ -4,11 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import dev.gmvalentino.monaka.core.Store
 import kotlinx.coroutines.CoroutineScope
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.State as StateMarker
-import dev.gmvalentino.monaka.core.Store
 
 /**
  * Create a [Store] tied to this composable's lifetime — built once via [factory] and

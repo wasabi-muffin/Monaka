@@ -1,6 +1,10 @@
 package dev.gmvalentino.monaka.gradle.writer
 
-import dev.gmvalentino.monaka.gradle.model.*
+import dev.gmvalentino.monaka.gradle.model.HandlerModel
+import dev.gmvalentino.monaka.gradle.model.HookModel
+import dev.gmvalentino.monaka.gradle.model.MachineModel
+import dev.gmvalentino.monaka.gradle.model.StateNode
+import dev.gmvalentino.monaka.gradle.model.TaskModel
 import kotlin.collections.iterator
 
 /**
@@ -122,7 +126,7 @@ class PumlWriter {
             appendLine()
             appendLine("$indent  state \"${phantom.substringAfterLast(".")}\" as $phantom")
         }
-        appendLine("${indent}}")
+        appendLine("$indent}")
     }
 
     // ── Per-state lines ───────────────────────────────────────────────────────
@@ -240,8 +244,7 @@ class PumlWriter {
         }
     }
 
-    private fun formatEffects(effects: List<String>): String =
-        if (effects.isEmpty()) "" else " ◆ ${effects.joinToString(", ")}"
+    private fun formatEffects(effects: List<String>): String = if (effects.isEmpty()) "" else " ◆ ${effects.joinToString(", ")}"
 
     private fun formatTask(task: TaskModel): String {
         val key = task.key ?: ""

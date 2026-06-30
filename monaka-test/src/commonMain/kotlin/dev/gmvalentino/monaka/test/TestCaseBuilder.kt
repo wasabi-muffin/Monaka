@@ -4,21 +4,21 @@ package dev.gmvalentino.monaka.test
 
 import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.testIn
-import kotlin.time.Duration
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.TestScope
-import dev.gmvalentino.monaka.core.Action as ActionMarker
-import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.LifecycleEvent
-import dev.gmvalentino.monaka.core.State as StateMarker
 import dev.gmvalentino.monaka.core.StateHook
 import dev.gmvalentino.monaka.core.Store
 import dev.gmvalentino.monaka.dsl.StateMachine
 import dev.gmvalentino.monaka.dsl.store
 import dev.gmvalentino.monaka.plugin.Plugin
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlin.time.Duration
+import dev.gmvalentino.monaka.core.Action as ActionMarker
+import dev.gmvalentino.monaka.core.Effect as EffectMarker
+import dev.gmvalentino.monaka.core.State as StateMarker
 
 @MonakaTestDsl
 public class TestCaseBuilder<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> internal constructor(

@@ -1,13 +1,13 @@
 package dev.gmvalentino.monaka.relay
 
-import kotlin.reflect.KClass
+import dev.gmvalentino.monaka.core.Store
+import dev.gmvalentino.monaka.runtime.StoreRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlin.reflect.KClass
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.State as StateMarker
-import dev.gmvalentino.monaka.core.Store
-import dev.gmvalentino.monaka.runtime.StoreRegistry
 
 /**
  * Observes a single source store class and relays its state changes, effects, and/or

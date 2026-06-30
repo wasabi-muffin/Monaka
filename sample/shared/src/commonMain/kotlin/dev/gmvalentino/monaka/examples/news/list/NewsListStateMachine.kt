@@ -4,7 +4,6 @@ import dev.gmvalentino.monaka.dsl.StateMachine
 import dev.gmvalentino.monaka.dsl.stateMachine
 import dev.gmvalentino.monaka.examples.news.domain.GetNewsListUseCase
 import dev.gmvalentino.monaka.examples.news.domain.MarkAllNewsAsReadUseCase
-import dev.gmvalentino.monaka.plugin.LoggingPlugin
 
 class NewsListStateMachine(
     getNewsListUseCase: GetNewsListUseCase,
@@ -23,7 +22,7 @@ class NewsListStateMachine(
             onEnter {
                 runCatching { getNewsListUseCase() }.fold(
                     onSuccess = { transition(state.toStableInitial(newsList = it)) },
-                    onFailure = { transition(state.toInitialError(error = it)) }
+                    onFailure = { transition(state.toInitialError(error = it)) },
                 )
             }
         }
@@ -53,7 +52,7 @@ class NewsListStateMachine(
             onEnter {
                 runCatching { markAllNewsAsReadUseCase() }.fold(
                     onSuccess = { transition(state.toInitial(newsList = state.newsList.map { it.copy(isRead = true) })) },
-                    onFailure = { transition(state.toError(error = it)) }
+                    onFailure = { transition(state.toError(error = it)) },
                 )
             }
         }
@@ -63,5 +62,5 @@ class NewsListStateMachine(
                 transition(state.toInitial())
             }
         }
-    }
+    },
 )

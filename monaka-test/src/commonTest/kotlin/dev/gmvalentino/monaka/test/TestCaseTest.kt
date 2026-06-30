@@ -1,11 +1,11 @@
 package dev.gmvalentino.monaka.test
 
-import kotlin.test.Test
 import dev.gmvalentino.monaka.core.Action
 import dev.gmvalentino.monaka.core.Effect
 import dev.gmvalentino.monaka.core.LifecycleEvent
 import dev.gmvalentino.monaka.core.State
 import dev.gmvalentino.monaka.dsl.stateMachine
+import kotlin.test.Test
 
 private sealed interface CounterState : State {
     data object Idle : CounterState
@@ -61,7 +61,6 @@ class TestCaseTest {
                 expectState<CounterState.Counting> { state.count == 1 }
                 expectNoEffects()
             }
-
         }
     }
 
@@ -76,7 +75,6 @@ class TestCaseTest {
                 expectState<CounterState.Counting> { state.count == 1 }
                 expectState<CounterState.Counting> { state.count == 2 }
             }
-
         }
     }
 
@@ -89,7 +87,6 @@ class TestCaseTest {
                 expectState<CounterState.Paused>()
                 expectEffect(CounterEffect.Persisted)
             }
-
         }
     }
 

@@ -34,7 +34,7 @@ fun App() {
                 onBack = { if (backStack.size > 1) backStack.removeLastOrNull() },
                 entryDecorators = listOf(
                     rememberSaveableStateHolderNavEntryDecorator(),
-                    rememberViewModelStoreNavEntryDecorator(viewModelStoreOwner = checkNotNull(LocalViewModelStoreOwner.current))
+                    rememberViewModelStoreNavEntryDecorator(viewModelStoreOwner = checkNotNull(LocalViewModelStoreOwner.current)),
                 ),
                 entryProvider = entryProvider {
                     entry<Screen.Home> {

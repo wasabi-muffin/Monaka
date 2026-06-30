@@ -73,6 +73,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().con
 
 monakaYamlGenerator {
     sources.from(
-        kotlin.sourceSets["commonMain"].kotlin.srcDirs
+        kotlin.sourceSets["commonMain"].kotlin.srcDirs,
     )
 }

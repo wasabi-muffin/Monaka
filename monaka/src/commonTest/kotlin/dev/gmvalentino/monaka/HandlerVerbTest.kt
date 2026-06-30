@@ -55,7 +55,7 @@ class HandlerVerbTest {
         val effects = mutableListOf<VEffect>()
         val store = store<VState, VAction, VEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onEffect { effects += effect as VEffect } })
+            plugins = listOf(plugin { onEffect { effects += effect as VEffect } }),
         ) {
             initialState(VState.Idle)
             state<VState.Idle> {
@@ -82,7 +82,7 @@ class HandlerVerbTest {
             state<VState.Idle> {
                 on<VAction.Go> {
                     transition(VState.Active) // first call wins
-                    transition(VState.Idle)   // must be ignored
+                    transition(VState.Idle) // must be ignored
                 }
             }
         }
@@ -99,14 +99,14 @@ class HandlerVerbTest {
         val effects = mutableListOf<VEffect>()
         val store = store<VState, VAction, VEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onEffect { effects += effect as VEffect } })
+            plugins = listOf(plugin { onEffect { effects += effect as VEffect } }),
         ) {
             initialState(VState.Idle)
             state<VState.Idle> {
                 on<VAction.Go> {
                     guard { false }
                     transition(VState.Active) // blocked
-                    sideEffect(VEffect.Ping)  // blocked
+                    sideEffect(VEffect.Ping) // blocked
                 }
             }
         }
@@ -125,7 +125,7 @@ class HandlerVerbTest {
         val effects = mutableListOf<VEffect>()
         val store = store<VState, VAction, VEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onEffect { effects += effect as VEffect } })
+            plugins = listOf(plugin { onEffect { effects += effect as VEffect } }),
         ) {
             initialState(VState.Idle)
             state<VState.Idle> {
@@ -133,7 +133,7 @@ class HandlerVerbTest {
                     sideEffect(VEffect.Ping) // recorded before guard
                     guard { false }
                     sideEffect(VEffect.Pong) // blocked
-                    transition(VState.Active)  // blocked
+                    transition(VState.Active) // blocked
                 }
             }
         }
@@ -152,7 +152,7 @@ class HandlerVerbTest {
         val effects = mutableListOf<VEffect>()
         val store = store<VState, VAction, VEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onEffect { effects += effect as VEffect } })
+            plugins = listOf(plugin { onEffect { effects += effect as VEffect } }),
         ) {
             initialState(VState.Idle)
             state<VState.Idle> {
@@ -177,15 +177,15 @@ class HandlerVerbTest {
         val effects = mutableListOf<VEffect>()
         val store = store<VState, VAction, VEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onEffect { effects += effect as VEffect } })
+            plugins = listOf(plugin { onEffect { effects += effect as VEffect } }),
         ) {
             initialState(VState.Idle)
             state<VState.Idle> {
                 on<VAction.Go> {
                     sideEffect(VEffect.Ping) // recorded before guard
-                    guard { false }          // guard fails → guarded = true
-                    reject()                 // no-op: guarded takes precedence
-                    transition(VState.Active)  // no-op: guarded
+                    guard { false } // guard fails → guarded = true
+                    reject() // no-op: guarded takes precedence
+                    transition(VState.Active) // no-op: guarded
                 }
             }
         }

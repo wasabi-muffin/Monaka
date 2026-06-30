@@ -1,6 +1,10 @@
 package dev.gmvalentino.monaka.gradle.parser
 
-import dev.gmvalentino.monaka.gradle.model.*
+import dev.gmvalentino.monaka.gradle.model.HandlerModel
+import dev.gmvalentino.monaka.gradle.model.HookModel
+import dev.gmvalentino.monaka.gradle.model.MachineModel
+import dev.gmvalentino.monaka.gradle.model.StateNode
+import dev.gmvalentino.monaka.gradle.model.TaskModel
 import org.yaml.snakeyaml.Yaml
 
 /**
@@ -14,6 +18,7 @@ class YamlParser {
         val root = Yaml().load<Map<String, Any?>>(content) ?: return MachineModel("", "")
         val name = root["name"] as? String ?: ""
         val initial = root["initial"] as? String ?: ""
+
         @Suppress("UNCHECKED_CAST")
         val statesRaw = root["states"] as? Map<String, Any?> ?: emptyMap()
         val states = statesRaw.mapValues { (_, v) -> parseStateNode(v) }
@@ -87,12 +92,16 @@ class YamlParser {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     @Suppress("UNCHECKED_CAST")
-    private fun stringList(value: Any?): List<String> =
-        (value as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+    private fun stringList(value: Any?): List<String> = (value as? List<*>)?.filterIsInstance<String>() ?: emptyList()
 
     companion object {
         private val LIFECYCLE_EVENTS = setOf(
-            "onResume", "onPause", "onStart", "onStop", "onCreate", "onDestroy",
+            "onResume",
+            "onPause",
+            "onStart",
+            "onStop",
+            "onCreate",
+            "onDestroy",
         )
     }
 }

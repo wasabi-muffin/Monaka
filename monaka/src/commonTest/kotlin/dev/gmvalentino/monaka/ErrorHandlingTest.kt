@@ -39,8 +39,13 @@ class ErrorHandlingTest {
         val store = store<EState, EAction, EEffect>(
             scope = backgroundScope,
             plugins = listOf(
-                plugin { onError { caughtError = error; errorState = currentState } }
-            )
+                plugin {
+                    onError {
+                        caughtError = error
+                        errorState = currentState
+                    }
+                },
+            ),
         ) {
             initialState(EState.Idle)
             state<EState.Idle> {
@@ -81,7 +86,7 @@ class ErrorHandlingTest {
         val effects = mutableListOf<EEffect>()
         val store = store<EState, EAction, EEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onEffect { effects += effect as EEffect } })
+            plugins = listOf(plugin { onEffect { effects += effect as EEffect } }),
         ) {
             initialState(EState.Idle)
             state<EState.Idle> {
@@ -104,7 +109,7 @@ class ErrorHandlingTest {
         var pluginError: Throwable? = null
         val store = store<EState, EAction, EEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onError { pluginError = error } })
+            plugins = listOf(plugin { onError { pluginError = error } }),
         ) {
             initialState(EState.Idle)
             state<EState.Idle> {
@@ -131,8 +136,13 @@ class ErrorHandlingTest {
             scope = backgroundScope,
             initializer = { throw BoomException() },
             plugins = listOf(
-                plugin { onError { restoreError = error; restoreHandlerType = handlerType } }
-            )
+                plugin {
+                    onError {
+                        restoreError = error
+                        restoreHandlerType = handlerType
+                    }
+                },
+            ),
         ) {
             initialState(EState.Idle)
         }
@@ -150,7 +160,7 @@ class ErrorHandlingTest {
     fun initializer_succeeds_overridesInitialState() = runTest {
         val store = store<EState, EAction, EEffect>(
             scope = backgroundScope,
-            initializer = { EState.Active }
+            initializer = { EState.Active },
         ) {
             initialState(EState.Idle)
         }

@@ -64,7 +64,7 @@ class StoreTest {
         val effects = mutableListOf<SEffect>()
         val store = store<SState, SAction, SEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onEffect { effects += effect as SEffect } })
+            plugins = listOf(plugin { onEffect { effects += effect as SEffect } }),
         ) {
             initialState(SState.Idle)
             state<SState.Idle> {
@@ -86,7 +86,7 @@ class StoreTest {
         val effects = mutableListOf<SEffect>()
         val store = store<SState, SAction, SEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onEffect { effects += effect as SEffect } })
+            plugins = listOf(plugin { onEffect { effects += effect as SEffect } }),
         ) {
             initialState(SState.Idle)
             state<SState.Idle> {
@@ -110,7 +110,7 @@ class StoreTest {
         val effects = mutableListOf<SEffect>()
         val store = store<SState, SAction, SEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onEffect { effects += effect as SEffect } })
+            plugins = listOf(plugin { onEffect { effects += effect as SEffect } }),
         ) {
             initialState(SState.Idle)
             state<SState.Idle> {
@@ -131,7 +131,7 @@ class StoreTest {
         val effects = mutableListOf<SEffect>()
         val store = store<SState, SAction, SEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onEffect { effects += effect as SEffect } })
+            plugins = listOf(plugin { onEffect { effects += effect as SEffect } }),
         ) {
             initialState(SState.Idle)
             state<SState.Idle> {

@@ -1,7 +1,7 @@
 package dev.gmvalentino.monaka.examples.livefeed
 
-import kotlinx.coroutines.delay
 import dev.gmvalentino.monaka.ext.nowMs
+import kotlinx.coroutines.delay
 
 interface FeedRepository {
     suspend fun search(query: String): List<FeedItem>

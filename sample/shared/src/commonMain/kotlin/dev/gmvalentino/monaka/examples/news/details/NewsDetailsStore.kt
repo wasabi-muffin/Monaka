@@ -11,5 +11,5 @@ class NewsDetailsStore(
 ) : Store<NewsDetailsState, NewsDetailsAction, NewsDetailsEffect> by store(
     stateMachine = stateMachine,
     initialState = initialState,
-    scope = scope
+    scope = scope,
 )

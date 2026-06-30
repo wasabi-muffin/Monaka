@@ -1,7 +1,6 @@
 package dev.gmvalentino.monaka
 
 import app.cash.turbine.test
-import app.cash.turbine.turbineScope
 import dev.gmvalentino.monaka.core.Action
 import dev.gmvalentino.monaka.core.Effect
 import dev.gmvalentino.monaka.core.State
@@ -37,7 +36,7 @@ class PluginTest {
         val events = mutableListOf<String>()
         val store = store<PState, PAction, PEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onAction { events += "plugin-action" } })
+            plugins = listOf(plugin { onAction { events += "plugin-action" } }),
         ) {
             initialState(PState.Idle)
             state<PState.Idle> {
@@ -63,7 +62,14 @@ class PluginTest {
         var toState: dev.gmvalentino.monaka.core.State? = null
         val store = store<PState, PAction, PEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onTransition { fromState = this.fromState; toState = this.toState } })
+            plugins = listOf(
+                plugin {
+                    onTransition {
+                        fromState = this.fromState
+                        toState = this.toState
+                    }
+                },
+            ),
         ) {
             initialState(PState.Idle)
             state<PState.Idle> {
@@ -85,7 +91,7 @@ class PluginTest {
         var transitionFired = false
         val store = store<PState, PAction, PEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onTransition { transitionFired = true } })
+            plugins = listOf(plugin { onTransition { transitionFired = true } }),
         ) {
             initialState(PState.Idle)
             state<PState.Idle> {
@@ -106,7 +112,7 @@ class PluginTest {
         val capturedEffects = mutableListOf<PEffect>()
         val store = store<PState, PAction, PEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onEffect { capturedEffects += effect as PEffect } })
+            plugins = listOf(plugin { onEffect { capturedEffects += effect as PEffect } }),
         ) {
             initialState(PState.Idle)
             state<PState.Idle> {
@@ -127,7 +133,7 @@ class PluginTest {
         var unhandledAction: PAction? = null
         val store = store<PState, PAction, PEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onUnhandled { unhandledAction = action as PAction } })
+            plugins = listOf(plugin { onUnhandled { unhandledAction = action as PAction } }),
         ) {
             initialState(PState.Idle)
             // no handler for Unknown
@@ -146,7 +152,7 @@ class PluginTest {
         var rejectedHandlerType: HandlerType<*>? = null
         val store = store<PState, PAction, PEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onRejected { rejectedHandlerType = handlerType } })
+            plugins = listOf(plugin { onRejected { rejectedHandlerType = handlerType } }),
         ) {
             initialState(PState.Idle)
             state<PState.Idle> {
@@ -169,7 +175,7 @@ class PluginTest {
         var caughtError: Throwable? = null
         val store = store<PState, PAction, PEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onError { caughtError = error } })
+            plugins = listOf(plugin { onError { caughtError = error } }),
         ) {
             initialState(PState.Idle)
             state<PState.Idle> {
@@ -237,8 +243,8 @@ class PluginTest {
         val store = store<PState, PAction, PEffect>(
             scope = backgroundScope,
             plugins = listOf(
-                plugin { onAction<PAction.Go> { captured += action } }
-            )
+                plugin { onAction<PAction.Go> { captured += action } },
+            ),
         ) {
             initialState(PState.Idle)
             state<PState.Idle> {
@@ -250,7 +256,7 @@ class PluginTest {
             awaitItem()
             store.dispatch(PAction.Unknown) // must NOT trigger typed plugin
             delay(1)
-            store.dispatch(PAction.Go)      // must trigger typed plugin
+            store.dispatch(PAction.Go) // must trigger typed plugin
             delay(1)
             cancelAndIgnoreRemainingEvents()
         }

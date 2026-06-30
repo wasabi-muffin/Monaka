@@ -15,9 +15,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlin.test.assertFailsWith
 
 // ── Source store (one-shot: Idle → Active) ────────────────────────────────────
 
@@ -25,7 +25,9 @@ private sealed interface SrcState : State {
     data object Idle : SrcState
     data object Active : SrcState
 }
-private sealed interface SrcAction : Action { data object Go : SrcAction }
+private sealed interface SrcAction : Action {
+    data object Go : SrcAction
+}
 private sealed interface SrcEffect : Effect
 
 private val srcMachine = stateMachine<SrcState, SrcAction, SrcEffect> {
@@ -35,7 +37,8 @@ private val srcMachine = stateMachine<SrcState, SrcAction, SrcEffect> {
     }
 }
 
-private class SourceStore(scope: CoroutineScope) : Store<SrcState, SrcAction, SrcEffect>
+private class SourceStore(scope: CoroutineScope) :
+    Store<SrcState, SrcAction, SrcEffect>
     by store(stateMachine = srcMachine, scope = scope)
 
 // ── Cyclic source store (Off ↔ On) — used by relay lifecycle tests.
@@ -45,15 +48,21 @@ private sealed interface CycState : State {
     data object Off : CycState
     data object On : CycState
 }
-private sealed interface CycAction : Action { data object Toggle : CycAction }
+private sealed interface CycAction : Action {
+    data object Toggle : CycAction
+}
 private sealed interface CycEffect : Effect
 
-private class CyclicStore(scope: CoroutineScope) : Store<CycState, CycAction, CycEffect>
-    by store(stateMachine = stateMachine {
-        initialState(CycState.Off)
-        state<CycState.Off> { on<CycAction.Toggle> { transition(CycState.On) } }
-        state<CycState.On>  { on<CycAction.Toggle> { transition(CycState.Off) } }
-    }, scope = scope)
+private class CyclicStore(scope: CoroutineScope) :
+    Store<CycState, CycAction, CycEffect>
+    by store(
+        stateMachine = stateMachine {
+            initialState(CycState.Off)
+            state<CycState.Off> { on<CycAction.Toggle> { transition(CycState.On) } }
+            state<CycState.On> { on<CycAction.Toggle> { transition(CycState.Off) } }
+        },
+        scope = scope,
+    )
 
 // ── Target store ──────────────────────────────────────────────────────────────
 
@@ -61,7 +70,9 @@ private sealed interface TgtState : State {
     data object Waiting : TgtState
     data object Notified : TgtState
 }
-private sealed interface TgtAction : Action { data object Notify : TgtAction }
+private sealed interface TgtAction : Action {
+    data object Notify : TgtAction
+}
 private sealed interface TgtEffect : Effect
 
 private val tgtMachine = stateMachine<TgtState, TgtAction, TgtEffect> {
@@ -71,16 +82,20 @@ private val tgtMachine = stateMachine<TgtState, TgtAction, TgtEffect> {
     }
 }
 
-private class TargetStore(scope: CoroutineScope) : Store<TgtState, TgtAction, TgtEffect>
+private class TargetStore(scope: CoroutineScope) :
+    Store<TgtState, TgtAction, TgtEffect>
     by store(stateMachine = tgtMachine, scope = scope)
 
 // ── Simple store for registration tests ──────────────────────────────────────
 
-private sealed interface RState : State { data object Only : RState }
+private sealed interface RState : State {
+    data object Only : RState
+}
 private sealed interface RAction : Action
 private sealed interface REffect : Effect
 
-private class SimpleStore(scope: CoroutineScope) : Store<RState, RAction, REffect>
+private class SimpleStore(scope: CoroutineScope) :
+    Store<RState, RAction, REffect>
     by store(stateMachine = stateMachine { initialState(RState.Only) }, scope = scope)
 
 class StoreRegistryTest {
@@ -171,7 +186,7 @@ class StoreRegistryTest {
                 state<SrcState.Active> {
                     dispatch(TargetStore::class, TgtAction.Notify)
                 }
-            }
+            },
         )
         val source = SourceStore(backgroundScope).register(registry)
         val target = TargetStore(backgroundScope).register(registry)
@@ -195,7 +210,7 @@ class StoreRegistryTest {
                 state<SrcState.Active> {
                     dispatch(TargetStore::class, TgtAction.Notify)
                 }
-            }
+            },
         )
         target.state.test {
             assertEquals(TgtState.Waiting, awaitItem())
@@ -247,7 +262,7 @@ class StoreRegistryTest {
                     handlerCallCount++
                     dispatch(TargetStore::class, TgtAction.Notify)
                 }
-            }
+            },
         )
         val source = CyclicStore(backgroundScope).register(registry)
         val target = TargetStore(backgroundScope).register(registry)
@@ -277,7 +292,7 @@ class StoreRegistryTest {
         source.state.test {
             assertEquals(CycState.Off, awaitItem()) // current state
             source.dispatch(CycAction.Toggle)
-            assertEquals(CycState.On, awaitItem())  // state transitions normally
+            assertEquals(CycState.On, awaitItem()) // state transitions normally
             cancelAndIgnoreRemainingEvents()
         }
 
@@ -294,7 +309,7 @@ class StoreRegistryTest {
         registry.bind(
             relay(from = CyclicStore::class) {
                 state<CycState.On> { dispatch(TargetStore::class, TgtAction.Notify) }
-            }
+            },
         )
         val source = CyclicStore(backgroundScope).register(registry)
         val target1 = TargetStore(backgroundScope).register(registry)

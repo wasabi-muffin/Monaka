@@ -1,9 +1,9 @@
 package dev.gmvalentino.monaka.runtime
 
-import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.LifecycleEvent
-import dev.gmvalentino.monaka.core.State as StateMarker
 import dev.gmvalentino.monaka.core.StateHook
+import dev.gmvalentino.monaka.core.Action as ActionMarker
+import dev.gmvalentino.monaka.core.State as StateMarker
 
 /**
  * Items that flow through the internal [DefaultStore] processing channel.
@@ -23,6 +23,7 @@ internal sealed interface Trigger<out State : StateMarker, out Action : ActionMa
     data class Action<out Action : ActionMarker>(val action: Action) : Trigger<Nothing, Action>
     data class Lifecycle(val event: LifecycleEvent) : Trigger<Nothing, Nothing>
     data class Hook<out State : StateMarker>(val hook: StateHook<State>) : Trigger<State, Nothing>
+
     /** Carries the suspend lambda that loads persisted state before `onEnter` fires. */
     class Restore<out State : StateMarker>(val initializer: suspend () -> State) : Trigger<State, Nothing>
 }

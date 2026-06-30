@@ -55,9 +55,13 @@ import kotlin.jvm.JvmName
 public class PluginBuilder {
 
     @PublishedApi internal val onActionHandlers: MutableList<(State, Action) -> Unit> = mutableListOf()
+
     @PublishedApi internal val onEffectHandlers: MutableList<(Effect) -> Unit> = mutableListOf()
+
     @PublishedApi internal val onTransitionHandlers: MutableList<(State, State) -> Unit> = mutableListOf()
+
     @PublishedApi internal val onUnhandledHandlers: MutableList<(State, Action) -> Unit> = mutableListOf()
+
     @PublishedApi internal val onErrorHandlers: MutableList<(Throwable, State, HandlerType<Action>) -> Unit> = mutableListOf()
     private val onRejectedHandlers: MutableList<(State, HandlerType<Action>) -> Unit> = mutableListOf()
 
@@ -142,23 +146,17 @@ public class PluginBuilder {
     }
 
     internal fun build(): Plugin = object : Plugin {
-        override fun onAction(currentState: State, action: Action) =
-            this@PluginBuilder.onActionHandlers.forEach { handler -> handler(currentState, action) }
+        override fun onAction(currentState: State, action: Action) = this@PluginBuilder.onActionHandlers.forEach { handler -> handler(currentState, action) }
 
-        override fun onEffect(effect: Effect) =
-            this@PluginBuilder.onEffectHandlers.forEach { handler -> handler(effect) }
+        override fun onEffect(effect: Effect) = this@PluginBuilder.onEffectHandlers.forEach { handler -> handler(effect) }
 
-        override fun onTransition(fromState: State, toState: State) =
-            this@PluginBuilder.onTransitionHandlers.forEach { handler -> handler(fromState, toState) }
+        override fun onTransition(fromState: State, toState: State) = this@PluginBuilder.onTransitionHandlers.forEach { handler -> handler(fromState, toState) }
 
-        override fun onUnhandled(currentState: State, action: Action) =
-            this@PluginBuilder.onUnhandledHandlers.forEach { handler -> handler(currentState, action) }
+        override fun onUnhandled(currentState: State, action: Action) = this@PluginBuilder.onUnhandledHandlers.forEach { handler -> handler(currentState, action) }
 
-        override fun onRejected(currentState: State, handlerType: HandlerType<Action>) =
-            this@PluginBuilder.onRejectedHandlers.forEach { handler -> handler(currentState, handlerType) }
+        override fun onRejected(currentState: State, handlerType: HandlerType<Action>) = this@PluginBuilder.onRejectedHandlers.forEach { handler -> handler(currentState, handlerType) }
 
-        override fun onError(error: Throwable, currentState: State, handlerType: HandlerType<Action>) =
-            this@PluginBuilder.onErrorHandlers.forEach { handler -> handler(error, currentState, handlerType) }
+        override fun onError(error: Throwable, currentState: State, handlerType: HandlerType<Action>) = this@PluginBuilder.onErrorHandlers.forEach { handler -> handler(error, currentState, handlerType) }
     }
 }
 

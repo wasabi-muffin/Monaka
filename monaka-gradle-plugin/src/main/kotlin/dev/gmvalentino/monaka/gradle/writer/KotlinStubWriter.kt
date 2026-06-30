@@ -1,7 +1,11 @@
 package dev.gmvalentino.monaka.gradle.writer
 
 import dev.gmvalentino.monaka.gradle.StubStyle
-import dev.gmvalentino.monaka.gradle.model.*
+import dev.gmvalentino.monaka.gradle.model.HandlerModel
+import dev.gmvalentino.monaka.gradle.model.HookModel
+import dev.gmvalentino.monaka.gradle.model.MachineModel
+import dev.gmvalentino.monaka.gradle.model.StateNode
+import dev.gmvalentino.monaka.gradle.model.TaskModel
 import kotlin.collections.iterator
 
 class KotlinStubWriter {
@@ -28,8 +32,10 @@ class KotlinStubWriter {
             GeneratedFile("$rootName.kt", writeStateFile(model, rootName, stateTree, isSingle, pkg, transitions)),
             GeneratedFile("$actionName.kt", writeSealedFile(actionName, "Action", actions, pkg)),
             GeneratedFile("$effectName.kt", writeSealedFile(effectName, "Effect", effects, pkg)),
-            GeneratedFile("${model.name}StateMachine.kt",
-                writeStateMachineFile(model, rootName, actionName, effectName, isSingle, style, pkg)),
+            GeneratedFile(
+                "${model.name}StateMachine.kt",
+                writeStateMachineFile(model, rootName, actionName, effectName, isSingle, style, pkg),
+            ),
         )
     }
 
@@ -138,8 +144,8 @@ class KotlinStubWriter {
     ): String = buildString {
         val targets = transitions[fullPath]
         if (!targets.isNullOrEmpty()) {
-            val args = targets.joinToString(", ") { "${it}::class" }
-            appendLine("${indent}@Transition($args)")
+            val args = targets.joinToString(", ") { "$it::class" }
+            appendLine("$indent@Transition($args)")
         }
         if (node.isLeaf) {
             appendLine("${indent}data object ${node.name} : $parentType")
@@ -149,7 +155,7 @@ class KotlinStubWriter {
                 if (index > 0) appendLine()
                 append(writeStateNode(child, node.name, "$indent    ", transitions, "$fullPath.${child.name}"))
             }
-            appendLine("${indent}}")
+            appendLine("$indent}")
         }
     }
 
@@ -198,7 +204,7 @@ class KotlinStubWriter {
             for ((_, child) in node.children) {
                 append(writeSealedNode(child, node.name, "$indent    "))
             }
-            appendLine("${indent}}")
+            appendLine("$indent}")
         }
     }
 
@@ -272,7 +278,7 @@ class KotlinStubWriter {
         for ((action, handler) in node.on) {
             append(writeHandlerBlock(action, handler, rootName, actionName, effectName, isSingle, machineName, key, "$pad    "))
         }
-        appendLine("${pad}}")
+        appendLine("$pad}")
     }
 
     private fun writeHookBlock(
@@ -289,11 +295,11 @@ class KotlinStubWriter {
         appendLine("${pad}$hookName {")
         hook.task?.let { append(writeTaskBlock(it, actionName, "$pad    ")) }
         hook.transitions.forEach { target ->
-            appendLine("${pad}    transition(${stateTransitionExpr(sourcePath, target, rootName, isSingle, machineName)})")
+            appendLine("$pad    transition(${stateTransitionExpr(sourcePath, target, rootName, isSingle, machineName)})")
         }
-        hook.effects.forEach { appendLine("${pad}    sideEffect($effectName.$it)") }
-        hook.dispatches.forEach { appendLine("${pad}    dispatch($it)") }
-        appendLine("${pad}}")
+        hook.effects.forEach { appendLine("$pad    sideEffect($effectName.$it)") }
+        hook.dispatches.forEach { appendLine("$pad    dispatch($it)") }
+        appendLine("$pad}")
     }
 
     private fun writeHandlerBlock(
@@ -334,16 +340,14 @@ class KotlinStubWriter {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /** Reference to use in `state<...>` — catch-all uses bare root, leaf uses qualified path. */
-    private fun stateTypeRef(key: String, rootName: String, machineName: String): String =
-        if (isCatchAll(key, rootName, machineName)) rootName else "$rootName.$key"
+    private fun stateTypeRef(key: String, rootName: String, machineName: String): String = if (isCatchAll(key, rootName, machineName)) rootName else "$rootName.$key"
 
     /** Reference to use in `transition(}` and `initialState()`. */
-    private fun transitionRef(target: String, rootName: String, isSingle: Boolean, machineName: String): String =
-        when (target) {
-            rootName if isSingle -> "$rootName.$machineName"
-            rootName -> rootName
-            else -> "$rootName.$target"
-        }
+    private fun transitionRef(target: String, rootName: String, isSingle: Boolean, machineName: String): String = when (target) {
+        rootName if isSingle -> "$rootName.$machineName"
+        rootName -> rootName
+        else -> "$rootName.$target"
+    }
 
     /**
      * Produces the expression inside `transition(}` for a given source state path and target path.
@@ -406,8 +410,7 @@ class KotlinStubWriter {
         return effects
     }
 
-    private fun isCatchAll(key: String, rootName: String, machineName: String) =
-        key == rootName || key == machineName
+    private fun isCatchAll(key: String, rootName: String, machineName: String) = key == rootName || key == machineName
 
     companion object {
         private val HOOKS = setOf(

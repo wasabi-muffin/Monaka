@@ -11,5 +11,5 @@ object NewsDetailsRelay : Relay<NewsDetailsState, NewsDetailsAction, NewsDetails
         state<NewsDetailsState.Stable> {
             dispatch(NewsListStore::class, NewsListAction.OnUpdateRead(id = event.id))
         }
-    }
+    },
 )

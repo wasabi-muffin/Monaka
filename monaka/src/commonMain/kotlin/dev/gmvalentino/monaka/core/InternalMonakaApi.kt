@@ -8,7 +8,7 @@ package dev.gmvalentino.monaka.core
  */
 @RequiresOptIn(
     message = "This is an internal Monaka API intended for testing infrastructure only. " +
-              "It may change or be removed without notice. Do not use in production code.",
+        "It may change or be removed without notice. Do not use in production code.",
     level = RequiresOptIn.Level.ERROR,
 )
 @Retention(AnnotationRetention.BINARY)

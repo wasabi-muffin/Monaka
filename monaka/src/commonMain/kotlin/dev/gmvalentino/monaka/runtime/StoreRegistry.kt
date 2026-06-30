@@ -1,16 +1,16 @@
 package dev.gmvalentino.monaka.runtime
 
-import dev.gmvalentino.monaka.core.Action as ActionMarker
-import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.InternalMonakaApi
-import dev.gmvalentino.monaka.core.State as StateMarker
 import dev.gmvalentino.monaka.core.Store
 import dev.gmvalentino.monaka.plugin.Plugin
 import dev.gmvalentino.monaka.relay.Relay
-import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
+import kotlin.reflect.KClass
+import dev.gmvalentino.monaka.core.Action as ActionMarker
+import dev.gmvalentino.monaka.core.Effect as EffectMarker
+import dev.gmvalentino.monaka.core.State as StateMarker
 
 /**
  * A keyed collection of [Store] instances that automatically applies [Relay]s
@@ -241,8 +241,7 @@ public class StoreRegistry(
     }
 
     /** Returns `true` if at least one instance of [kClass] is registered. */
-    public operator fun contains(kClass: KClass<out Store<*, *, *>>): Boolean =
-        stores[kClass]?.isNotEmpty() == true
+    public operator fun contains(kClass: KClass<out Store<*, *, *>>): Boolean = stores[kClass]?.isNotEmpty() == true
 
     /** The set of classes that have at least one registered instance, in insertion order. */
     public val keys: Set<KClass<out Store<*, *, *>>> get() = stores.keys.toSet()
@@ -257,8 +256,7 @@ public class StoreRegistry(
     @Suppress("UNCHECKED_CAST")
     public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> getAll(
         kClass: KClass<out Store<State, Action, Effect>>,
-    ): List<Store<State, Action, Effect>> =
-        (stores[kClass] as? List<Store<State, Action, Effect>>)?.toList() ?: emptyList()
+    ): List<Store<State, Action, Effect>> = (stores[kClass] as? List<Store<State, Action, Effect>>)?.toList() ?: emptyList()
 
     /**
      * Retrieve the first registered instance of [kClass], or `null` if none are registered.
@@ -266,8 +264,7 @@ public class StoreRegistry(
     @Suppress("UNCHECKED_CAST")
     public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> get(
         kClass: KClass<out Store<State, Action, Effect>>,
-    ): Store<State, Action, Effect>? =
-        stores[kClass]?.firstOrNull() as? Store<State, Action, Effect>
+    ): Store<State, Action, Effect>? = stores[kClass]?.firstOrNull() as? Store<State, Action, Effect>
 
     /**
      * Retrieve the registered instance with the given [id], or `null` if not found.
@@ -275,8 +272,7 @@ public class StoreRegistry(
     @Suppress("UNCHECKED_CAST")
     public fun <State : StateMarker, Action : ActionMarker, Effect : EffectMarker> getById(
         id: String,
-    ): Store<State, Action, Effect>? =
-        stores.values.flatten().firstOrNull { it.id == id } as? Store<State, Action, Effect>
+    ): Store<State, Action, Effect>? = stores.values.flatten().firstOrNull { it.id == id } as? Store<State, Action, Effect>
 }
 
 /**

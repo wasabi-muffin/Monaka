@@ -1,15 +1,15 @@
 package dev.gmvalentino.monaka.runtime
 
-import kotlin.reflect.KClass
-import dev.gmvalentino.monaka.core.Action as ActionMarker
-import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.LifecycleEvent
-import dev.gmvalentino.monaka.core.State as StateMarker
 import dev.gmvalentino.monaka.handler.ActionHandler
 import dev.gmvalentino.monaka.handler.LifecycleHandler
 import dev.gmvalentino.monaka.handler.StateChangeHandler
 import dev.gmvalentino.monaka.handler.StateErrorHandler
 import dev.gmvalentino.monaka.handler.StateUpdateHandler
+import kotlin.reflect.KClass
+import dev.gmvalentino.monaka.core.Action as ActionMarker
+import dev.gmvalentino.monaka.core.Effect as EffectMarker
+import dev.gmvalentino.monaka.core.State as StateMarker
 
 /**
  * Resolves handler registrations against the current state.

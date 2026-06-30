@@ -1,9 +1,8 @@
 package dev.gmvalentino.monaka.examples.counter
 
-import kotlinx.coroutines.CoroutineScope
 import dev.gmvalentino.monaka.core.Store
 import dev.gmvalentino.monaka.dsl.store
-import dev.gmvalentino.monaka.plugin.LoggingPlugin
+import kotlinx.coroutines.CoroutineScope
 
 class CounterStateMachine(
     scope: CoroutineScope,
@@ -39,5 +38,5 @@ class CounterStateMachine(
                 if (action.success) sideEffect(CounterEffect.ShowMessage("Saved ✓"))
             }
         }
-    }
+    },
 )

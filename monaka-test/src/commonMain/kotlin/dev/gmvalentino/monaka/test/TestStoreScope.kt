@@ -1,12 +1,12 @@
 package dev.gmvalentino.monaka.test
 
 import app.cash.turbine.turbineScope
+import dev.gmvalentino.monaka.dsl.StateMachine
 import io.kotest.assertions.withClue
 import kotlinx.coroutines.test.TestScope
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.State as StateMarker
-import dev.gmvalentino.monaka.dsl.StateMachine
 
 @MonakaTestDsl
 public class TestStoreScope<State : StateMarker, Action : ActionMarker, Effect : EffectMarker> internal constructor(

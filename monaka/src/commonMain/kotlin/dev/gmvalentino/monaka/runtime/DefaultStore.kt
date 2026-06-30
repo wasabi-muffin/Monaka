@@ -1,11 +1,8 @@
 package dev.gmvalentino.monaka.runtime
 
-import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.DEFAULT_BUFFER_CAPACITY
-import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.InternalMonakaApi
 import dev.gmvalentino.monaka.core.LifecycleEvent
-import dev.gmvalentino.monaka.core.State as StateMarker
 import dev.gmvalentino.monaka.core.StateHook
 import dev.gmvalentino.monaka.core.Store
 import dev.gmvalentino.monaka.handler.ActionHandler
@@ -23,7 +20,6 @@ import dev.gmvalentino.monaka.scopes.HandlerScope
 import dev.gmvalentino.monaka.scopes.LifecycleScope
 import dev.gmvalentino.monaka.scopes.StateChangeScope
 import dev.gmvalentino.monaka.scopes.StateUpdateScope
-import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.channels.Channel
@@ -37,6 +33,10 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlin.reflect.KClass
+import dev.gmvalentino.monaka.core.Action as ActionMarker
+import dev.gmvalentino.monaka.core.Effect as EffectMarker
+import dev.gmvalentino.monaka.core.State as StateMarker
 
 /**
  * Default runtime implementation of [Store].
@@ -170,8 +170,7 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         triggers.close()
     }
 
-    override fun invokeOnCompletion(handler: (cause: Throwable?) -> Unit): DisposableHandle =
-        machineScope.coroutineContext.job.invokeOnCompletion(handler)
+    override fun invokeOnCompletion(handler: (cause: Throwable?) -> Unit): DisposableHandle = machineScope.coroutineContext.job.invokeOnCompletion(handler)
 
     override fun install(plugin: Plugin) {
         plugins.add(plugin)
@@ -408,5 +407,4 @@ internal class DefaultStore<State : StateMarker, Action : ActionMarker, Effect :
         dispatch = ::dispatch,
         jobRegistry = jobRegistry,
     )
-
 }

@@ -85,8 +85,7 @@ class YamlWriter {
      * dispatches (both direct and inside task coroutines) are async side-effects whose
      * eventual transition targets should not be attributed to the hook itself.
      */
-    private fun reachableTransitions(hook: HookModel): List<String> =
-        hook.transitions.distinct()
+    private fun reachableTransitions(hook: HookModel): List<String> = hook.transitions.distinct()
 
     // ── Handler ───────────────────────────────────────────────────────────────
 

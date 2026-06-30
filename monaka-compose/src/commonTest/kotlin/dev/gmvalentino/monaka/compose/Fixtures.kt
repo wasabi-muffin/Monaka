@@ -21,11 +21,10 @@ internal sealed interface FixtureEffect : Effect {
     data object Pinged : FixtureEffect
 }
 
-internal fun counterStore(scope: CoroutineScope): Store<FixtureState, FixtureAction, FixtureEffect> =
-    store(scope = scope) {
-        initialState(FixtureState.Count(0))
-        state<FixtureState.Count> {
-            on<FixtureAction.Increment> { transition(FixtureState.Count(state.value + 1)) }
-            on<FixtureAction.Emit> { sideEffect(FixtureEffect.Pinged) }
-        }
+internal fun counterStore(scope: CoroutineScope): Store<FixtureState, FixtureAction, FixtureEffect> = store(scope = scope) {
+    initialState(FixtureState.Count(0))
+    state<FixtureState.Count> {
+        on<FixtureAction.Increment> { transition(FixtureState.Count(state.value + 1)) }
+        on<FixtureAction.Emit> { sideEffect(FixtureEffect.Pinged) }
     }
+}

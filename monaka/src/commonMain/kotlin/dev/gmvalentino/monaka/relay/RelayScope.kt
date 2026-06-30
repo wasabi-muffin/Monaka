@@ -1,11 +1,11 @@
 package dev.gmvalentino.monaka.relay
 
-import dev.gmvalentino.monaka.core.Action as ActionMarker
-import dev.gmvalentino.monaka.core.Effect as EffectMarker
-import dev.gmvalentino.monaka.core.State as StateMarker
 import dev.gmvalentino.monaka.core.Store
 import dev.gmvalentino.monaka.runtime.StoreRegistry
 import kotlin.reflect.KClass
+import dev.gmvalentino.monaka.core.Action as ActionMarker
+import dev.gmvalentino.monaka.core.Effect as EffectMarker
+import dev.gmvalentino.monaka.core.State as StateMarker
 
 /**
  * Implicit receiver inside every `state`/`effect`/`action` relay block.

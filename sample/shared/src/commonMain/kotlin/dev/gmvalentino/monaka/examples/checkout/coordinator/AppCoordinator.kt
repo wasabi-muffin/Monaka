@@ -1,17 +1,17 @@
 package dev.gmvalentino.monaka.examples.checkout.coordinator
 
-import kotlinx.coroutines.CoroutineScope
-import dev.gmvalentino.monaka.examples.checkout.data.AuthRepository
 import dev.gmvalentino.monaka.examples.checkout.auth.AuthStateMachine
 import dev.gmvalentino.monaka.examples.checkout.auth.AuthStore
-import dev.gmvalentino.monaka.examples.checkout.data.CartRepository
 import dev.gmvalentino.monaka.examples.checkout.cart.CartStateMachine
 import dev.gmvalentino.monaka.examples.checkout.cart.CartStore
 import dev.gmvalentino.monaka.examples.checkout.checkout.CheckoutStateMachine
 import dev.gmvalentino.monaka.examples.checkout.checkout.CheckoutStore
+import dev.gmvalentino.monaka.examples.checkout.data.AuthRepository
+import dev.gmvalentino.monaka.examples.checkout.data.CartRepository
 import dev.gmvalentino.monaka.examples.checkout.data.PaymentRepository
 import dev.gmvalentino.monaka.runtime.StoreRegistry
 import dev.gmvalentino.monaka.runtime.register
+import kotlinx.coroutines.CoroutineScope
 
 // ─────────────────────────────────────────────────────────────────────────────
 // This example models an e-commerce checkout flow split across three machines:
@@ -90,17 +90,17 @@ class AppCoordinator(
 
         AuthStore(
             stateMachine = AuthStateMachine(authRepository),
-            scope = scope
+            scope = scope,
         ).register(registry)
 
         CartStore(
             stateMachine = CartStateMachine(cartRepository),
-            scope = scope
+            scope = scope,
         ).register(registry)
 
         CheckoutStore(
             stateMachine = CheckoutStateMachine(paymentRepository),
-            scope = scope
+            scope = scope,
         ).register(registry)
     }
 }

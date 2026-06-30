@@ -4,7 +4,6 @@ import dev.gmvalentino.monaka.dsl.StateMachine
 import dev.gmvalentino.monaka.dsl.StateMachineBuilder
 import dev.gmvalentino.monaka.dsl.stateMachine
 import dev.gmvalentino.monaka.examples.checkout.data.PaymentRepository
-import dev.gmvalentino.monaka.plugin.LoggingPlugin
 
 class CheckoutStateMachine(
     paymentRepository: PaymentRepository,

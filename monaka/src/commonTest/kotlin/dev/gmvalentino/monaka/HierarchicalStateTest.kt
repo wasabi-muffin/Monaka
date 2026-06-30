@@ -18,8 +18,8 @@ private sealed interface HState : State {
 }
 
 private sealed interface HAction : Action {
-    data object Cancel : HAction        // handled by parent HState block
-    data object Retry : HAction         // handled only by HState.Error
+    data object Cancel : HAction // handled by parent HState block
+    data object Retry : HAction // handled only by HState.Error
     data class Load(val id: Int) : HAction
 }
 

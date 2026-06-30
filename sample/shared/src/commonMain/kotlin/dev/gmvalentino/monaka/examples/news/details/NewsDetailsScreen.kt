@@ -24,7 +24,6 @@ import dev.gmvalentino.monaka.compose.bindLifecycle
 import dev.gmvalentino.monaka.compose.handleEffects
 import dev.gmvalentino.monaka.compose.render
 import dev.gmvalentino.monaka.compose.toViewStore
-import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

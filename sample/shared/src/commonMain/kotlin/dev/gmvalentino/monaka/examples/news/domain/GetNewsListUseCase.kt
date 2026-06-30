@@ -1,7 +1,7 @@
 package dev.gmvalentino.monaka.examples.news.domain
 
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.seconds
 
 fun interface GetNewsListUseCase {
     suspend operator fun invoke(): List<News>

@@ -2,7 +2,6 @@ package dev.gmvalentino.monaka.examples.login
 
 import dev.gmvalentino.monaka.dsl.StateMachine
 import dev.gmvalentino.monaka.dsl.stateMachine
-import dev.gmvalentino.monaka.plugin.LoggingPlugin
 
 /**
  * Login machine using the **onEnter** hook pattern.

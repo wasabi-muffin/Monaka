@@ -34,11 +34,12 @@ class MonakaPlugin : Plugin<Project> {
             task.description = "Generates PlantUML state diagrams from YAML state machine definitions."
             task.sources.from(
                 target.provider {
-                    if (yamlExtension.yamlOutputDir.isPresent)
+                    if (yamlExtension.yamlOutputDir.isPresent) {
                         target.fileTree(yamlExtension.yamlOutputDir) { spec -> spec.include("**/*.yaml") }
-                    else
+                    } else {
                         yamlExtension.sources.asFileTree.matching { spec -> spec.include("**/*.yaml") }
-                }
+                    }
+                },
             )
             task.outputDir.set(pumlExtension.pumlOutputDir)
         }

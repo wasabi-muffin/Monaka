@@ -37,5 +37,5 @@ class NewsDetailsStateMachine(
 
         state<NewsDetailsState.Stable> {
         }
-    }
+    },
 )

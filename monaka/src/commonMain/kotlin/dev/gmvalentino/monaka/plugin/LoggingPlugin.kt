@@ -1,10 +1,10 @@
 package dev.gmvalentino.monaka.plugin
 
+import dev.gmvalentino.monaka.handler.HandlerType
+import co.touchlab.kermit.Logger as Kermit
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.State as StateMarker
-import dev.gmvalentino.monaka.handler.HandlerType
-import co.touchlab.kermit.Logger as Kermit
 
 /**
  * A [Plugin] that logs every state machine event to a configurable output.

@@ -1,12 +1,12 @@
 package dev.gmvalentino.monaka.core
 
-import dev.gmvalentino.monaka.core.State as StateMarker
-import dev.gmvalentino.monaka.core.Action as ActionMarker
-import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.plugin.Plugin
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import dev.gmvalentino.monaka.core.Action as ActionMarker
+import dev.gmvalentino.monaka.core.Effect as EffectMarker
+import dev.gmvalentino.monaka.core.State as StateMarker
 
 /**
  * The core StateMachine contract.

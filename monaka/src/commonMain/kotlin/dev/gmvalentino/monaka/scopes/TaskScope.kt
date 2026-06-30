@@ -1,9 +1,9 @@
 package dev.gmvalentino.monaka.scopes
 
+import dev.gmvalentino.monaka.dsl.MonakaDsl
 import kotlinx.coroutines.CoroutineScope
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.State as StateMarker
-import dev.gmvalentino.monaka.dsl.MonakaDsl
 
 /**
  * Implicit receiver inside every `task { }` and `task("key") { }` lambda.

@@ -1,8 +1,8 @@
 package dev.gmvalentino.monaka.examples.checkout.cart
 
-import kotlinx.coroutines.CoroutineScope
 import dev.gmvalentino.monaka.core.Store
 import dev.gmvalentino.monaka.dsl.store
+import kotlinx.coroutines.CoroutineScope
 
 class CartStore(
     stateMachine: CartStateMachine,

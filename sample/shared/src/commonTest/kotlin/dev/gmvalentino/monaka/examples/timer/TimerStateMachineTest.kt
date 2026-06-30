@@ -1,10 +1,10 @@
 package dev.gmvalentino.monaka.examples.timer
 
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.seconds
 import dev.gmvalentino.monaka.core.LifecycleEvent
 import dev.gmvalentino.monaka.core.StateHook
 import dev.gmvalentino.monaka.test.testStore
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 
 class TimerStateMachineTest {
 
@@ -127,7 +127,7 @@ class TimerStateMachineTest {
                     totalSeconds = 60,
                     autoPause = true,
                     pausedByLifecycle = true,
-                )
+                ),
             )
 
             trigger(LifecycleEvent.OnResume) {
@@ -146,7 +146,7 @@ class TimerStateMachineTest {
                     totalSeconds = 60,
                     autoPause = true,
                     pausedByLifecycle = false,
-                )
+                ),
             )
 
             trigger(LifecycleEvent.OnResume) {

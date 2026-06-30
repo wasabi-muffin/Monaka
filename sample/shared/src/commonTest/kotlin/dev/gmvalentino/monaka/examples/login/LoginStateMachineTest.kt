@@ -1,13 +1,12 @@
 package dev.gmvalentino.monaka.examples.login
 
-import kotlin.test.Test
 import dev.gmvalentino.monaka.test.testStore
+import kotlin.test.Test
 
 private class FakeLoginRepository(
     private val result: Result<String> = Result.success("alice"),
 ) : LoginRepository {
-    override suspend fun login(username: String, password: String): String =
-        result.getOrThrow()
+    override suspend fun login(username: String, password: String): String = result.getOrThrow()
 }
 
 class LoginStateMachineTest {

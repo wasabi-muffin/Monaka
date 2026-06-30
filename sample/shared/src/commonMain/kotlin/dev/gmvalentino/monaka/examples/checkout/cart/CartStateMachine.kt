@@ -3,7 +3,6 @@ package dev.gmvalentino.monaka.examples.checkout.cart
 import dev.gmvalentino.monaka.dsl.StateMachine
 import dev.gmvalentino.monaka.dsl.stateMachine
 import dev.gmvalentino.monaka.examples.checkout.data.CartRepository
-import dev.gmvalentino.monaka.plugin.LoggingPlugin
 
 class CartStateMachine(
     cartRepository: CartRepository,

@@ -1,8 +1,8 @@
 package dev.gmvalentino.monaka.examples.counter
 
-import kotlin.test.Test
 import dev.gmvalentino.monaka.dsl.stateMachine
 import dev.gmvalentino.monaka.test.testStore
+import kotlin.test.Test
 
 // CounterStateMachine delegates from store(scope) so it carries a CoroutineScope and
 // cannot be used directly with testStore. The machine logic is re-declared below using

@@ -1,9 +1,8 @@
 package dev.gmvalentino.monaka.examples.timer
 
-import kotlinx.coroutines.delay
 import dev.gmvalentino.monaka.dsl.StateMachine
 import dev.gmvalentino.monaka.dsl.stateMachine
-import dev.gmvalentino.monaka.plugin.LoggingPlugin
+import kotlinx.coroutines.delay
 
 // ─────────────────────────────────────────────────────────────────────────────
 // This example models a countdown timer with pause/resume support and an
@@ -23,92 +22,93 @@ import dev.gmvalentino.monaka.plugin.LoggingPlugin
 // hooks react only when autoPause is true.
 // ─────────────────────────────────────────────────────────────────────────────
 
-class TimerStateMachine : StateMachine<TimerState, TimerAction, TimerEffect> by stateMachine(builder = {
-    initialState(TimerState.Idle())
+class TimerStateMachine :
+    StateMachine<TimerState, TimerAction, TimerEffect> by stateMachine(builder = {
+        initialState(TimerState.Idle())
 
-    // ── Idle ──────────────────────────────────────────────────────────────────
+        // ── Idle ──────────────────────────────────────────────────────────────────
 
-    state<TimerState.Idle> {
-        on<TimerAction.SetDuration> {
-            transition(state.copy(durationSeconds = action.seconds.coerceAtLeast(1)))
-        }
-        on<TimerAction.SetAutoPause> {
-            transition(state.toSelf(autoPause = action.enabled))
-        }
-        on<TimerAction.Start> {
-            transition(
-                state.toRunning(
-                    remainingSeconds = state.durationSeconds,
-                    totalSeconds = state.durationSeconds,
+        state<TimerState.Idle> {
+            on<TimerAction.SetDuration> {
+                transition(state.copy(durationSeconds = action.seconds.coerceAtLeast(1)))
+            }
+            on<TimerAction.SetAutoPause> {
+                transition(state.toSelf(autoPause = action.enabled))
+            }
+            on<TimerAction.Start> {
+                transition(
+                    state.toRunning(
+                        remainingSeconds = state.durationSeconds,
+                        totalSeconds = state.durationSeconds,
+                    ),
                 )
-            )
+            }
         }
-    }
 
-    // ── Running ───────────────────────────────────────────────────────────────
+        // ── Running ───────────────────────────────────────────────────────────────
 
-    state<TimerState.Running> {
-        // Start a coroutine that dispatches Tick every second. The keyed task("tick")
-        // replaces any previous "tick" job when re-entering this state (e.g. after a
-        // resume), and autoCancel = true cancels it automatically on the way out of
-        // Running, so there is never more than one ticker active.
-        onEnter {
-            task(key = "tick", autoCancel = true) {
-                while (true) {
-                    delay(1_000)
-                    dispatch(TimerAction.Tick)
+        state<TimerState.Running> {
+            // Start a coroutine that dispatches Tick every second. The keyed task("tick")
+            // replaces any previous "tick" job when re-entering this state (e.g. after a
+            // resume), and autoCancel = true cancels it automatically on the way out of
+            // Running, so there is never more than one ticker active.
+            onEnter {
+                task(key = "tick", autoCancel = true) {
+                    while (true) {
+                        delay(1_000)
+                        dispatch(TimerAction.Tick)
+                    }
                 }
             }
-        }
 
-        on<TimerAction.Tick> {
-            if (state.remainingSeconds <= 1) {
-                transition(state.toFinished())
-                sideEffect(TimerEffect.Completed)
-            } else {
-                transition(state.copy(remainingSeconds = state.remainingSeconds - 1))
+            on<TimerAction.Tick> {
+                if (state.remainingSeconds <= 1) {
+                    transition(state.toFinished())
+                    sideEffect(TimerEffect.Completed)
+                } else {
+                    transition(state.copy(remainingSeconds = state.remainingSeconds - 1))
+                }
+            }
+            on<TimerAction.Pause> {
+                transition(state.toPaused(pausedByLifecycle = false))
+            }
+            on<TimerAction.PauseForLifecycle> {
+                transition(state.toPaused(pausedByLifecycle = true))
+            }
+            on<TimerAction.SetAutoPause> { transition(state.toSelf(autoPause = action.enabled)) }
+            on<TimerAction.Reset> {
+                transition(state.toIdle(durationSeconds = state.totalSeconds))
+            }
+
+            // Auto-pause when the app goes to the background (if the user opted in).
+            onPause {
+                if (state.autoPause) dispatch(TimerAction.PauseForLifecycle)
             }
         }
-        on<TimerAction.Pause> {
-            transition(state.toPaused(pausedByLifecycle = false))
-        }
-        on<TimerAction.PauseForLifecycle> {
-            transition(state.toPaused(pausedByLifecycle = true))
-        }
-        on<TimerAction.SetAutoPause> { transition(state.toSelf(autoPause = action.enabled)) }
-        on<TimerAction.Reset> {
-            transition(state.toIdle(durationSeconds = state.totalSeconds))
+
+        // ── Paused ────────────────────────────────────────────────────────────────
+
+        state<TimerState.Paused> {
+            on<TimerAction.Resume> {
+                transition(state.toRunning())
+            }
+            on<TimerAction.SetAutoPause> { transition(state.toSelf(autoPause = action.enabled)) }
+            on<TimerAction.Reset> {
+                transition(state.toIdle(durationSeconds = state.totalSeconds))
+            }
+
+            // Auto-resume when the app returns to the foreground — only if this pause was
+            // triggered by a lifecycle event, not by the user tapping Pause.
+            onResume {
+                if (state.pausedByLifecycle) dispatch(TimerAction.Resume)
+            }
         }
 
-        // Auto-pause when the app goes to the background (if the user opted in).
-        onPause {
-            if (state.autoPause) dispatch(TimerAction.PauseForLifecycle)
-        }
-    }
+        // ── Finished ──────────────────────────────────────────────────────────────
 
-    // ── Paused ────────────────────────────────────────────────────────────────
-
-    state<TimerState.Paused> {
-        on<TimerAction.Resume> {
-            transition(state.toRunning())
+        state<TimerState.Finished> {
+            on<TimerAction.Reset> {
+                transition(state.toIdle(durationSeconds = state.totalSeconds))
+            }
         }
-        on<TimerAction.SetAutoPause> { transition(state.toSelf(autoPause = action.enabled)) }
-        on<TimerAction.Reset> {
-            transition(state.toIdle(durationSeconds = state.totalSeconds))
-        }
-
-        // Auto-resume when the app returns to the foreground — only if this pause was
-        // triggered by a lifecycle event, not by the user tapping Pause.
-        onResume {
-            if (state.pausedByLifecycle) dispatch(TimerAction.Resume)
-        }
-    }
-
-    // ── Finished ──────────────────────────────────────────────────────────────
-
-    state<TimerState.Finished> {
-        on<TimerAction.Reset> {
-            transition(state.toIdle(durationSeconds = state.totalSeconds))
-        }
-    }
-})
+    })

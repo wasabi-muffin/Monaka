@@ -34,37 +34,37 @@ internal fun HomeScreen(onSelect: (Screen) -> Unit) {
                 screen = Screen.Counter,
                 title = "Counter",
                 description = "Basic state machine: increment, decrement, step size, and reset.",
-                onSelect = onSelect
+                onSelect = onSelect,
             )
             ExampleCard(
                 screen = Screen.Login,
                 title = "Login",
                 description = "Authentication flow with form validation and async credential check.",
-                onSelect = onSelect
+                onSelect = onSelect,
             )
             ExampleCard(
                 screen = Screen.Checkout,
                 title = "Checkout",
                 description = "Three machines (Auth, Cart, Checkout) coordinated via StoreRegistry and Relays.",
-                onSelect = onSelect
+                onSelect = onSelect,
             )
             ExampleCard(
                 screen = Screen.LiveFeed,
                 title = "Live Feed",
                 description = "Search with debounce, live polling, and exponential back-off retry.",
-                onSelect = onSelect
+                onSelect = onSelect,
             )
             ExampleCard(
                 screen = Screen.Timer,
                 title = "Countdown Timer",
                 description = "Lifecycle-aware timer using onEnter/onExit for tick management and onPause/onResume for auto-pause.",
-                onSelect = onSelect
+                onSelect = onSelect,
             )
             ExampleCard(
                 screen = Screen.NewsList,
                 title = "News (Metro DI)",
                 description = "News list and details wired with Metro DI — ViewModels injected via metroViewModel() and assistedMetroViewModel().",
-                onSelect = onSelect
+                onSelect = onSelect,
             )
         }
     }

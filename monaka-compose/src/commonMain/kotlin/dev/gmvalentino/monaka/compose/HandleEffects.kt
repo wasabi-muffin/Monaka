@@ -5,12 +5,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import dev.gmvalentino.monaka.core.Store
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.State as StateMarker
-import dev.gmvalentino.monaka.core.Store
 
 /**
  * Collect one-shot [effects][Store.effects] in a lifecycle-aware manner.

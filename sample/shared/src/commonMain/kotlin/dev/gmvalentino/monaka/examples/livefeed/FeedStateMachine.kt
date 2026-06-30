@@ -1,10 +1,9 @@
 package dev.gmvalentino.monaka.examples.livefeed
 
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import dev.gmvalentino.monaka.dsl.StateMachine
 import dev.gmvalentino.monaka.dsl.stateMachine
-import dev.gmvalentino.monaka.plugin.LoggingPlugin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * Live-feed machine demonstrating keyed job patterns with automatic state-scoped

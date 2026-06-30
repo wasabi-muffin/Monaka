@@ -1,7 +1,7 @@
 package dev.gmvalentino.monaka.examples.checkout.data
 
-import kotlinx.coroutines.delay
 import dev.gmvalentino.monaka.examples.checkout.data.CartItem
+import kotlinx.coroutines.delay
 
 interface CartRepository {
     suspend fun loadCart(userId: String): List<CartItem>

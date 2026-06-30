@@ -40,11 +40,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.gmvalentino.monaka.compose.bindLifecycle
-import dev.gmvalentino.monaka.dsl.store
 import dev.gmvalentino.monaka.compose.handleEffects
 import dev.gmvalentino.monaka.compose.rememberStore
 import dev.gmvalentino.monaka.compose.render
 import dev.gmvalentino.monaka.compose.toViewStore
+import dev.gmvalentino.monaka.dsl.store
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 

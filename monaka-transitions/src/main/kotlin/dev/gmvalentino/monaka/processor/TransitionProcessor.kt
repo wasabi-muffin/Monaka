@@ -55,9 +55,11 @@ class TransitionProcessor(
         }
 
         @Suppress("UNCHECKED_CAST")
-        val toTargets: List<KSClassDeclaration> = (annotation.arguments
-            .firstOrNull { it.name?.asString() == "to" }
-            ?.value as? List<KSType>)
+        val toTargets: List<KSClassDeclaration> = (
+            annotation.arguments
+                .firstOrNull { it.name?.asString() == "to" }
+                ?.value as? List<KSType>
+            )
             ?.mapNotNull { it.declaration as? KSClassDeclaration }
             ?: emptyList()
 

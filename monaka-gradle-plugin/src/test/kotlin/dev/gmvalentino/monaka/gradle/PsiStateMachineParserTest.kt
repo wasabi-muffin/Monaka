@@ -1,8 +1,8 @@
 package dev.gmvalentino.monaka.gradle
 
-import org.junit.Test
-import dev.gmvalentino.monaka.gradle.writer.YamlWriter
 import dev.gmvalentino.monaka.gradle.parser.PsiStateMachineParser
+import dev.gmvalentino.monaka.gradle.writer.YamlWriter
+import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -57,7 +57,7 @@ class PsiStateMachineParserTest {
         assertEquals(1, models.size)
         val m = models[0]
 
-        assertEquals("Counter", m.name)           // "StateMachine" suffix stripped
+        assertEquals("Counter", m.name) // "StateMachine" suffix stripped
         assertEquals("Idle", m.initial)
 
         val idle = m.states["Idle"]
@@ -65,7 +65,7 @@ class PsiStateMachineParserTest {
         val start = idle.on["Start"]
         assertNotNull(start)
         assertEquals("Running", start.transitions.firstOrNull())
-        assertEquals(listOf("PlaySound"), start.effects)   // bare effect name
+        assertEquals(listOf("PlaySound"), start.effects) // bare effect name
 
         val reset = idle.on["Reset"]
         assertNotNull(reset)
@@ -73,7 +73,7 @@ class PsiStateMachineParserTest {
 
         val running = m.states["Running"]
         val pause = running?.on?.get("Pause")
-        assertEquals(listOf("ShowBanner", "Vibrate"), pause?.effects)  // bare names
+        assertEquals(listOf("ShowBanner", "Vibrate"), pause?.effects) // bare names
     }
 
     // ── Form 2: builder = { } with supertype type args ────────────────────────
@@ -245,9 +245,9 @@ class PsiStateMachineParserTest {
         val model = parser.parseFiles(listOf(writeTempFile("App.kt", src))).first().second
 
         // buildHierarchy nests Auth.SignedOut under states["Auth"].states["SignedOut"]
-        val signedOut  = model.states["Auth"]?.states?.get("SignedOut")
-        val signingIn  = model.states["Auth"]?.states?.get("SigningIn")
-        val loading    = model.states["Loading"]
+        val signedOut = model.states["Auth"]?.states?.get("SignedOut")
+        val signingIn = model.states["Auth"]?.states?.get("SigningIn")
+        val loading = model.states["Loading"]
 
         // Cross-hierarchy: toAuthSigningIn → dot-path "Auth.SigningIn"
         assertEquals("Auth.SigningIn", signedOut?.on?.get("Attempt")?.transitions?.firstOrNull())
@@ -363,7 +363,7 @@ class PsiStateMachineParserTest {
         assertTrue(yaml.contains("effect: [ Flash ]"))
         assertTrue(yaml.contains("TurnOff:"))
         assertTrue(!yaml.contains("package:"))
-        assertTrue(!yaml.lines().any { it.trim() == "on:" })    // no `on:` wrapper
+        assertTrue(!yaml.lines().any { it.trim() == "on:" }) // no `on:` wrapper
         println(yaml)
     }
 
@@ -448,7 +448,7 @@ class PsiStateMachineParserTest {
         """.trimIndent()
 
         val models = parser.parseFiles(
-            listOf(writeTempFile("Order.kt", mainSrc), writeTempFile("OrderHelpers.kt", helperSrc))
+            listOf(writeTempFile("Order.kt", mainSrc), writeTempFile("OrderHelpers.kt", helperSrc)),
         ).map { it.second }
 
         val model = models.first { it.name == "Order" }

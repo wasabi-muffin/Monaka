@@ -2,8 +2,8 @@ package dev.gmvalentino.monaka.plugin
 
 import dev.gmvalentino.monaka.core.Action
 import dev.gmvalentino.monaka.core.Effect
-import dev.gmvalentino.monaka.handler.HandlerType
 import dev.gmvalentino.monaka.core.State
+import dev.gmvalentino.monaka.handler.HandlerType
 
 /**
  * Observer plugin that can hook into state machine lifecycle events.

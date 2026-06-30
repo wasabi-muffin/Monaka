@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.internal.builtins.StandardNames.FqNames.target
+
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
@@ -8,6 +10,27 @@ plugins {
     alias(libs.plugins.compiler.plugin) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.binary.compatibility.validator)
+    alias(libs.plugins.spotless)
+}
+
+spotless {
+    val ktlintVersion = libs.versions.ktlint.get()
+
+    val ktlintConfig = mapOf(
+        "ktlint_code_style" to "intellij_idea",
+        "ktlint_function_naming_ignore_when_annotated_with" to "Composable",
+        "ktlint_standard_filename" to "disabled",
+    )
+    kotlin {
+        target("**/*.kt")
+        targetExclude("**/build/**")
+        ktlint(ktlintVersion).editorConfigOverride(ktlintConfig)
+    }
+    kotlinGradle {
+        target("**/*.gradle.kts")
+        targetExclude("**/build/**")
+        ktlint(ktlintVersion).editorConfigOverride(ktlintConfig)
+    }
 }
 
 apiValidation {
@@ -18,7 +41,6 @@ apiValidation {
         "monaka-transitions",
     )
 }
-
 
 // ── MkDocs documentation tasks ───────────────────────────────────────────────
 
@@ -31,10 +53,11 @@ tasks.register<Exec>("mkdocsInstall") {
     inputs.file(layout.projectDirectory.file("requirements.txt"))
     outputs.file(mkdocsBin)
     commandLine(
-        "sh", "-c",
+        "sh",
+        "-c",
         "python3 -m venv ${venvDir.asFile.absolutePath} && " +
-                "${venvDir.file("bin/pip").asFile.absolutePath} install --quiet " +
-                "-r ${layout.projectDirectory.file("requirements.txt").asFile.absolutePath}",
+            "${venvDir.file("bin/pip").asFile.absolutePath} install --quiet " +
+            "-r ${layout.projectDirectory.file("requirements.txt").asFile.absolutePath}",
     )
 }
 

@@ -1,10 +1,10 @@
 package dev.gmvalentino.monaka.relay
 
+import dev.gmvalentino.monaka.core.Store
 import kotlin.reflect.KClass
 import dev.gmvalentino.monaka.core.Action as ActionMarker
 import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.State as StateMarker
-import dev.gmvalentino.monaka.core.Store
 
 /**
  * Create a [Relay] that observes stores of class [from].
@@ -28,5 +28,4 @@ import dev.gmvalentino.monaka.core.Store
 public fun <SourceState : StateMarker, SourceAction : ActionMarker, SourceEffect : EffectMarker> relay(
     from: KClass<out Store<SourceState, SourceAction, SourceEffect>>,
     builder: RelayBuilder<SourceState, SourceAction, SourceEffect>.() -> Unit,
-): Relay<SourceState, SourceAction, SourceEffect> =
-    RelayBuilder<SourceState, SourceAction, SourceEffect>().apply(builder).build(from = from)
+): Relay<SourceState, SourceAction, SourceEffect> = RelayBuilder<SourceState, SourceAction, SourceEffect>().apply(builder).build(from = from)

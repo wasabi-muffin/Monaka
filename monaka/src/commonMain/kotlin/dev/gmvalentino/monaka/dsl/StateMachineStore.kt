@@ -2,16 +2,16 @@
 
 package dev.gmvalentino.monaka.dsl
 
-import kotlin.uuid.ExperimentalUuidApi
-import kotlinx.coroutines.CoroutineScope
 import dev.gmvalentino.monaka.core.DEFAULT_BUFFER_CAPACITY
-import dev.gmvalentino.monaka.runtime.defaultCoroutineScope
-import dev.gmvalentino.monaka.core.Action as ActionMarker
-import dev.gmvalentino.monaka.core.Effect as EffectMarker
-import dev.gmvalentino.monaka.core.State as StateMarker
 import dev.gmvalentino.monaka.core.Store
 import dev.gmvalentino.monaka.plugin.Plugin
 import dev.gmvalentino.monaka.runtime.DefaultStore
+import dev.gmvalentino.monaka.runtime.defaultCoroutineScope
+import kotlinx.coroutines.CoroutineScope
+import kotlin.uuid.ExperimentalUuidApi
+import dev.gmvalentino.monaka.core.Action as ActionMarker
+import dev.gmvalentino.monaka.core.Effect as EffectMarker
+import dev.gmvalentino.monaka.core.State as StateMarker
 
 /**
  * Base class for defining a [Store] as a named class rather than a factory lambda.

@@ -2,20 +2,19 @@
 
 package dev.gmvalentino.monaka.dsl
 
-import kotlin.reflect.KClass
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
-import dev.gmvalentino.monaka.core.Action as ActionMarker
-import dev.gmvalentino.monaka.core.Effect as EffectMarker
 import dev.gmvalentino.monaka.core.LifecycleEvent
-import dev.gmvalentino.monaka.core.State as StateMarker
-
 import dev.gmvalentino.monaka.handler.ActionHandler
 import dev.gmvalentino.monaka.handler.LifecycleHandler
 import dev.gmvalentino.monaka.handler.StateChangeHandler
 import dev.gmvalentino.monaka.handler.StateErrorHandler
 import dev.gmvalentino.monaka.handler.StateUpdateHandler
 import dev.gmvalentino.monaka.plugin.Plugin
+import kotlin.reflect.KClass
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+import dev.gmvalentino.monaka.core.Action as ActionMarker
+import dev.gmvalentino.monaka.core.Effect as EffectMarker
+import dev.gmvalentino.monaka.core.State as StateMarker
 
 /**
  * Root DSL builder for constructing a [dev.gmvalentino.monaka.dsl.StateMachineStore] specification.

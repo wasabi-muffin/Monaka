@@ -28,18 +28,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 import dev.gmvalentino.monaka.compose.bindLifecycle
-import dev.gmvalentino.monaka.dsl.store
 import dev.gmvalentino.monaka.compose.handleEffects
 import dev.gmvalentino.monaka.compose.rememberStore
 import dev.gmvalentino.monaka.compose.toViewStore
+import dev.gmvalentino.monaka.dsl.store
+import kotlinx.coroutines.delay
 
 private class FakeLoginRepository : LoginRepository {
     override suspend fun login(username: String, password: String): String {
         delay(1200)
-        return if (password == "password") username
-        else error("Wrong password. Hint: use \"password\"")
+        return if (password == "password") {
+            username
+        } else {
+            error("Wrong password. Hint: use \"password\"")
+        }
     }
 }
 
@@ -56,7 +59,8 @@ fun LoginScreen(onBack: () -> Unit) {
             when (effect) {
                 is LoginEffect.ShowValidationError -> snackbarHostState.showSnackbar(effect.message)
                 LoginEffect.NavigateToHome -> snackbarHostState.showSnackbar("Logged in successfully!")
-                LoginEffect.NavigateToLogin -> { /* already here */
+                LoginEffect.NavigateToLogin -> {
+                    /* already here */
                 }
             }
         }.toViewStore()

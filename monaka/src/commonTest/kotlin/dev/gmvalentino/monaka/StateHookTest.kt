@@ -41,8 +41,8 @@ class StateHookTest {
             }
         }
         store.state.test {
-            awaitItem()   // initial state emitted; OnEnter is queued by start()
-            delay(1)      // let processing job run and fire onEnter
+            awaitItem() // initial state emitted; OnEnter is queued by start()
+            delay(1) // let processing job run and fire onEnter
             cancelAndIgnoreRemainingEvents()
         }
         assertTrue(entered)
@@ -127,10 +127,10 @@ class StateHookTest {
             }
         }
         store.state.test {
-            awaitItem()  // Counting(0)
-            delay(1)     // let initial onEnter run
+            awaitItem() // Counting(0)
+            delay(1) // let initial onEnter run
             store.dispatch(HKAction.Increment)
-            awaitItem()  // Counting(1) — same type, value changed; onEnter must NOT fire again
+            awaitItem() // Counting(1) — same type, value changed; onEnter must NOT fire again
             delay(1)
             cancelAndIgnoreRemainingEvents()
         }
@@ -186,8 +186,8 @@ class StateHookTest {
         val store = store<HKState, HKAction, HKEffect>(
             scope = backgroundScope,
             plugins = listOf(
-                plugin { onTransition { transitions += (fromState as HKState) to (toState as HKState) } }
-            )
+                plugin { onTransition { transitions += (fromState as HKState) to (toState as HKState) } },
+            ),
         ) {
             initialState(HKState.Idle)
             state<HKState.Idle> {
@@ -201,7 +201,7 @@ class StateHookTest {
         store.state.test {
             awaitItem() // initial Idle
             store.dispatch(HKAction.Activate)
-            delay(10)   // let both transitions process
+            delay(10) // let both transitions process
             cancelAndIgnoreRemainingEvents()
         }
         assertEquals(2, transitions.size)
@@ -214,7 +214,7 @@ class StateHookTest {
         val effects = mutableListOf<HKEffect>()
         val store = store<HKState, HKAction, HKEffect>(
             scope = backgroundScope,
-            plugins = listOf(plugin { onEffect { effects += effect as HKEffect } })
+            plugins = listOf(plugin { onEffect { effects += effect as HKEffect } }),
         ) {
             initialState(HKState.Active)
             state<HKState.Active> {

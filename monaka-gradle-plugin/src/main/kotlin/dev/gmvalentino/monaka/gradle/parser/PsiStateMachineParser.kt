@@ -1,4 +1,5 @@
 @file:OptIn(org.jetbrains.kotlin.K1Deprecation::class)
+@file:Suppress("ktlint:standard:no-wildcard-imports")
 
 package dev.gmvalentino.monaka.gradle.parser
 
@@ -85,12 +86,11 @@ class PsiStateMachineParser {
      * source files. Called once per [parseFiles] so the index covers every file in the
      * source set (enabling cross-file extension inlining).
      */
-    private fun buildExtensionIndex(ktFiles: List<KtFile>): Map<String, KtNamedFunction> =
-        ktFiles
-            .flatMap { it.declarations.filterIsInstance<KtNamedFunction>() }
-            .filter { fn -> "StateMachineBuilder" in (fn.receiverTypeReference?.text ?: "") }
-            .mapNotNull { fn -> fn.name?.let { name -> name to fn } }
-            .toMap()
+    private fun buildExtensionIndex(ktFiles: List<KtFile>): Map<String, KtNamedFunction> = ktFiles
+        .flatMap { it.declarations.filterIsInstance<KtNamedFunction>() }
+        .filter { fn -> "StateMachineBuilder" in (fn.receiverTypeReference?.text ?: "") }
+        .mapNotNull { fn -> fn.name?.let { name -> name to fn } }
+        .toMap()
 
     // ── Machine extraction ────────────────────────────────────────────────────
 
@@ -167,10 +167,12 @@ class PsiStateMachineParser {
                 is KtProperty -> node.name
                 else -> null
             }
-            if (raw != null) return raw
-                .removeSuffix("StateMachine")
-                .removeSuffix("Machine")
-                .replaceFirstChar { it.uppercase() }
+            if (raw != null) {
+                return raw
+                    .removeSuffix("StateMachine")
+                    .removeSuffix("Machine")
+                    .replaceFirstChar { it.uppercase() }
+            }
             node = node.parent
         }
         return ktFile.name.removeSuffix(".kt")
@@ -265,7 +267,7 @@ class PsiStateMachineParser {
             ?.let { parseHookBody(it, stateType, statePath, statePathLookup) }
 
         val lifecycleHooks = mutableMapOf<String, HookModel>()
-        for (event in LIFECYCLE_EVENTS) {
+        for (event in lifecycleEvents) {
             val hookBody = findBlockByKeyword(body, event) ?: continue
             lifecycleHooks[event] = parseHookBody(hookBody, stateType, statePath, statePathLookup) ?: HookModel()
         }
@@ -316,9 +318,11 @@ class PsiStateMachineParser {
                 ?.substringAfterLast(".")?.takeIf { it.isNotBlank() }
         }.distinct().toList()
 
-        return if (task != null || cancel != null || effects.isNotEmpty() || dispatches.isNotEmpty() || transitions.isNotEmpty())
+        return if (task != null || cancel != null || effects.isNotEmpty() || dispatches.isNotEmpty() || transitions.isNotEmpty()) {
             HookModel(task = task, effects = effects, cancel = cancel, dispatches = dispatches, transitions = transitions)
-        else null
+        } else {
+            null
+        }
     }
 
     private fun parseHandlerBody(
@@ -441,7 +445,9 @@ class PsiStateMachineParser {
         while (i < text.length) {
             when {
                 !inDouble && !inTriple && i + 2 < text.length && text[i] == '"' && text[i + 1] == '"' && text[i + 2] == '"' -> {
-                    inTriple = !inTriple; i += 3; continue
+                    inTriple = !inTriple
+                    i += 3
+                    continue
                 }
                 inTriple -> {}
                 !inTriple && text[i] == '"' && (i == 0 || text[i - 1] != '\\') -> inDouble = !inDouble
@@ -505,8 +511,7 @@ class PsiStateMachineParser {
         return effects
     }
 
-    private fun String.extractEffectName(): String =
-        substringBefore("(").trim().substringAfterLast(".").trim()
+    private fun String.extractEffectName(): String = substringBefore("(").trim().substringAfterLast(".").trim()
 
     private fun String.splitArgs(): List<String> {
         val args = mutableListOf<String>()
@@ -515,11 +520,23 @@ class PsiStateMachineParser {
         var inStr = false
         for (ch in this) {
             when {
-                ch == '"' -> { inStr = !inStr; cur.append(ch) }
+                ch == '"' -> {
+                    inStr = !inStr
+                    cur.append(ch)
+                }
                 inStr -> cur.append(ch)
-                ch == '(' -> { depth++; cur.append(ch) }
-                ch == ')' -> { depth--; cur.append(ch) }
-                ch == ',' && depth == 0 -> { args += cur.toString().trim(); cur.clear() }
+                ch == '(' -> {
+                    depth++
+                    cur.append(ch)
+                }
+                ch == ')' -> {
+                    depth--
+                    cur.append(ch)
+                }
+                ch == ',' && depth == 0 -> {
+                    args += cur.toString().trim()
+                    cur.clear()
+                }
                 else -> cur.append(ch)
             }
         }
@@ -546,5 +563,5 @@ class PsiStateMachineParser {
     private val dispatchCallRegex = Regex("""(?<!\w)dispatch\s*\(""")
     private val cancelRegex = Regex("""(?<!\w)cancel\s*\(\s*"([^"]+)"\s*\)""")
     private val taskCallRegex = Regex("""(?<!\w)task\s*(?:\(([^)]*)\))?\s*\{""")
-    private val LIFECYCLE_EVENTS = listOf("onResume", "onPause", "onStart", "onStop", "onCreate", "onDestroy")
+    private val lifecycleEvents = listOf("onResume", "onPause", "onStart", "onStop", "onCreate", "onDestroy")
 }
