@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.monaka.android.application)
-    alias(libs.plugins.compiler.plugin)
 }
 
 android {

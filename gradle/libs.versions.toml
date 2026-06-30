@@ -97,7 +97,6 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose" }
-compiler-plugin = { id = "org.jetbrains.kotlin.compiler.plugin.template", version = "0.1.0" }
 
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 metro = { id = "dev.zacsweers.metro", version.ref = "metro" }

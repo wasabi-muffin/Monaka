@@ -7,7 +7,6 @@ plugins {
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.compose.multiplatform) apply false
-    alias(libs.plugins.compiler.plugin) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.binary.compatibility.validator)
     alias(libs.plugins.spotless)

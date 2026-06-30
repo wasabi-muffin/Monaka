@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.monaka.kmp.library)
     alias(libs.plugins.monaka.compose)
-    alias(libs.plugins.compiler.plugin)
     alias(libs.plugins.ksp)
     alias(libs.plugins.monaka.gradle.plugin)
     alias(libs.plugins.metro)
