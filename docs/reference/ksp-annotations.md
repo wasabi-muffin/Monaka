@@ -233,3 +233,11 @@ sealed interface TimerState : State {
 The [stub generator](../gradle-plugin/stub-generator.md) emits exactly this pattern
 automatically from your YAML spec when `useTransitionAnnotation = true` (the default), so you
 rarely need to write the annotations by hand.
+
+---
+
+## Acknowledgements
+
+The `@Transition` and `@SelfTransition` annotations and their KSP processor were inspired by
+[Cream](https://github.com/TBSten/cream) by [TBSten](https://github.com/TBSten) — a KSP library
+for declarative copying across sealed-class hierarchies. Cream is licensed under Apache-2.0.

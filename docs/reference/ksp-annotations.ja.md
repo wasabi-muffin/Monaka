@@ -60,3 +60,11 @@ fun TimerState.toSelf(autoPause: Boolean = this.autoPause): TimerState = when (t
     is TimerState.Running -> copy(autoPause = autoPause)
 }
 ```
+
+---
+
+## 謝辞
+
+`@Transition` および `@SelfTransition` アノテーションと、その KSP プロセッサーは、sealed クラス階層間の
+宣言的なコピーを行う KSP ライブラリ [Cream](https://github.com/TBSten/cream)（作者:
+[TBSten](https://github.com/TBSten)）に着想を得ています。Cream は Apache-2.0 ライセンスで公開されています。
