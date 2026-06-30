@@ -1,0 +1,22 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+# Align ktlint with the IntelliJ "official" Kotlin style the project already uses
+# (gradle.properties: kotlin.code.style=official) instead of ktlint's stricter default.
+ktlint_code_style = intellij_idea
+# @Composable functions are intentionally PascalCase (Compose convention).
+ktlint_function_naming_ignore_when_annotated_with = Composable
+# Files intentionally group related declarations (e.g. Annotations.kt) rather than
+# always being named after a single contained class.
+ktlint_standard_filename = disabled
+
+[*.{yml,yaml}]
+indent_size = 2
