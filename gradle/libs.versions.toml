@@ -19,7 +19,7 @@ activity-compose = "1.13.0"
 
 # Test
 turbine = "1.2.1"
-kotest = "6.1.11"
+kotest = "6.2.1"
 
 # Logging
 kermit = "2.1.0"
@@ -29,7 +29,7 @@ ksp = "2.3.9"
 kotlinpoet = "2.3.0"
 
 # YAML
-snakeyaml = "2.3"
+snakeyaml = "2.6"
 
 # Publishing
 vanniktech-publish = "0.36.0"
@@ -63,6 +63,7 @@ compose-components-resources = { module = "org.jetbrains.compose.components:comp
 compose-components-ui-tooling-preview = { module = "org.jetbrains.compose.components:components-ui-tooling-preview", version.ref = "compose" }
 compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "compose-material3" }
 compose-material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "compose-material-icons" }
+compose-ui-test = { module = "org.jetbrains.compose.ui:ui-test", version.ref = "compose" }
 
 # AndroidX
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "android-core" }
