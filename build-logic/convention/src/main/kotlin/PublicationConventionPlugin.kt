@@ -41,7 +41,7 @@ class PublicationConventionPlugin : Plugin<Project> {
                 pom {
                     name.set(project.name)
                     description.set("A Kotlin Multiplatform MVI based State Machine library.")
-                    url.set("https://github.com/wasabi-muffin/Monaka")
+                    url.set("https://github.com/wasabi-muffin/monaka")
                     inceptionYear.set("2026")
 
                     licenses {
@@ -61,9 +61,9 @@ class PublicationConventionPlugin : Plugin<Project> {
                     }
 
                     scm {
-                        url.set("https://github.com/wasabi-muffin/Monaka")
-                        connection.set("scm:git:git://github.com/wasabi-muffin/Monaka.git")
-                        developerConnection.set("scm:git:ssh://github.com/wasabi-muffin/Monaka.git")
+                        url.set("https://github.com/wasabi-muffin/monaka")
+                        connection.set("scm:git:git://github.com/wasabi-muffin/monaka.git")
+                        developerConnection.set("scm:git:ssh://github.com/wasabi-muffin/monaka.git")
                     }
                 }
             }

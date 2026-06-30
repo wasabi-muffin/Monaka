@@ -1,5 +1,9 @@
 # Monaka
 
+[![Maven Central](https://img.shields.io/maven-central/v/dev.gmvalentino.monaka/monaka.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/dev.gmvalentino.monaka/monaka)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-monaka.gmvalentino.dev-blue.svg)](https://monaka.gmvalentino.dev)
+
 A Kotlin Multiplatform MVI state machine library. It provides a type-safe DSL for defining states, actions, effects, and their transitions, backed by a single-coroutine actor model that guarantees deterministic, race-free state updates.
 
 **Targets:** Android · iOS (arm64, x64, Simulator arm64) · JVM · macOS · watchOS · tvOS · Linux · Windows · JS · Wasm
