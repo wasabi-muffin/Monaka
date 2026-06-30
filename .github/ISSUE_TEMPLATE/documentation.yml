@@ -1,0 +1,42 @@
+name: 📖 Documentation issue
+description: Report something missing, unclear, or wrong in the docs
+labels: ["documentation", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Docs live in the `docs/` directory (EN + JA) and at https://monaka.gmvalentino.dev. KDoc lives alongside the code.
+
+  - type: input
+    id: location
+    attributes:
+      label: Location
+      description: URL, doc page, or source file (KDoc) the issue is about.
+      placeholder: "https://monaka.gmvalentino.dev/... or docs/en/...md"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's wrong or missing?
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement
+    validations:
+      required: false
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language
+      multiple: true
+      options:
+        - English
+        - Japanese (日本語)
+    validations:
+      required: false

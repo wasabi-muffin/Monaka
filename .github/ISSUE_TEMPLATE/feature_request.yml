@@ -1,0 +1,63 @@
+name: ✨ Feature request
+description: Suggest a new capability or improvement
+labels: ["enhancement", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea! Please search [existing issues](https://github.com/wasabi-muffin/Monaka/issues) and [discussions](https://github.com/wasabi-muffin/Monaka/discussions) first.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What problem are you trying to solve? What's painful today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the API or behavior you'd like. A sketch of the DSL surface is very welcome.
+      placeholder: |
+        ```kotlin
+        state<MyState> {
+            on<MyAction> { /* ... */ }
+        }
+        ```
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Target module
+      options:
+        - ":monaka (core)"
+        - ":monaka-compose"
+        - ":monaka-test"
+        - ":monaka-transitions"
+        - ":monaka-gradle-plugin"
+        - "Documentation / website"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds you've tried, or other approaches you weighed.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and discussions and this is not a duplicate.
+          required: true
+        - label: I'm willing to help implement this (optional, but appreciated!).
+          required: false
