@@ -45,6 +45,8 @@ plugins:
             YAML Generator: YAML ジェネレーター
             PlantUML Generator: PlantUML ジェネレーター
             Stub Generator: スタブジェネレーター
+            Tooling: ツール
+            Claude Code Skills: Claude Code スキル
             Reference: リファレンス
             Store API: Store API
             KSP Annotations: KSP アノテーション
@@ -119,6 +121,8 @@ nav:
     - YAML Generator: gradle-plugin/yaml-generator.md
     - PlantUML Generator: gradle-plugin/puml-generator.md
     - Stub Generator: gradle-plugin/stub-generator.md
+  - Tooling:
+    - Claude Code Skills: tooling/claude-skills.md
   - Reference:
     - Store API: reference/store-api.md
     - KSP Annotations: reference/ksp-annotations.md

@@ -1,0 +1,34 @@
+{
+  "name": "monaka",
+  "owner": {
+    "name": "Marco Valentino",
+    "url": "https://github.com/wasabi-muffin"
+  },
+  "metadata": {
+    "description": "Claude Code skills for building Kotlin Multiplatform MVI state machines with Monaka.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "monaka",
+      "source": "./plugins/monaka",
+      "description": "Skills for using the Monaka KMP MVI state-machine library: setup, authoring state machines, testing, Compose integration, multi-machine coordination, and code generation.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Marco Valentino",
+        "url": "https://github.com/wasabi-muffin"
+      },
+      "homepage": "https://monaka.gmvalentino.dev",
+      "repository": "https://github.com/wasabi-muffin/monaka",
+      "license": "Apache-2.0",
+      "keywords": [
+        "kotlin",
+        "kotlin-multiplatform",
+        "kmp",
+        "mvi",
+        "state-machine",
+        "compose-multiplatform"
+      ]
+    }
+  ]
+}
