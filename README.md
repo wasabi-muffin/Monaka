@@ -551,6 +551,23 @@ or call `finish()` mid-body.
 
 ---
 
+## AI assistant (Claude Code skills)
+
+Monaka ships a [Claude Code](https://claude.com/claude-code) plugin so an AI assistant can help you
+use the library in your own project. Install it from any project:
+
+```
+/plugin marketplace add wasabi-muffin/monaka
+/plugin install monaka@monaka
+```
+
+You then get skills for setup, authoring state machines, testing, Compose integration, multi-machine
+coordination, and code generation — Claude loads the right one automatically. The plugin lives in
+[`plugins/monaka`](plugins/monaka); see the [Claude Code skills docs](https://monaka.gmvalentino.dev/tooling/claude-skills/)
+for details, or copy `plugins/monaka/skills/` into your project's `.claude/skills/` to skip the marketplace.
+
+---
+
 ## Architecture overview
 
 ```

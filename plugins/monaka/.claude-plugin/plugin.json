@@ -1,0 +1,21 @@
+{
+  "name": "monaka",
+  "description": "Skills for using the Monaka Kotlin Multiplatform MVI state-machine library in your project: setup, authoring state machines, testing, Compose integration, multi-machine coordination, and code generation.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Marco Valentino",
+    "url": "https://github.com/wasabi-muffin"
+  },
+  "homepage": "https://monaka.gmvalentino.dev",
+  "repository": "https://github.com/wasabi-muffin/monaka",
+  "license": "Apache-2.0",
+  "keywords": [
+    "kotlin",
+    "kotlin-multiplatform",
+    "kmp",
+    "mvi",
+    "state-machine",
+    "compose-multiplatform",
+    "coroutines"
+  ]
+}
