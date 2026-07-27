@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+
 plugins {
     alias(libs.plugins.monaka.kmp.library)
     alias(libs.plugins.monaka.compose)
@@ -25,6 +27,17 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
+    js {
+        browser()
+        nodejs()
+    }
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+        nodejs()
+    }
+
     sourceSets {
         commonMain.dependencies {
             api(project(":monaka"))
@@ -38,9 +51,6 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test"))
         }
-        // Compose UI tests run on the JVM (desktop) target only — they need the
-        // host Skia renderer (compose.desktop.currentOs), which the plain jvm()
-        // KMP target does not pull in on its own.
         jvmTest.dependencies {
             implementation(libs.compose.ui.test)
             implementation(compose.desktop.currentOs)
