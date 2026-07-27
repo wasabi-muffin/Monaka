@@ -18,7 +18,7 @@ implementation("dev.gmvalentino.monaka:monaka-compose:<version>")
 ```
 
 Provides the Compose Multiplatform helpers: `rememberStore`, `toViewStore`, `handleEffects`,
-`bindLifecycle`, `render`, `ViewStore`, and `RenderScope`. Targets Android, iOS, and JVM.
+`bindLifecycle`, `render`, `ViewStore`, and `RenderScope`. Targets Android, iOS, JVM, JS, and Wasm.
 Brings in `:monaka` transitively. See the [Compose integration guide](../guide/compose.md).
 
 ## Test DSL
