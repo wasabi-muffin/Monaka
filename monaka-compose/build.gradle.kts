@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.monaka.kmp.library)
+    alias(libs.plugins.monaka.kmp.compose.targets)
     alias(libs.plugins.monaka.compose)
     alias(libs.plugins.monaka.explicit.api)
     alias(libs.plugins.monaka.publication)
@@ -19,11 +19,6 @@ kotlin {
         compileSdk = Config.COMPILE_SDK
         minSdk = Config.MIN_SDK
     }
-
-    jvm()
-
-    iosArm64()
-    iosSimulatorArm64()
 
     sourceSets {
         commonMain.dependencies {

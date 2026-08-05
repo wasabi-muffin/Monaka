@@ -16,7 +16,7 @@ implementation("dev.gmvalentino.monaka:monaka:<version>")
 implementation("dev.gmvalentino.monaka:monaka-compose:<version>")
 ```
 
-Compose Multiplatform ヘルパーを提供します: `rememberStore`・`toViewStore`・`handleEffects`・`bindLifecycle`・`render`・`ViewStore`・`RenderScope`。Android・iOS・JVM に対応。`:monaka` を推移的に取り込みます。[Compose インテグレーションガイド](../guide/compose.md)を参照してください。
+Compose Multiplatform ヘルパーを提供します: `rememberStore`・`toViewStore`・`handleEffects`・`bindLifecycle`・`render`・`ViewStore`・`RenderScope`。Compose Multiplatform が配布するすべてのプラットフォームに対応します: Android・iOS（arm64・Simulator arm64）・JVM・macOS・watchOS・tvOS・Linux・Windows・JS・Wasm。`:monaka` を推移的に取り込みます。[Compose インテグレーションガイド](../guide/compose.md)を参照してください。
 
 ## テスト DSL
 
