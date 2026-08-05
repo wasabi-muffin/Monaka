@@ -25,6 +25,10 @@ gradlePlugin {
             id = "monaka.kmp.targets"
             implementationClass = "KmpTargetsConventionPlugin"
         }
+        register("monakaKmpComposeTargets") {
+            id = "monaka.kmp.compose.targets"
+            implementationClass = "KmpComposeTargetsConventionPlugin"
+        }
         register("monakaCompose") {
             id = "monaka.compose"
             implementationClass = "ComposeConventionPlugin"
